@@ -9,38 +9,128 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProfileTechRouteImport } from './routes/profile.tech'
+import { Route as ProfileDesignRouteImport } from './routes/profile.design'
 
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingRoute = BookingRouteImport.update({
+  id: '/booking',
+  path: '/booking',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileTechRoute = ProfileTechRouteImport.update({
+  id: '/profile/tech',
+  path: '/profile/tech',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileDesignRoute = ProfileDesignRouteImport.update({
+  id: '/profile/design',
+  path: '/profile/design',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/booking': typeof BookingRoute
+  '/dashboard': typeof DashboardRoute
+  '/search': typeof SearchRoute
+  '/profile/design': typeof ProfileDesignRoute
+  '/profile/tech': typeof ProfileTechRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/booking': typeof BookingRoute
+  '/dashboard': typeof DashboardRoute
+  '/search': typeof SearchRoute
+  '/profile/design': typeof ProfileDesignRoute
+  '/profile/tech': typeof ProfileTechRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/booking': typeof BookingRoute
+  '/dashboard': typeof DashboardRoute
+  '/search': typeof SearchRoute
+  '/profile/design': typeof ProfileDesignRoute
+  '/profile/tech': typeof ProfileTechRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/booking'
+    | '/dashboard'
+    | '/search'
+    | '/profile/design'
+    | '/profile/tech'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/booking'
+    | '/dashboard'
+    | '/search'
+    | '/profile/design'
+    | '/profile/tech'
+  id:
+    | '__root__'
+    | '/'
+    | '/booking'
+    | '/dashboard'
+    | '/search'
+    | '/profile/design'
+    | '/profile/tech'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BookingRoute: typeof BookingRoute
+  DashboardRoute: typeof DashboardRoute
+  SearchRoute: typeof SearchRoute
+  ProfileDesignRoute: typeof ProfileDesignRoute
+  ProfileTechRoute: typeof ProfileTechRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking': {
+      id: '/booking'
+      path: '/booking'
+      fullPath: '/booking'
+      preLoaderRoute: typeof BookingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +138,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile/tech': {
+      id: '/profile/tech'
+      path: '/profile/tech'
+      fullPath: '/profile/tech'
+      preLoaderRoute: typeof ProfileTechRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/design': {
+      id: '/profile/design'
+      path: '/profile/design'
+      fullPath: '/profile/design'
+      preLoaderRoute: typeof ProfileDesignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BookingRoute: BookingRoute,
+  DashboardRoute: DashboardRoute,
+  SearchRoute: SearchRoute,
+  ProfileDesignRoute: ProfileDesignRoute,
+  ProfileTechRoute: ProfileTechRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
