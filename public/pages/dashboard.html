@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ExpertHub | Client Dashboard</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary": "#ffffff",
+                    "background": "#f9f9ff",
+                    "outline": "#737685",
+                    "primary-fixed": "#dae2ff",
+                    "on-secondary-fixed": "#191c1e",
+                    "surface": "#f9f9ff",
+                    "secondary-container": "#dee0e2",
+                    "on-tertiary-fixed-variant": "#624000",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "primary-container": "#0052cc",
+                    "on-background": "#041b3c",
+                    "secondary-fixed-dim": "#c5c6c8",
+                    "on-error-container": "#93000a",
+                    "surface-container": "#e8edff",
+                    "tertiary": "#5e3c00",
+                    "outline-variant": "#c3c6d6",
+                    "tertiary-fixed": "#ffddb3",
+                    "on-primary-container": "#c4d2ff",
+                    "surface-container-highest": "#d7e2ff",
+                    "on-tertiary-fixed": "#291800",
+                    "secondary": "#5c5f60",
+                    "inverse-primary": "#b2c5ff",
+                    "secondary-fixed": "#e1e2e4",
+                    "surface-container-low": "#f1f3ff",
+                    "inverse-on-surface": "#edf0ff",
+                    "primary-fixed-dim": "#b2c5ff",
+                    "primary": "#003d9b",
+                    "surface-container-high": "#e0e8ff",
+                    "surface-bright": "#f9f9ff",
+                    "error-container": "#ffdad6",
+                    "inverse-surface": "#1d3052",
+                    "on-secondary-fixed-variant": "#444749",
+                    "tertiary-fixed-dim": "#ffb950",
+                    "tertiary-container": "#7d5200",
+                    "error": "#ba1a1a",
+                    "surface-variant": "#d7e2ff",
+                    "surface-dim": "#cadaff",
+                    "surface-container-lowest": "#ffffff",
+                    "on-surface-variant": "#434654",
+                    "on-tertiary-container": "#ffca81",
+                    "on-primary-fixed-variant": "#0040a2",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-container": "#606365",
+                    "surface-tint": "#0c56d0",
+                    "on-primary-fixed": "#001848",
+                    "on-surface": "#041b3c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "base": "8px",
+                    "margin-desktop": "64px",
+                    "margin-mobile": "16px",
+                    "md": "24px",
+                    "xl": "80px",
+                    "lg": "48px",
+                    "xs": "4px",
+                    "gutter": "24px",
+                    "sm": "12px"
+            },
+            "fontFamily": {
+                    "display-lg-mobile": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "body-md": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "body-lg": ["Inter"],
+                    "caption": ["Inter"]
+            },
+            "fontSize": {
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9ff;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c3c6d6;
+            border-radius: 10px;
+        }
+        .active-tab {
+            border-bottom: 2px solid #003d9b;
+            color: #003d9b;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim cursor-pointer active:scale-95 transition-transform">menu</span>
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</h1>
+</div>
+<div class="flex items-center gap-md">
+<nav class="hidden md:flex gap-lg">
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-xs py-xs rounded-lg font-label-sm text-label-sm" href="#">Dashboard</a>
+<a class="text-primary dark:text-primary-fixed-dim font-bold font-label-sm text-label-sm" href="#">Bookings</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-xs py-xs rounded-lg font-label-sm text-label-sm" href="#">Providers</a>
+</nav>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant active:scale-95 transition-transform cursor-pointer">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a middle-aged male client for a corporate service platform. He has a friendly, trustworthy expression and is wearing a crisp navy blazer. The background is a clean, softly blurred modern office interior with neutral tones and cool daylight, matching a premium Service Blue color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbEBxW1-0zRtA6UYMpGhtWggiHhis3uE5A_47_G2DEida6hKSH8Xnw2yiqzAQGWUhrx-M7nlx6VLdk-pQvROEX5-0s5M8lbuoCDvVSewkDdgZ5D5XDanLd-FYCDhvCo7y3uMW4FJv7UiGY-EaciFV-akofKVVJmMh3aotrEjiKg6tnPYEZDtsBVFoZhmLeFi97i-fqhGKAjVMKcU-YCzvZPKRFnMFhChhnqUWyLauA-W03NFWplVBnkSHxggwfqT85GSZb8LM1tt0"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop py-lg pb-xl">
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Profile Summary Section (Col 1-4) -->
+<aside class="md:col-span-4 space-y-gutter">
+<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-sm">
+<div class="flex flex-col items-center text-center">
+<div class="relative mb-md">
+<div class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="A detailed portrait of a professional-looking individual, used as a user profile avatar. The person has a warm, confident smile and is dressed in business casual attire. The photography style is high-fidelity, featuring soft ambient lighting from the side, creating a clear and reliable persona against a minimalist, light grey studio background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgMyGz11EEmYF-QwkZdkon3IFpTl0v1sJ1YPp9ajQQyuGbBn6QNSp1ISSlCJjoJWxrYM9mhTGrOI0laV7W1eG9IU6Sd-9tbHkXqhjZgr6K7SuGOPRW7dsjOwzWC89vx6Ge91IkjbTrAXwYXzrmbKixH8ajcgyT-7jKjFrqEpVGVX0tTJ3lQoPJzRJOgi1sKA2xyXlaFVWbIsqIJGOkpOEQkz_Gvhn5X6_g4yboIHcqh67GMa4Z8ElSNyLyNmdIIplyERw1uHijxFw"/>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary text-on-primary p-xs rounded-full shadow-md active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm" style="font-size: 16px;">edit</span>
+</button>
+</div>
+<h2 class="text-headline-md font-headline-md text-on-surface">Alexander Sterling</h2>
+<p class="text-on-surface-variant font-body-md text-body-md mb-md">Premium Client</p>
+<a class="inline-flex items-center gap-xs text-primary font-label-sm text-label-sm hover:underline" href="#">
+                            Edit Profile
+                            <span class="material-symbols-outlined text-sm">open_in_new</span>
+</a>
+</div>
+<hr class="my-lg border-outline-variant"/>
+<div class="space-y-sm">
+<h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Quick Settings</h3>
+<div class="space-y-xs">
+<button class="w-full flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">notifications</span>
+<span class="text-body-md font-body-md">Notifications</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">payments</span>
+<span class="text-body-md font-body-md">Payment Methods</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">security</span>
+<span class="text-body-md font-body-md">Security</span>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Trust / Status Card -->
+<div class="bg-primary text-on-primary p-md rounded-xl shadow-elevated relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="font-headline-md text-label-sm mb-xs opacity-90">Membership Status</h3>
+<p class="text-headline-md font-headline-md mb-md">Gold Tier Professional</p>
+<div class="bg-on-primary/10 rounded-lg p-sm border border-on-primary/20">
+<div class="flex justify-between items-center mb-xs">
+<span class="text-caption font-caption">Next Review</span>
+<span class="text-caption font-caption">Oct 12, 2024</span>
+</div>
+<div class="w-full bg-on-primary/20 h-1.5 rounded-full">
+<div class="bg-tertiary-fixed h-full w-[75%] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Ambient Light Pattern -->
+<div class="absolute -right-4 -bottom-4 w-32 h-32 bg-on-primary/10 rounded-full blur-3xl"></div>
+</div>
+</aside>
+<!-- Bookings Section (Col 5-12) -->
+<section class="md:col-span-8">
+<div class="flex flex-col h-full bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+<div class="p-md md:p-lg border-b border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-md">
+<div>
+<h2 class="text-headline-md font-headline-md text-on-surface">My Bookings</h2>
+<p class="text-on-surface-variant font-body-md text-body-md">Manage your professional consultations and history.</p>
+</div>
+<div class="flex bg-surface-container-low p-xs rounded-lg">
+<button class="px-md py-xs rounded-md text-label-sm font-label-sm transition-all duration-200 bg-surface shadow-sm text-primary" id="tab-upcoming" onclick="switchTab('upcoming')">Upcoming</button>
+<button class="px-md py-xs rounded-md text-label-sm font-label-sm transition-all duration-200 text-on-surface-variant hover:text-on-surface" id="tab-history" onclick="switchTab('history')">History</button>
+</div>
+</div>
+<div class="p-md md:p-lg space-y-md flex-1">
+<!-- Upcoming Tab Content -->
+<div class="space-y-md" id="content-upcoming">
+<!-- Booking Card 1: Confirmed -->
+<div class="group flex flex-col sm:flex-row gap-md p-md bg-surface border border-outline-variant rounded-lg hover:border-primary/50 transition-all hover:shadow-md cursor-pointer">
+<div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female legal expert in a sophisticated office. She is wearing a tailored charcoal suit and a light blue silk blouse. The lighting is bright and architectural, reflecting a corporate modernism aesthetic with high clarity and professional trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcUt0myMhSMpsOsaXqtT5RaExBlE5FY7AcFwaZ8qsgChjxYoCz2d-S1vDX6PnzrbtnnC0kQVPkcCve3Di_uv1Fjy77T_wyUXde0wx9f2PJaPIYJyOsjql8Lp6M_Xxjqb1AnkF67AwUKPP-fZy7y0wco5_B6SRkP8NZ1pdeb9C_uEQqJnixrSxUBB2biuDKjhyvNfPAIWpdWtbGhURK5A9kYcH-njKtcMOklXMZp3tBkDQf7ghUO4qJbS6yq_xEFwE0C-_cByKyhnI"/>
+</div>
+<div class="flex-1">
+<div class="flex flex-wrap justify-between items-start mb-xs">
+<div>
+<h4 class="text-body-lg font-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors">Sarah Jenkins, Esq.</h4>
+<p class="text-caption font-caption text-on-surface-variant">Corporate Law Consultation</p>
+</div>
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-primary-fixed text-on-primary-fixed-variant text-caption font-label-sm">
+<span class="w-2 h-2 rounded-full bg-primary mr-xs"></span>
+                                            Confirmed
+                                        </span>
+</div>
+<div class="flex flex-wrap gap-md mt-sm">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span class="text-label-sm font-label-sm">Sept 24, 2024</span>
+</div>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-label-sm font-label-sm">10:00 AM - 11:30 AM</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Booking Card 2: Pending -->
+<div class="group flex flex-col sm:flex-row gap-md p-md bg-surface border border-outline-variant rounded-lg hover:border-primary/50 transition-all hover:shadow-md cursor-pointer">
+<div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="Close up of a male financial advisor in a sleek boardroom setting. He is looking at a tablet with a focused and professional expression. The atmosphere is high-value and reliable, using a color palette of service blue and warm greys, emphasized by soft-focus background elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBqRliENoOoGlfJNf8O65oNSozU953UA3m5PLxMvL9F4vyaqOjHZ2U1nySv8BLwIJAEJUeki7ZgKpo-n_G5eWVV0VI6nWDForeIxOwEyIUf-ZSe-tr6xylpm_ceSC4rOojM9QAWaWxVOeDklE44H28jB6SJDxJVKP80svkpzWae_ZxpLXIC9I-hzp-44HfR-Tte1P9ux3hruD6bKSyCypSKRsJsBJEAol0i_pnSmQ3xkDzpBtDciu1GnTz_B3Ugn_M2fgJvEpXJuE"/>
+</div>
+<div class="flex-1">
+<div class="flex flex-wrap justify-between items-start mb-xs">
+<div>
+<h4 class="text-body-lg font-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors">Marcus Thorne</h4>
+<p class="text-caption font-caption text-on-surface-variant">Tax Strategy Session</p>
+</div>
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-caption font-label-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary mr-xs animate-pulse"></span>
+                                            Pending
+                                        </span>
+</div>
+<div class="flex flex-wrap gap-md mt-sm">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span class="text-label-sm font-label-sm">Sept 28, 2024</span>
+</div>
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-label-sm font-label-sm">2:00 PM - 3:00 PM</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- History Tab Content (Hidden by default) -->
+<div class="hidden space-y-md" id="content-history">
+<div class="group flex flex-col sm:flex-row gap-md p-md bg-surface-container-low/50 border border-outline-variant rounded-lg grayscale hover:grayscale-0 transition-all cursor-pointer">
+<div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant opacity-60">
+<img class="w-full h-full object-cover" data-alt="A portrait of a male business consultant in a high-end minimalist lobby. Clean lines, soft professional lighting, corporate modernism style with a focus on competence and white-glove service feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgmF1-eAyfRAdWL_a9bRfNBKG7_PiVxEDWSjm2TVs_oPXJkCP5rNH9QHhD80a8wYIhtj0PveRcjwQSj8ddLJAWRl44IeGOyFGKF1xfxS2k-NSNlT083U6grdsUD24UdktN9dqcr7VQRfukVqq6AsJaJqonEUcoZIf5naLDKGa_E99rfmMtAhVf2JLW4yI-lYFYsEeXnU5fYdtt3ZdjAq4OC8E559flIp4icLMNNQhTWHzrV79Yqhqiki_AFFQzjYWJKLg3UvReJnQ"/>
+</div>
+<div class="flex-1">
+<div class="flex flex-wrap justify-between items-start mb-xs">
+<div>
+<h4 class="text-body-lg font-body-lg text-on-surface font-semibold">David Chen</h4>
+<p class="text-caption font-caption text-on-surface-variant">Initial Strategy Audit</p>
+</div>
+<span class="inline-flex items-center px-sm py-xs rounded-full bg-secondary-container text-on-secondary-container text-caption font-label-sm">
+<span class="material-symbols-outlined text-sm mr-xs">check_circle</span>
+                                            Completed
+                                        </span>
+</div>
+<div class="flex flex-wrap gap-md mt-sm">
+<div class="flex items-center gap-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span class="text-label-sm font-label-sm">Aug 15, 2024</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer link in Section -->
+<div class="p-md bg-surface-container-low/30 text-center">
+<button class="text-primary font-label-sm text-label-sm hover:underline inline-flex items-center gap-xs">
+                            View All Bookings
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-xl px-margin-mobile bg-surface dark:bg-surface-dim md:hidden border-t border-outline-variant dark:border-outline shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="text-label-sm font-label-sm">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
+<span class="text-label-sm font-label-sm">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-label-sm font-label-sm">Inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-sm font-label-sm">Profile</span>
+</a>
+</nav>
+<!-- Footer (Web Only) -->
+<footer class="hidden md:block w-full py-xl px-margin-desktop bg-surface-container dark:bg-surface-container-lowest border-t border-outline-variant">
+<div class="max-w-1440 mx-auto grid grid-cols-1 md:grid-cols-4 gap-xl">
+<div class="col-span-1">
+<h2 class="text-headline-md font-headline-md text-primary dark:text-primary-fixed-dim mb-md">ExpertHub</h2>
+<p class="text-on-surface-variant text-caption font-caption">Connecting elites with expertise. Professional reliability in every interaction.</p>
+</div>
+<div class="col-span-1">
+<h4 class="text-label-sm font-label-sm text-on-surface mb-md">Company</h4>
+<ul class="space-y-sm">
+<li><a class="text-on-surface-variant text-caption font-caption hover:text-primary transition-colors" href="#">Become a Provider</a></li>
+<li><a class="text-on-surface-variant text-caption font-caption hover:text-primary transition-colors" href="#">Help Center</a></li>
+</ul>
+</div>
+<div class="col-span-1">
+<h4 class="text-label-sm font-label-sm text-on-surface mb-md">Legal</h4>
+<ul class="space-y-sm">
+<li><a class="text-on-surface-variant text-caption font-caption hover:text-primary transition-colors" href="#">Terms of Service</a></li>
+<li><a class="text-on-surface-variant text-caption font-caption hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+</ul>
+</div>
+<div class="col-span-1">
+<h4 class="text-label-sm font-label-sm text-on-surface mb-md">Newsletter</h4>
+<div class="flex gap-xs">
+<input class="bg-surface border border-outline-variant px-sm py-xs text-label-sm rounded focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all w-full" placeholder="Email" type="email"/>
+<button class="bg-primary text-on-primary px-sm py-xs rounded hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+<div class="max-w-1440 mx-auto mt-xl pt-lg border-t border-outline-variant flex justify-between items-center">
+<p class="text-on-surface-variant text-caption font-caption">© 2024 ExpertHub Professional Services. All rights reserved.</p>
+<div class="flex gap-md">
+<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">language</span></a>
+<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">share</span></a>
+</div>
+</div>
+</footer>
+<script>
+        function switchTab(tab) {
+            const upcomingBtn = document.getElementById('tab-upcoming');
+            const historyBtn = document.getElementById('tab-history');
+            const upcomingContent = document.getElementById('content-upcoming');
+            const historyContent = document.getElementById('content-history');
+
+            if (tab === 'upcoming') {
+                upcomingBtn.classList.add('bg-surface', 'shadow-sm', 'text-primary');
+                upcomingBtn.classList.remove('text-on-surface-variant');
+                historyBtn.classList.remove('bg-surface', 'shadow-sm', 'text-primary');
+                historyBtn.classList.add('text-on-surface-variant');
+
+                upcomingContent.classList.remove('hidden');
+                historyContent.classList.add('hidden');
+            } else {
+                historyBtn.classList.add('bg-surface', 'shadow-sm', 'text-primary');
+                historyBtn.classList.remove('text-on-surface-variant');
+                upcomingBtn.classList.remove('bg-surface', 'shadow-sm', 'text-primary');
+                upcomingBtn.classList.add('text-on-surface-variant');
+
+                historyContent.classList.remove('hidden');
+                upcomingContent.classList.add('hidden');
+            }
+        }
+    </script>
+</body></html>

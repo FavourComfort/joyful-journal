@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ExpertHub | Professional Profile</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Custom scrollbar for better UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c3c6d6;
+            border-radius: 10px;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary": "#ffffff",
+                      "background": "#f9f9ff",
+                      "outline": "#737685",
+                      "primary-fixed": "#dae2ff",
+                      "on-secondary-fixed": "#191c1e",
+                      "surface": "#f9f9ff",
+                      "secondary-container": "#dee0e2",
+                      "on-tertiary-fixed-variant": "#624000",
+                      "on-secondary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "primary-container": "#0052cc",
+                      "on-background": "#041b3c",
+                      "secondary-fixed-dim": "#c5c6c8",
+                      "on-error-container": "#93000a",
+                      "surface-container": "#e8edff",
+                      "tertiary": "#5e3c00",
+                      "outline-variant": "#c3c6d6",
+                      "tertiary-fixed": "#ffddb3",
+                      "on-primary-container": "#c4d2ff",
+                      "surface-container-highest": "#d7e2ff",
+                      "on-tertiary-fixed": "#291800",
+                      "secondary": "#5c5f60",
+                      "inverse-primary": "#b2c5ff",
+                      "secondary-fixed": "#e1e2e4",
+                      "surface-container-low": "#f1f3ff",
+                      "inverse-on-surface": "#edf0ff",
+                      "primary-fixed-dim": "#b2c5ff",
+                      "primary": "#003d9b",
+                      "surface-container-high": "#e0e8ff",
+                      "surface-bright": "#f9f9ff",
+                      "error-container": "#ffdad6",
+                      "inverse-surface": "#1d3052",
+                      "on-secondary-fixed-variant": "#444749",
+                      "tertiary-fixed-dim": "#ffb950",
+                      "tertiary-container": "#7d5200",
+                      "error": "#ba1a1a",
+                      "surface-variant": "#d7e2ff",
+                      "surface-dim": "#cadaff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-surface-variant": "#434654",
+                      "on-tertiary-container": "#ffca81",
+                      "on-primary-fixed-variant": "#0040a2",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-container": "#606365",
+                      "surface-tint": "#0c56d0",
+                      "on-primary-fixed": "#001848",
+                      "on-surface": "#041b3c"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "base": "8px",
+                      "margin-desktop": "64px",
+                      "margin-mobile": "16px",
+                      "md": "24px",
+                      "xl": "80px",
+                      "lg": "48px",
+                      "xs": "4px",
+                      "gutter": "24px",
+                      "sm": "12px"
+              },
+              "fontFamily": {
+                      "display-lg-mobile": ["Hanken Grotesk"],
+                      "headline-md": ["Hanken Grotesk"],
+                      "body-md": ["Inter"],
+                      "label-sm": ["Inter"],
+                      "display-lg": ["Hanken Grotesk"],
+                      "body-lg": ["Inter"],
+                      "caption": ["Inter"]
+              },
+              "fontSize": {
+                      "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen pb-24 md:pb-0 font-body-md text-body-md">
+<!-- Top AppBar (Desktop) -->
+<header class="bg-surface dark:bg-surface-dim shadow-sm w-full sticky top-0 z-50">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
+<div class="flex items-center gap-sm">
+<button class="md:hidden text-primary active:scale-95 transition-transform">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</h1>
+</div>
+<nav class="hidden md:flex gap-lg">
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-base py-xs rounded" href="#">Explore</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-base py-xs rounded" href="#">Bookings</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-base py-xs rounded" href="#">Inbox</a>
+</nav>
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a business user, high-end photography, soft studio lighting, neutral background, looking confident and approachable. The overall aesthetic is clean, corporate modernism, with high clarity and polished detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCSUaVRneP5slVXCDp-nTc9iSZy09HlOxZdwc4_zbqeLf58fjXdHaU5N6UvuuHoM860cRkpN9e2HKT-QSlEV3s9tUtrLkYXC_0OlLGXsgWmcunNaCGar1CjTWA373nod7-aPWEckGyyaa-KZlW37NzQWol72yKEPiwkhCEvH3JK-00tcd1JjxXrzPzinCemmnykPRx0H3rg-CqlyjpvBt9wAEuuCJ35PLWWMCguqiXuinJJMczm78R32GSueiZtBoUXLB-9eJEozKY"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-1440 mx-auto">
+<!-- Hero Profile Section -->
+<section class="relative w-full">
+<!-- Cover Photo -->
+<div class="h-64 md:h-80 w-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A wide cinematic shot of a professional architect's studio, filled with natural light, high-end design models, blueprints, and minimalist modern furniture. The lighting is bright and airy, reflecting a clean light-mode aesthetic with soft blue and grey tones. Professional, sophisticated, and trustworthy atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1p1k6pW65WC15bJ7O1ieqG3VQWzB-TUhXuf7xJI1zs4oh14tC0c0cjsNcCaqeDbJVlEruEVJz7iHZ1Bgpz4G-k_zQC7gfQ19TDSPEBTai-l1fcrKWhLUCfWSV0LL7jo6VpAotulOx2k2zTUx0Vyb2-SuCmKQWrKaYyVxtSs7b9ChYh21D4vEi_ZyScTqazpp0qDdc6a3j8rPRHGPesX2XBsoGFae7Kw-UkqtuZVCMC9yoC_Upc2HmriS_eYRZM1orR78ImHg4jRQ"/>
+</div>
+<!-- Profile Info Overlay -->
+<div class="px-margin-mobile md:px-margin-desktop -mt-16 md:-mt-24 relative z-10">
+<div class="flex flex-col md:flex-row md:items-end gap-md md:gap-lg">
+<!-- Avatar -->
+<div class="w-32 h-32 md:w-48 md:h-48 rounded-xl border-4 border-white shadow-lg overflow-hidden bg-white">
+<img class="w-full h-full object-cover" data-alt="A premium, professional portrait of a senior consultant. High-end lighting, detailed facial features, business attire, soft blurred office background. The style is authoritative yet accessible, clean and high-fidelity, following a Corporate Modernism design language." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEzJPd_JIsj0vdjn7d6XeSTJwbb2-tFuCBdp7GgwJYfHxWVMqDXls3BGUkTleZZovKCHuppN6vgVpjaXe4smFOxLIo3I1U01xdAEJf8PUBWPauMZwZMgpLV4Yj_PnkZt0r9bes2CVHxhnq97gMVSUKQJzwJNfcURXigIJ8b0smTy9LCngdTf3jjV9e-Q4L7fj0kGTrFj0ZhP1gVsVSKqTMkD6CCCQ-MG0Wm2SdfGusqw6b59p7UZNYCt12njv1YloTllnm4lJtRgE"/>
+</div>
+<!-- Text Details -->
+<div class="pb-base">
+<div class="flex items-center gap-xs">
+<h2 class="text-display-lg-mobile md:text-display-lg font-display-lg-mobile md:font-display-lg text-on-surface">Julian Sterling</h2>
+<span class="material-symbols-outlined text-primary fill-icon" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="text-body-lg font-body-lg text-on-surface-variant">Strategic Brand Architect &amp; Creative Director</p>
+<div class="flex items-center gap-sm mt-xs">
+<div class="flex items-center text-tertiary">
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="ml-1 font-bold">4.9</span>
+</div>
+<span class="text-outline">•</span>
+<span class="text-on-surface-variant">128 Reviews</span>
+<span class="text-outline">•</span>
+<span class="text-on-surface-variant">London, UK</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="px-margin-mobile md:px-margin-desktop py-lg grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Left Column: Bio & Portfolio -->
+<div class="md:col-span-8 space-y-lg">
+<!-- About -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+<h3 class="text-headline-md font-headline-md text-on-surface mb-base">About</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                        With over 12 years of experience in high-growth startups and Fortune 500 companies, I specialize in distilling complex business values into resonant brand identities. My approach combines data-driven strategy with world-class visual design to ensure your brand doesn't just look better, but performs better. 
+                        <br/><br/>
+                        I focus on sustainable design systems, narrative clarity, and market-defying positioning. When you book a session, we'll dive deep into your brand DNA to uncover the unique value that sets you apart.
+                    </p>
+<div class="flex flex-wrap gap-base mt-md">
+<span class="bg-surface-container-high text-primary px-sm py-xs rounded-lg text-label-sm font-label-sm">Brand Strategy</span>
+<span class="bg-surface-container-high text-primary px-sm py-xs rounded-lg text-label-sm font-label-sm">UI/UX Design</span>
+<span class="bg-surface-container-high text-primary px-sm py-xs rounded-lg text-label-sm font-label-sm">Art Direction</span>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed-variant px-sm py-xs rounded-lg text-label-sm font-label-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">workspace_premium</span> Certified Expert
+                        </span>
+</div>
+</div>
+<!-- Portfolio Bento Grid -->
+<div>
+<h3 class="text-headline-md font-headline-md text-on-surface mb-base">Recent Work</h3>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-sm">
+<div class="aspect-square rounded-xl overflow-hidden shadow-sm group relative">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="A minimalist tech brand identity showcase. Clean typography, vibrant primary blue accents, mobile app screens floating in a white space. Professional, high-fidelity portfolio piece." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_0nLn19oQvUFR3P8Kh2dmCtWt7eJrHHRucBCV-YMJqoPX1NebAy2bhWD6NbsTHtneOb6kv5VM6Qxa4Qb4eyQXshlvOfg5omSn6ei-SfEYQi7e1uK03nYok58UfeBHcHAKIsDEkCaH19UDoPhEcL-jl7w0iyVlSLMC0N4z1u_K1YPeXjv3mfAwbNj9moHRneFYR4pCpyLv_yBkqKfBgm0UVxpqMOwUq4ahxQcrKIw15OLHYp0m3JsO82JjU2Yj90wHY27EaFpVosU"/>
+</div>
+<div class="aspect-square rounded-xl overflow-hidden shadow-sm group relative md:row-span-2">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="A professional architectural website layout on a MacBook Pro screen. High contrast photography, clean grid-based design, elegant serif headers. High-end modern aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzS6xqKbbOEBOzgOcpXkOHENO4Hcl0wpJlaFrOO52y-T1mPRFYxp_raOfHFSPUXkUENoL6TualBNwqOgeoJ1ilinje14OxvhEAY7oaTd6UsATKcFFn-wWUBeVjmT8SJ_gDizGwAm8dYY0JzO_Zku-F9ynQ5ExkdoT99cZprDWklXhtIPWEWezsZjqIotaj4OR3Hz7Cokx2JkHAJXHFfHnzdhkNS-3BWTTg4AqlcKLMC3cxgRGd4Lga1y02ht_EjV39D-cQuXZ-Fs0"/>
+</div>
+<div class="aspect-square rounded-xl overflow-hidden shadow-sm group relative">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Luxury cosmetic packaging design. Matte finish, gold foil embossed logo, sophisticated neutral color palette of beige and cream. High-end product photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_U34J3sDT5PrjJ2KdGilwKegFbEHQwQh4bJTMmJtWtm6MFKXfiDLM-n52EIiVs8B1cRF3ZbYs-QbZbWB6T-qpvXYqaDgk55YaCMoU-VG_Q7aFIAW-QZr0PGWw3RB4p6y_by2NeuahqrUrea_NpA_XvVCuP3ZjYKwte35wOgw9m2xViWVED7injGBgL1TgFRhq03-c_1amaxcIrWEOiMvmBQu83yMNYz8KWhMBe1jEAiqeBwZ56lJ2teNq8-ZVaXW7qwG4PZkZ--M"/>
+</div>
+<div class="aspect-square rounded-xl overflow-hidden shadow-sm group relative">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="A futuristic fintech dashboard interface. Deep navy backgrounds, neon blue glowing charts and graphs, glassmorphism UI elements. Detailed and professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-r-FuOEMT_Qw9OFY2x3jI4jmXO5zgsuI_fDnz0_c7EFP6gaAVf9qMOyPyYzV9KpWu4JsktRmIHHI4CVK2R0oKxvwngaelcYe6u89OPIRW4DDC1e2mtggUoeIVAYI7aoC--KpvMl_JYavCDAmp1xPnBe5YPZoNH3HVi5F4R68mMO8ftVDrJcQZFtZpFg6gl_jjrbrr7DPmiOe4tJYYD5gYGEZ_nf4_OtrEx3EB92HpczuJEEKMXcd9N7ZM0jxPZAXMQv8ETvCtUg8"/>
+</div>
+<div class="aspect-square rounded-xl overflow-hidden shadow-sm group relative">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-105" data-alt="Corporate office interior design project. Modern sustainable materials, wood and glass partitions, open workspace with professional lighting. High-end architectural photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNt_33IlgswzGKGdAHIUnQEY5dpGVNqbJgpgTBy5vpNofGsfw66HBnmWwbIKp7uHNlXBLfl8VKgBEtGsmMANRQQDNQ2NfOI8uEMYwl0An4zsWkWBl30EbK0zC2_DHw3o1ABsnJIHHQGUfhkx_8rMUFXQe9UgivRfKnhG6dUjamJwXwbUASPd1wCuUkfpM_sVpuCE41R9w0rkdU4Vyfc19SHtnv7JH0fQEnusLR6OxTxjKVMT7CmjpSqXP97sY57PzrUG6a8n6xorY"/>
+</div>
+</div>
+</div>
+<!-- Reviews -->
+<div>
+<div class="flex justify-between items-center mb-base">
+<h3 class="text-headline-md font-headline-md text-on-surface">Client Reviews</h3>
+<button class="text-primary font-bold text-label-sm hover:underline">View All</button>
+</div>
+<div class="space-y-sm">
+<!-- Review Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-secondary-container">
+<img class="w-full h-full object-cover" data-alt="Portrait of a female tech founder, professional attire, soft lighting, modern office background. High-fidelity and trustworthy feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGcf-2DRpnwaLly1EQxjUKZ9EaSHy7jljVnpGzVYkLVatkXUFzcZnRAf5sdBsbsVPk5_dSmrlS9U-TSh_Pq7rPeJV-0LOJ6vVZDhyITggRYO9DaLpV46zyLQy5RP4nSCxus4RcVUUCntDQcxPNrxaPPOAcu0FqSjbFR9Izk5vmWVEgw2yt92Q3gpcuNFIx8rpb81K7l2hgbMpCs1EBdjekYiAmzfAjWmLwlKqbUCmaUcEhPTDaqgZhjLiVx0izsbdt1_ZtmNsqa5o"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Sarah Jenkins</p>
+<p class="text-caption font-caption text-on-surface-variant">CEO, FlowSystems</p>
+</div>
+</div>
+<div class="flex text-tertiary">
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+</div>
+</div>
+<p class="text-on-surface-variant italic">"Julian completely transformed our brand perspective. His ability to synthesize our messy ideas into a cohesive strategic vision was worth every penny. Professional, prompt, and incredibly skilled."</p>
+</div>
+<!-- Review Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-secondary-container">
+<img class="w-full h-full object-cover" data-alt="Portrait of a male marketing executive, sharp professional look, daylight lighting, clean minimalist backdrop. High-end corporate style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIqHsgGGY7-Pr60HoxWbXqgzBXU1mvMDXgClHBsum_xo_pZi4gS9s9twQjlICVIHgYjv-e5WjzXrMtCch8OqzrXzj6XN0Ejs-tYE-fxgySuSoCSbPj94FEm5ssj88K9xplPEyABSvEvcyQOmq-LrcYfSe94muiaObkWo2ZXbMHBwCdV3_bKbw63A9gwBlwmQ92aBo6D-RZXOLHh-NUchje1d_wJyTL1HYlgL982sDIMBB9IlJY9-V7JF08GE9xiec8kd1_CTACQUs"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Marcus Thorne</p>
+<p class="text-caption font-caption text-on-surface-variant">Director of Marketing, Arclight</p>
+</div>
+</div>
+<div class="flex text-tertiary">
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+<span class="material-symbols-outlined fill-icon text-sm">star</span>
+</div>
+</div>
+<p class="text-on-surface-variant italic">"An exceptional creative partner. We've hired Julian for three major projects now and the quality remains consistent. He has an eye for detail that is rare in the industry."</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Pricing & Booking -->
+<div class="md:col-span-4">
+<div class="sticky top-24 space-y-md">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+<h3 class="text-headline-md font-headline-md text-on-surface mb-md">Listed Services</h3>
+<div class="space-y-md">
+<!-- Service 1 -->
+<div class="p-sm rounded-lg hover:bg-surface-container transition-colors border border-transparent hover:border-outline-variant">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-bold text-on-surface">1:1 Strategy Consultation</span>
+<span class="text-primary font-bold">£250</span>
+</div>
+<p class="text-caption font-caption text-on-surface-variant">60-minute intensive brand audit and actionable roadmap development.</p>
+<button class="mt-sm w-full py-xs border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed transition-colors">Select Service</button>
+</div>
+<!-- Service 2 -->
+<div class="p-sm rounded-lg hover:bg-surface-container transition-colors border border-transparent hover:border-outline-variant">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-bold text-on-surface">Brand Identity Package</span>
+<span class="text-primary font-bold">£3,500</span>
+</div>
+<p class="text-caption font-caption text-on-surface-variant">Logo design, color palette, typography, and comprehensive brand guidelines.</p>
+<button class="mt-sm w-full py-xs border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed transition-colors">Select Service</button>
+</div>
+<!-- Service 3 -->
+<div class="p-sm rounded-lg hover:bg-surface-container transition-colors border border-transparent hover:border-outline-variant">
+<div class="flex justify-between items-center mb-xs">
+<span class="font-bold text-on-surface">UX Workshop</span>
+<span class="text-primary font-bold">£1,200</span>
+</div>
+<p class="text-caption font-caption text-on-surface-variant">Half-day collaborative session focusing on user journey mapping and wireframing.</p>
+<button class="mt-sm w-full py-xs border border-primary text-primary rounded-lg text-label-sm font-label-sm hover:bg-primary-fixed transition-colors">Select Service</button>
+</div>
+</div>
+<div class="mt-lg pt-md border-t border-outline-variant">
+<button class="w-full bg-primary text-on-primary py-md rounded-xl font-bold shadow-lg hover:bg-primary-container transition-all active:scale-95 flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined">calendar_today</span>
+                                Book Now
+                            </button>
+<p class="text-center text-caption font-caption text-outline mt-sm">Average response time: 2 hours</p>
+</div>
+</div>
+<!-- Availability Card -->
+<div class="bg-surface-container-high border border-outline-variant rounded-xl p-md shadow-sm">
+<h4 class="font-bold text-on-surface mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                            Availability
+                        </h4>
+<div class="grid grid-cols-4 gap-xs">
+<div class="text-center bg-surface-container-lowest py-xs rounded text-caption font-bold text-primary">Mon</div>
+<div class="text-center bg-surface-container-lowest py-xs rounded text-caption font-bold text-primary">Tue</div>
+<div class="text-center bg-surface-container-lowest py-xs rounded text-caption font-bold text-primary">Wed</div>
+<div class="text-center bg-surface-container-lowest py-xs rounded text-caption font-bold text-primary">Thu</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Desktop) -->
+<footer class="hidden md:block w-full py-xl px-margin-desktop bg-surface-container dark:bg-surface-container-lowest border-t border-outline-variant">
+<div class="max-w-1440 mx-auto flex flex-col md:flex-row justify-between items-start gap-lg">
+<div>
+<h2 class="text-headline-md font-headline-md text-primary dark:text-primary-fixed-dim font-bold">ExpertHub</h2>
+<p class="text-caption font-caption text-on-surface-variant mt-sm">Connecting expertise with excellence since 2024.</p>
+</div>
+<div class="flex gap-lg">
+<div class="flex flex-col gap-sm">
+<span class="font-bold text-on-surface">Platform</span>
+<a class="text-caption font-caption text-on-surface-variant hover:text-primary transition-colors" href="#">Become a Provider</a>
+<a class="text-caption font-caption text-on-surface-variant hover:text-primary transition-colors" href="#">Help Center</a>
+</div>
+<div class="flex flex-col gap-sm">
+<span class="font-bold text-on-surface">Legal</span>
+<a class="text-caption font-caption text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+<a class="text-caption font-caption text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+</div>
+</div>
+</div>
+<div class="max-w-1440 mx-auto mt-lg pt-md border-t border-outline-variant flex justify-between items-center">
+<p class="text-caption font-caption text-on-surface-variant">© 2024 ExpertHub Professional Services. All rights reserved.</p>
+</div>
+</footer>
+<!-- Mobile FAB -->
+<div class="md:hidden fixed bottom-24 right-margin-mobile z-50">
+<button class="bg-primary text-on-primary h-14 px-md rounded-full shadow-lg flex items-center gap-sm active:scale-90 transition-all font-bold">
+<span class="material-symbols-outlined">bolt</span>
+            Book Now
+        </button>
+</div>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-margin-mobile bg-surface dark:bg-surface-dim border-t border-outline-variant md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="text-label-sm font-label-sm">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-label-sm font-label-sm">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-all" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-label-sm font-label-sm">Inbox</span>
+</a>
+<!-- Profile is Active -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold" href="#">
+<span class="material-symbols-outlined fill-icon" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="text-label-sm font-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interaction for service selection
+        document.querySelectorAll('button:contains("Select Service")').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const isSelected = this.classList.contains('bg-primary');
+                document.querySelectorAll('button:contains("Select Service")').forEach(b => {
+                    b.classList.remove('bg-primary', 'text-on-primary');
+                    b.classList.add('border-primary', 'text-primary');
+                    b.textContent = 'Select Service';
+                });
+                
+                if(!isSelected) {
+                    this.classList.remove('border-primary', 'text-primary');
+                    this.classList.add('bg-primary', 'text-on-primary');
+                    this.textContent = 'Selected';
+                }
+            });
+        });
+
+        // Simple helper for button selector as :contains isn't native
+        function initSelectors() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if(btn.textContent.trim() === "Select Service") {
+                    btn.addEventListener('click', function() {
+                        const parent = this.parentElement;
+                        const wasSelected = this.dataset.selected === "true";
+                        
+                        // Reset all
+                        document.querySelectorAll('[data-selected="true"]').forEach(activeBtn => {
+                           activeBtn.dataset.selected = "false";
+                           activeBtn.classList.remove('bg-primary', 'text-on-primary');
+                           activeBtn.classList.add('border-primary', 'text-primary');
+                           activeBtn.textContent = 'Select Service';
+                        });
+
+                        if(!wasSelected) {
+                            this.dataset.selected = "true";
+                            this.classList.remove('border-primary', 'text-primary');
+                            this.classList.add('bg-primary', 'text-on-primary');
+                            this.textContent = 'Selected';
+                        }
+                    });
+                }
+            });
+        }
+        window.onload = initSelectors;
+    </script>
+</body></html>

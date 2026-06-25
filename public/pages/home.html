@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ExpertHub | Professional Service Marketplace</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "outline": "#737685",
+                        "primary-fixed": "#dae2ff",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dee0e2",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0052cc",
+                        "on-background": "#041b3c",
+                        "secondary-fixed-dim": "#c5c6c8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e8edff",
+                        "tertiary": "#5e3c00",
+                        "outline-variant": "#c3c6d6",
+                        "tertiary-fixed": "#ffddb3",
+                        "on-primary-container": "#c4d2ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-tertiary-fixed": "#291800",
+                        "secondary": "#5c5f60",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-fixed": "#e1e2e4",
+                        "surface-container-low": "#f1f3ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "primary": "#003d9b",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#1d3052",
+                        "on-secondary-fixed-variant": "#444749",
+                        "tertiary-fixed-dim": "#ffb950",
+                        "tertiary-container": "#7d5200",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "surface-dim": "#cadaff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-container": "#ffca81",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#606365",
+                        "surface-tint": "#0c56d0",
+                        "on-primary-fixed": "#001848",
+                        "on-surface": "#041b3c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "caption": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #041b3c;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(223, 225, 230, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
+<nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto z-50">
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-primary" data-icon="menu">menu</span>
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
+</div>
+<!-- Desktop Nav Items -->
+<div class="hidden md:flex items-center gap-lg">
+<a class="text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm" href="#">Explore</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm" href="#">Bookings</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm" href="#">Inbox</a>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:block">
+<button class="bg-primary text-on-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all">Become a Provider</button>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border border-outline-variant">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</div>
+</div>
+</nav>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative min-h-[707px] flex items-center justify-center overflow-hidden py-xl px-margin-mobile md:px-margin-desktop">
+<!-- Background Decorative Elements -->
+<div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="absolute top-[-10%] right-[-5%] w-1/2 h-1/2 bg-primary-fixed opacity-20 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] left-[-5%] w-1/3 h-1/3 bg-tertiary-fixed opacity-20 blur-[100px] rounded-full"></div>
+</div>
+<div class="relative z-10 max-w-4xl w-full text-center">
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-background mb-md">
+                    Professional expertise, <br/>delivered with <span class="text-primary">precision.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-lg max-w-2xl mx-auto">
+                    Connect with vetted industry leaders and local specialists for your business or home needs. Trust, transparency, and high-fidelity service execution.
+                </p>
+<!-- Search Bar -->
+<div class="glass-card p-sm rounded-full shadow-lg max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-sm">
+<div class="flex-1 flex items-center gap-sm px-md w-full border-b md:border-b-0 md:border-r border-outline-variant py-sm md:py-0">
+<span class="material-symbols-outlined text-outline" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-outline-variant" placeholder="What service do you need?" type="text"/>
+</div>
+<div class="flex-1 flex items-center gap-sm px-md w-full py-sm md:py-0">
+<span class="material-symbols-outlined text-outline" data-icon="location_on">location_on</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-outline-variant" placeholder="London, UK" type="text"/>
+</div>
+<button class="w-full md:w-auto bg-primary text-on-primary px-lg py-md rounded-full font-label-sm text-label-sm active:scale-95 transition-transform">
+                        Search Experts
+                    </button>
+</div>
+<!-- Trust Badges -->
+<div class="mt-xl flex flex-wrap justify-center gap-lg items-center opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary" data-icon="verified" data-weight="fill">verified</span>
+<span class="font-label-sm text-label-sm">Vetted Professionals</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary" data-icon="security" data-weight="fill">security</span>
+<span class="font-label-sm text-label-sm">Secure Payments</span>
+</div>
+<div class="flex items-center gap-xs">
+<span class="material-symbols-outlined text-tertiary" data-icon="star" data-weight="fill">star</span>
+<span class="font-label-sm text-label-sm">4.9/5 Service Rating</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Categories Section - Bento Grid -->
+<section class="py-xl px-margin-mobile md:px-margin-desktop max-w-1440 mx-auto">
+<div class="flex justify-between items-end mb-lg">
+<div class="max-w-xl">
+<h2 class="font-headline-md text-headline-md text-on-background mb-sm">Explore Premium Services</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Carefully curated categories featuring the top 1% of service providers in their respective fields.</p>
+</div>
+<a class="hidden md:flex items-center gap-xs text-primary font-label-sm text-label-sm group" href="#">
+                    View all categories
+                    <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Large Featured Card (Plumbing/Maintenance) -->
+<div class="md:col-span-8 group relative rounded-xl overflow-hidden shadow-sm h-[400px]">
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-on-background/20 to-transparent z-10"></div>
+<div class="absolute inset-0 transition-transform duration-700 group-hover:scale-105" data-alt="A professional technician in a clean uniform using high-tech tools to inspect a modern luxury home filtration system. The lighting is crisp and natural, highlighting a clean, high-end residential environment with cool blue and neutral white tones. The scene conveys reliability and advanced technical skill." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA-i-4j11Y8ueDkeIkCZdPaWJT-pFZuaogCRloOcUPgYhdnq6UPp41iO9MHuLtoplp7pm9vo9BYJUy2WDPAfdpAIdISVy8ZmdAw9dVXQgvftRcdNzHnQFZlL0qicp2VfrFyeTB6AF0Ll63utH1m37uROfYOzjanZHsM3RVZZPacU8AMTUN-zwvwFXwx3kA60zpBSLCSLTx728bpkHc--wGLUAQCTKn8wT8-LsZFz-lowGE5fZL3Y3JfBzCpgizTFaOgtIoxsSyGYbw')"></div>
+<div class="absolute bottom-0 left-0 p-lg z-20">
+<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded-lg text-caption font-label-sm mb-sm inline-block">Maintenance</span>
+<h3 class="text-on-primary font-headline-md text-headline-md mb-xs">Home Infrastructure &amp; Maintenance</h3>
+<p class="text-on-primary/80 font-body-md max-w-md">Precision plumbing, electrical engineering, and smart home integration by certified technicians.</p>
+</div>
+</div>
+<!-- Secondary Card (Consulting) -->
+<div class="md:col-span-4 group relative rounded-xl overflow-hidden shadow-sm h-[400px]">
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-on-background/20 to-transparent z-10"></div>
+<div class="absolute inset-0 transition-transform duration-700 group-hover:scale-105" data-alt="A bright, minimalist office setting where a professional consultant is reviewing complex analytical charts on a high-resolution display. The aesthetic is corporate modernism with soft morning light, featuring a palette of Service Blue and pristine whites. The atmosphere is quiet, focused, and authoritative." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAjwEskQITIQjn72HiNX6zZuK-ZwMAzhZAOv0pp3xVxlhCTKQtBNv6m4ztFs33g8nIJ3h6uR7SCSjBCYjS61bhNIZpGmUbXC1GZJYO9DZAvUOd7U8I5_8CPOMyRa0fS-N4_qNJFA6sd8cfb4Q4zkui3TrLwOV1OrhIC76qwQjbPDKZAHdKtWnErq6MnXSgSymgDdiH-aYYwuvqX0ttsNwM12QIKAPsSaBl4eubGvQJHPQ-YwN0nMpiUCaJgNoFc7WtF1Ybq9vkXcMU')"></div>
+<div class="absolute bottom-0 left-0 p-lg z-20">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed-variant px-sm py-xs rounded-lg text-caption font-label-sm mb-sm inline-block">Advisory</span>
+<h3 class="text-on-primary font-headline-md text-headline-md mb-xs">Business Consulting</h3>
+<p class="text-on-primary/80 font-body-md">Strategy, legal advisory, and financial planning for scaling enterprises.</p>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="md:col-span-4 group relative rounded-xl overflow-hidden shadow-sm h-[320px]">
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-on-background/20 to-transparent z-10"></div>
+<div class="absolute inset-0 transition-transform duration-700 group-hover:scale-105" data-alt="A creative studio space with large windows showing a city skyline. A designer is working on a sleek, high-end digital interface on a tablet. The room is filled with creative inspiration boards and high-end tech, with warm accent lighting and a professional blue and grey color scheme." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA7FNyA5GCfwyMhwbqEKs-uBb3oe4scnb-o7WDjc6dwuABZmvGJshcZS61me6X9qa845G7Czbu_J-YCNNTdTnpehYXMmdIGxAcpzwksCGjR5D30UPrv6y67JQ9Gx9FuAIk9H66uX-CawqrGlf8AzPIEAlLlWFpD_yC73w5ipOkGtzzDH3XmIOHl0GuEfLZSRbUaablkbAvsh8MCgWwxGvlE5VWrLJPxAUnuD1yykx__4M1QC8tfNxCz1SDk3s7SzGfw6rSwsTXiT0Y')"></div>
+<div class="absolute bottom-0 left-0 p-lg z-20">
+<h3 class="text-on-primary font-headline-md text-headline-md mb-xs">Creative Design</h3>
+<p class="text-on-primary/80 font-body-md">Architecture, UI/UX, and Branding.</p>
+</div>
+</div>
+<div class="md:col-span-4 group relative rounded-xl overflow-hidden shadow-sm h-[320px]">
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-on-background/20 to-transparent z-10"></div>
+<div class="absolute inset-0 transition-transform duration-700 group-hover:scale-105" data-alt="An interior shot of a high-tech health clinic. A specialist is demonstrating a wellness program on a digital screen. The environment is clean, clinical yet inviting, with soft diffuse lighting and a sense of premium healthcare service. Colors are muted blues and warm neutrals." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuATANfT0md9kS38hDbvqFfVE54bdfj8IHJMuH0cU7slygRHVd8ANnUvu6rp9ptEKamfu2Mt1lUBZzDxZ6wReXlrBbJFuuAVutbzWqnBRnGJ1GOKreAdnN1sNPNKIa8v6SKR9S9YKwLRR_OvbLTH1GlsohbsApJzmxb_0CP-5GCbpuj2n9Atv5-nQ0zxQeQPdl5fINgC7VAN_dbF-ImzRwpzBY00IDasYsPcvtbRochrgLnnYCWDXdwfSbrdXcUSUi3AiaeKCWed9Bg')"></div>
+<div class="absolute bottom-0 left-0 p-lg z-20">
+<h3 class="text-on-primary font-headline-md text-headline-md mb-xs">Health &amp; Wellness</h3>
+<p class="text-on-primary/80 font-body-md">Personal training and specialized therapy.</p>
+</div>
+</div>
+<div class="md:col-span-4 group relative rounded-xl overflow-hidden shadow-sm h-[320px]">
+<div class="absolute inset-0 bg-gradient-to-t from-on-background/80 via-on-background/20 to-transparent z-10"></div>
+<div class="absolute inset-0 transition-transform duration-700 group-hover:scale-105" data-alt="A modern kitchen in a high-end apartment where a professional chef is preparing a gourmet meal. The lighting is cinematic, highlighting fresh organic ingredients and stainless steel surfaces. The mood is sophisticated and exclusive, emphasizing a white-glove culinary experience." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCGgA2rHDuIXmKrJsKzwtGoRYLI09acyD16XbVz5W6A_ADsksCgadaVAqHJwBhgzJTnlcGlwoJ3W92kBvRliEHp7tmuYOpaiDFHOc6xyqzkNA1OVlYOrYbq_a6TJPBbDJu4h5q3D654u2awShzVcbOviGU-1DaZElP6Ic02bpjnzUS6DISnbKfsOVp_Nh2VeNTDia9shWnn6_vzBrrU1e5nSXcysIR5AUCoJn8utiXwwLbSlHrWMQ2xYxVr48YXLVUhORa3eBHzvRI')"></div>
+<div class="absolute bottom-0 left-0 p-lg z-20">
+<h3 class="text-on-primary font-headline-md text-headline-md mb-xs">Events &amp; Dining</h3>
+<p class="text-on-primary/80 font-body-md">Private chefs and high-end event planning.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Value Proposition Section -->
+<section class="py-xl bg-surface-container-low">
+<div class="px-margin-mobile md:px-margin-desktop max-w-1440 mx-auto grid grid-cols-1 md:grid-cols-2 gap-xl items-center">
+<div class="relative">
+<div class="absolute -top-10 -left-10 w-32 h-32 bg-primary-fixed rounded-full opacity-30 blur-xl"></div>
+<div class="rounded-xl overflow-hidden shadow-elevated aspect-video relative z-10">
+<div class="absolute inset-0" data-alt="A high-resolution, candid photograph of two professionals shaking hands in a bright, contemporary glass-walled conference room. The atmosphere is one of mutual respect and successful partnership. The lighting is bright and even, capturing a moment of trust and competence in a corporate setting." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6dpeptXoK-LU--SHt9u0Gv-sW1Wx84CZrApPOIFAT1pxi9-vQw_TGzNKMTDGUDpvpPsSMFZ9KLnzo-FjE_9j1IaMXX4ZOhHhTTWdlO8cQ4UaBDWrI5mjyifZ4EkvjT9l4Koq9e6g7f3gYkCPoIkDGKsvRU6ZJ3sDAObbH8sztLI2e4QXCfSdJSCzWgTezh8lOoLAXmr2Pii_JbsLPYYuerH4cWHDUZHPdGrRwAOno8vazop6dwndcHmnwcSgKjdlRviAunVY0QLE')"></div>
+</div>
+<div class="absolute -bottom-6 -right-6 glass-card p-md rounded-xl shadow-lg z-20 max-w-[200px]">
+<div class="flex items-center gap-xs text-primary mb-xs">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span class="font-label-sm text-label-sm">Certified</span>
+</div>
+<p class="text-caption font-caption text-on-surface-variant">Every provider undergoes a rigorous 4-step identity and skill verification process.</p>
+</div>
+</div>
+<div>
+<h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-background mb-md">Why Experts Choose ExpertHub</h2>
+<ul class="space-y-lg">
+<li class="flex gap-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="shield">shield</span>
+</div>
+<div>
+<h4 class="font-headline-md text-body-lg font-bold mb-xs">Institutional Trust</h4>
+<p class="text-on-surface-variant font-body-md">We leverage high-fidelity verification protocols to ensure every service transaction is backed by reliability.</p>
+</div>
+</li>
+<li class="flex gap-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="speed">speed</span>
+</div>
+<div>
+<h4 class="font-headline-md text-body-lg font-bold mb-xs">Streamlined Booking</h4>
+<p class="text-on-surface-variant font-body-md">From initial inquiry to final payment, our interface reduces cognitive load and maximizes efficiency.</p>
+</div>
+</li>
+<li class="flex gap-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary" data-icon="payments">payments</span>
+</div>
+<div>
+<h4 class="font-headline-md text-body-lg font-bold mb-xs">Transparent Pricing</h4>
+<p class="text-on-surface-variant font-body-md">No hidden fees. Clear, upfront quotes from providers before any work begins.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-xl px-margin-mobile md:px-margin-desktop text-center max-w-1440 mx-auto">
+<div class="bg-primary-container text-on-primary-container rounded-[2rem] p-lg md:p-xl shadow-lg relative overflow-hidden">
+<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;"></div>
+<div class="relative z-10 max-w-2xl mx-auto">
+<h2 class="font-display-lg text-display-lg-mobile md:text-display-lg mb-md">Ready to start your next project?</h2>
+<p class="font-body-lg text-body-lg text-white/80 mb-lg">Join thousands of professionals and homeowners who rely on ExpertHub for excellence.</p>
+<div class="flex flex-col md:flex-row justify-center gap-md">
+<button class="bg-white text-primary px-xl py-md rounded-full font-label-sm text-label-sm shadow-md hover:scale-105 transition-transform">Get Started Now</button>
+<button class="bg-primary text-white border border-white/30 px-xl py-md rounded-full font-label-sm text-label-sm hover:bg-white/10 transition-colors">Become a Partner</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="hidden md:block w-full py-xl px-margin-desktop bg-surface-container dark:bg-surface-container-lowest border-t border-outline-variant">
+<div class="max-w-1440 mx-auto grid grid-cols-1 md:grid-cols-4 gap-xl mb-xl">
+<div class="md:col-span-1">
+<span class="text-headline-md font-headline-md text-primary dark:text-primary-fixed-dim block mb-md">ExpertHub</span>
+<p class="text-on-surface-variant text-body-md">The premium standard for service marketplaces. Excellence in every connection.</p>
+</div>
+<div>
+<h5 class="font-label-sm text-label-sm text-on-background mb-md">Services</h5>
+<ul class="space-y-sm text-on-surface-variant font-caption text-caption">
+<li><a class="hover:text-primary transition-colors" href="#">Home Maintenance</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Business Strategy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Creative Services</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Technical Support</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-sm text-label-sm text-on-background mb-md">Company</h5>
+<ul class="space-y-sm text-on-surface-variant font-caption text-caption">
+<li><a class="hover:text-primary transition-colors" href="#">Become a Provider</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Help Center</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Safety Protocols</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-label-sm text-label-sm text-on-background mb-md">Legal</h5>
+<ul class="space-y-sm text-on-surface-variant font-caption text-caption">
+<li><a class="hover:text-primary transition-colors" href="#">Terms of Service</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Cookie Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-1440 mx-auto pt-lg border-t border-outline-variant flex justify-between items-center text-caption font-caption text-on-surface-variant">
+<span>© 2024 ExpertHub Professional Services. All rights reserved.</span>
+<div class="flex gap-lg">
+<span class="material-symbols-outlined text-lg" data-icon="language">language</span>
+<span>English (US)</span>
+</div>
+</div>
+</footer>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-xl px-margin-mobile bg-surface dark:bg-surface-dim md:hidden border-t border-outline-variant shadow-lg">
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold" href="#">
+<span class="material-symbols-outlined" data-icon="search" data-weight="fill">search</span>
+<span class="text-label-sm font-label-sm">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+<span class="text-label-sm font-label-sm">Bookings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="chat">chat</span>
+<span class="text-label-sm font-label-sm">Inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-label-sm font-label-sm">Profile</span>
+</a>
+</nav>
+<!-- Micro-interactions Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Simple parallax/scroll reveal effect
+            const observerOptions = {
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('opacity-100', 'translate-y-0');
+                        entry.target.classList.remove('opacity-0', 'translate-y-10');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('section > div').forEach(el => {
+                el.classList.add('transition-all', 'duration-1000', 'opacity-0', 'translate-y-10');
+                observer.observe(el);
+            });
+        });
+    </script>
+</body></html>
