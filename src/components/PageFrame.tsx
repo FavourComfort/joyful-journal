@@ -1,5 +1,5 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link, useLocation, useRouter } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -12,8 +12,7 @@ const NAV = [
 
 export function PageFrame({ src, title }: { src: string; title: string }) {
   const { pathname } = useLocation();
-  const router = useRouter();     
-  const router = useRouter();     
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
