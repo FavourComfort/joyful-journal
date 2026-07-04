@@ -12,7 +12,23 @@ const NAV = [
 
 export function PageFrame({ src, title }: { src: string; title: string }) {
   const { pathname } = useLocation();
+  const router = useRouter();     
+  const router = useRouter();     
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'navigate') {
+        const route = event.data.route;
+        // Navigate using the router
+        router.navigate({ to: route });
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [router]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#f9f9ff]">
