@@ -146,19 +146,19 @@
                     <!-- Email -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Email Address</label>
-                        <input type="email" required placeholder="you@example.com" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <input type="email" name="email" required placeholder="you@example.com" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
                     <!-- Password -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Password</label>
-                        <input type="password" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <input type="password" name="password" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
                     <!-- Remember Me & Forgot Password -->
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-xs">
-                            <input type="checkbox" id="remember" class="w-4 h-4 rounded border-outline-variant cursor-pointer"/>
+                            <input type="checkbox" id="remember" name="remember" class="w-4 h-4 rounded border-outline-variant cursor-pointer"/>
                             <label for="remember" class="font-caption text-caption text-on-surface-variant cursor-pointer">Remember me</label>
                         </div>
                         <a class="font-caption text-caption text-primary hover:underline cursor-pointer" data-nav="forgot-password">Forgot password?</a>
@@ -229,8 +229,14 @@
             if (loginForm) {
                 loginForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    // Navigate to search page after login
-                    navigate('/search');
+                    const formData = new FormData(loginForm);
+                    const data = {
+                        email: formData.get('email'),
+                        password: formData.get('password'),
+                        remember: formData.get('remember') === 'on',
+                    };
+                    // Send to parent for auth processing
+                    window.parent.postMessage({ type: 'auth:login', payload: data }, '*');
                 });
             }
         });
