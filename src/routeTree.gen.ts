@@ -13,6 +13,9 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProviderVerificationRouteImport } from './routes/provider.verification'
+import { Route as ProviderSignupRouteImport } from './routes/provider.signup'
+import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProfileTechRouteImport } from './routes/profile.tech'
 import { Route as ProfileDesignRouteImport } from './routes/profile.design'
 
@@ -36,6 +39,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProviderVerificationRoute = ProviderVerificationRouteImport.update({
+  id: '/provider/verification',
+  path: '/provider/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProviderSignupRoute = ProviderSignupRouteImport.update({
+  id: '/provider/signup',
+  path: '/provider/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProviderLoginRoute = ProviderLoginRouteImport.update({
+  id: '/provider/login',
+  path: '/provider/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileTechRoute = ProfileTechRouteImport.update({
   id: '/profile/tech',
   path: '/profile/tech',
@@ -54,6 +72,9 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
+  '/provider/login': typeof ProviderLoginRoute
+  '/provider/signup': typeof ProviderSignupRoute
+  '/provider/verification': typeof ProviderVerificationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +83,9 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
+  '/provider/login': typeof ProviderLoginRoute
+  '/provider/signup': typeof ProviderSignupRoute
+  '/provider/verification': typeof ProviderVerificationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,6 +95,9 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
+  '/provider/login': typeof ProviderLoginRoute
+  '/provider/signup': typeof ProviderSignupRoute
+  '/provider/verification': typeof ProviderVerificationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,6 +108,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/profile/design'
     | '/profile/tech'
+    | '/provider/login'
+    | '/provider/signup'
+    | '/provider/verification'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -89,6 +119,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/profile/design'
     | '/profile/tech'
+    | '/provider/login'
+    | '/provider/signup'
+    | '/provider/verification'
   id:
     | '__root__'
     | '/'
@@ -97,6 +130,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/profile/design'
     | '/profile/tech'
+    | '/provider/login'
+    | '/provider/signup'
+    | '/provider/verification'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -106,6 +142,9 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   ProfileDesignRoute: typeof ProfileDesignRoute
   ProfileTechRoute: typeof ProfileTechRoute
+  ProviderLoginRoute: typeof ProviderLoginRoute
+  ProviderSignupRoute: typeof ProviderSignupRoute
+  ProviderVerificationRoute: typeof ProviderVerificationRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,6 +177,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/provider/verification': {
+      id: '/provider/verification'
+      path: '/provider/verification'
+      fullPath: '/provider/verification'
+      preLoaderRoute: typeof ProviderVerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/provider/signup': {
+      id: '/provider/signup'
+      path: '/provider/signup'
+      fullPath: '/provider/signup'
+      preLoaderRoute: typeof ProviderSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/provider/login': {
+      id: '/provider/login'
+      path: '/provider/login'
+      fullPath: '/provider/login'
+      preLoaderRoute: typeof ProviderLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile/tech': {
       id: '/profile/tech'
       path: '/profile/tech'
@@ -162,6 +222,9 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   ProfileDesignRoute: ProfileDesignRoute,
   ProfileTechRoute: ProfileTechRoute,
+  ProviderLoginRoute: ProviderLoginRoute,
+  ProviderSignupRoute: ProviderSignupRoute,
+  ProviderVerificationRoute: ProviderVerificationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

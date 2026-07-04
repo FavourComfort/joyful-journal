@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Verify Your Account | ExpertHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "outline": "#737685",
+                        "primary-fixed": "#dae2ff",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dee0e2",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0052cc",
+                        "on-background": "#041b3c",
+                        "secondary-fixed-dim": "#c5c6c8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e8edff",
+                        "tertiary": "#5e3c00",
+                        "outline-variant": "#c3c6d6",
+                        "tertiary-fixed": "#ffddb3",
+                        "on-primary-container": "#c4d2ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-tertiary-fixed": "#291800",
+                        "secondary": "#5c5f60",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-fixed": "#e1e2e4",
+                        "surface-container-low": "#f1f3ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "primary": "#003d9b",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#1d3052",
+                        "on-secondary-fixed-variant": "#444749",
+                        "tertiary-fixed-dim": "#ffb950",
+                        "tertiary-container": "#7d5200",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "surface-dim": "#cadaff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-container": "#ffca81",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#606365",
+                        "surface-tint": "#0c56d0",
+                        "on-primary-fixed": "#001848",
+                        "on-surface": "#041b3c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "caption": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #041b3c;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(223, 225, 230, 0.5);
+        }
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .step-number {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #e8edff;
+            color: #041b3c;
+            font-weight: 600;
+        }
+        .step-number.active {
+            background: #003d9b;
+            color: white;
+        }
+        .step-number.completed {
+            background: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+    <!-- Header -->
+    <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
+        <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
+            <div class="flex items-center gap-base cursor-pointer" data-nav="home">
+                <span class="material-symbols-outlined text-primary">home</span>
+                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
+            </div>
+        </nav>
+    </header>
+
+    <main class="min-h-screen pt-xl pb-xl px-margin-mobile md:px-margin-desktop">
+        <div class="max-w-2xl mx-auto">
+            <!-- Progress Steps -->
+            <div class="mb-xl">
+                <h1 class="font-headline-md text-headline-md text-on-background mb-lg">Verification Process</h1>
+                <div class="flex items-center justify-between">
+                    <div class="step-indicator">
+                        <div class="step-number completed">✓</div>
+                        <div>
+                            <p class="font-label-sm text-label-sm text-on-background">Account Created</p>
+                            <p class="text-caption text-on-surface-variant">Step 1</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 h-0.5 bg-outline-variant mx-md"></div>
+                    <div class="step-indicator">
+                        <div class="step-number active">2</div>
+                        <div>
+                            <p class="font-label-sm text-label-sm text-on-background">Verification</p>
+                            <p class="text-caption text-on-surface-variant">Current</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 h-0.5 bg-outline-variant mx-md"></div>
+                    <div class="step-indicator">
+                        <div class="step-number">3</div>
+                        <div>
+                            <p class="font-label-sm text-label-sm text-on-background">Documents</p>
+                            <p class="text-caption text-on-surface-variant">Step 3</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Verification -->
+            <section class="bg-surface-container-low rounded-xl p-lg shadow-sm mb-lg">
+                <div class="flex items-start gap-md mb-lg">
+                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-primary">mail</span>
+                    </div>
+                    <div>
+                        <h2 class="font-headline-md text-headline-md text-on-background mb-sm">Email Verification</h2>
+                        <p class="text-on-surface-variant font-body-md">We've sent a verification link to your email. Please check your inbox.</p>
+                    </div>
+                </div>
+
+                <div class="bg-surface rounded-lg p-md mb-md border border-outline-variant">
+                    <p class="font-label-sm text-label-sm text-on-background mb-sm">Verification Code</p>
+                    <div id="codeInputs" class="flex gap-sm justify-center mb-md">
+                        <input type="text" maxlength="1" class="w-12 h-12 text-center border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-headline-md" placeholder="0"/>
+                        <input type="text" maxlength="1" class="w-12 h-12 text-center border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-headline-md" placeholder="0"/>
+                        <input type="text" maxlength="1" class="w-12 h-12 text-center border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-headline-md" placeholder="0"/>
+                        <input type="text" maxlength="1" class="w-12 h-12 text-center border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-headline-md" placeholder="0"/>
+                        <input type="text" maxlength="1" class="w-12 h-12 text-center border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-headline-md" placeholder="0"/>
+                        <input type="text" maxlength="1" class="w-12 h-12 text-center border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-headline-md" placeholder="0"/>
+                    </div>
+                    <p class="text-center text-on-surface-variant font-caption text-caption">Or paste: <span class="text-primary cursor-pointer hover:underline">Enter code manually</span></p>
+                </div>
+
+                <button class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer mb-md" id="verifyEmailBtn">
+                    Verify Email
+                </button>
+
+                <p class="text-center text-on-surface-variant font-body-md">
+                    Didn't receive it? <span class="text-primary cursor-pointer hover:underline" id="resendBtn">Resend code</span>
+                </p>
+            </section>
+
+            <!-- Phone Verification -->
+            <section class="bg-surface-container-low rounded-xl p-lg shadow-sm mb-lg">
+                <div class="flex items-start gap-md mb-lg">
+                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-primary">phone</span>
+                    </div>
+                    <div>
+                        <h2 class="font-headline-md text-headline-md text-on-background mb-sm">Phone Verification</h2>
+                        <p class="text-on-surface-variant font-body-md">Verify your phone number to complete authentication.</p>
+                    </div>
+                </div>
+
+                <form id="phoneForm" class="space-y-md">
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-background mb-sm">Phone Number</label>
+                        <input type="tel" placeholder="+1 (555) 000-0000" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                    </div>
+
+                    <button type="button" class="w-full bg-surface-container-high text-on-background px-md py-md rounded-xl font-label-sm text-label-sm hover:bg-surface-container active:scale-95 transition-all cursor-pointer" id="sendOtpBtn">
+                        Send Verification Code
+                    </button>
+                </form>
+            </section>
+
+            <!-- Identity Verification -->
+            <section class="bg-surface-container-low rounded-xl p-lg shadow-sm">
+                <div class="flex items-start gap-md mb-lg">
+                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-primary">verified_user</span>
+                    </div>
+                    <div>
+                        <h2 class="font-headline-md text-headline-md text-on-background mb-sm">Identity Verification</h2>
+                        <p class="text-on-surface-variant font-body-md">Upload a government-issued ID to verify your identity.</p>
+                    </div>
+                </div>
+
+                <form id="identityForm" class="space-y-md">
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-background mb-sm">ID Type</label>
+                        <select class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md">
+                            <option value="">Select ID type</option>
+                            <option value="passport">Passport</option>
+                            <option value="license">Driver's License</option>
+                            <option value="national">National ID</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-background mb-sm">Upload ID Photo</label>
+                        <div class="border-2 border-dashed border-outline-variant rounded-lg p-lg text-center cursor-pointer hover:border-primary transition-colors" id="fileDropZone">
+                            <span class="material-symbols-outlined text-outline text-3xl block mb-sm">cloud_upload</span>
+                            <p class="font-body-md text-on-background mb-xs">Drag and drop your ID photo here</p>
+                            <p class="text-on-surface-variant font-caption text-caption">or <span class="text-primary font-semibold">browse files</span></p>
+                            <input type="file" accept="image/*" id="fileInput" class="hidden"/>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-md">
+                        <p class="font-label-sm text-label-sm text-on-background mb-xs">📋 Requirements:</p>
+                        <ul class="text-on-surface-variant font-caption text-caption space-y-xs list-disc list-inside">
+                            <li>Clear, legible photo of your ID</li>
+                            <li>Must match your profile information</li>
+                            <li>JPG or PNG format, max 5MB</li>
+                        </ul>
+                    </div>
+
+                    <button type="button" class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer" id="verifyIdentityBtn">
+                        Submit Verification
+                    </button>
+                </form>
+            </section>
+
+            <!-- Info Box -->
+            <div class="bg-primary/5 border border-primary/20 rounded-lg p-md mt-xl">
+                <p class="font-body-md text-on-background mb-xs">
+                    <span class="font-semibold">🔒 Your information is secure</span>
+                </p>
+                <p class="text-on-surface-variant font-caption text-caption">
+                    All your personal information is encrypted and secured according to industry standards. We never share your data with third parties.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-low mt-xl py-lg border-t border-outline-variant">
+        <div class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop">
+            <p class="text-center text-caption text-on-surface-variant">© 2024 ExpertHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const navMap = {
+            'home': '/',
+            'explore': '/search',
+        };
+
+        function navigate(route) {
+            window.parent.postMessage({ type: 'navigate', route }, '*');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup navigation
+            document.querySelectorAll('[data-nav]').forEach(element => {
+                element.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const navKey = element.dataset.nav;
+                    const route = navMap[navKey];
+                    if (route) {
+                        navigate(route);
+                    }
+                });
+            });
+
+            // Email verification button
+            const verifyEmailBtn = document.getElementById('verifyEmailBtn');
+            if (verifyEmailBtn) {
+                verifyEmailBtn.addEventListener('click', () => {
+                    // Simulate email verification
+                    alert('Email verified successfully!');
+                });
+            }
+
+            // Resend code button
+            const resendBtn = document.getElementById('resendBtn');
+            if (resendBtn) {
+                resendBtn.addEventListener('click', () => {
+                    alert('Verification code sent to your email!');
+                });
+            }
+
+            // Send OTP button
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+            if (sendOtpBtn) {
+                sendOtpBtn.addEventListener('click', () => {
+                    alert('Verification code sent to your phone!');
+                });
+            }
+
+            // File upload
+            const fileDropZone = document.getElementById('fileDropZone');
+            const fileInput = document.getElementById('fileInput');
+            if (fileDropZone && fileInput) {
+                fileDropZone.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        fileDropZone.innerHTML = '<span class="material-symbols-outlined text-4xl mb-sm text-primary">check_circle</span><p class="font-body-md text-primary mb-xs">File uploaded</p>';
+                    }
+                });
+            }
+
+            // Verify identity button
+            const verifyIdentityBtn = document.getElementById('verifyIdentityBtn');
+            if (verifyIdentityBtn) {
+                verifyIdentityBtn.addEventListener('click', () => {
+                    // Navigate to dashboard after verification
+                    navigate('/dashboard');
+                });
+            }
+
+            // OTP code input auto-focus
+            const codeInputs = document.querySelectorAll('#codeInputs input');
+            codeInputs.forEach((input, index) => {
+                input.addEventListener('keyup', (e) => {
+                    if (e.key >= '0' && e.key <= '9' && index < codeInputs.length - 1) {
+                        codeInputs[index + 1].focus();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

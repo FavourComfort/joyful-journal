@@ -8,6 +8,8 @@ const NAV = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/profile/tech", label: "Profile · Tech" },
   { to: "/profile/design", label: "Profile · Design" },
+  { to: "/provider/signup", label: "Become Provider" },
+  { to: "/provider/login", label: "Provider Login" },
 ] as const;
 
 export function PageFrame({ src, title }: { src: string; title: string }) {
