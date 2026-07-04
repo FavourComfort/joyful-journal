@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Login | ExpertHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "outline": "#737685",
+                        "primary-fixed": "#dae2ff",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dee0e2",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0052cc",
+                        "on-background": "#041b3c",
+                        "secondary-fixed-dim": "#c5c6c8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e8edff",
+                        "tertiary": "#5e3c00",
+                        "outline-variant": "#c3c6d6",
+                        "tertiary-fixed": "#ffddb3",
+                        "on-primary-container": "#c4d2ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-tertiary-fixed": "#291800",
+                        "secondary": "#5c5f60",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-fixed": "#e1e2e4",
+                        "surface-container-low": "#f1f3ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "primary": "#003d9b",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#1d3052",
+                        "on-secondary-fixed-variant": "#444749",
+                        "tertiary-fixed-dim": "#ffb950",
+                        "tertiary-container": "#7d5200",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "surface-dim": "#cadaff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-container": "#ffca81",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#606365",
+                        "surface-tint": "#0c56d0",
+                        "on-primary-fixed": "#001848",
+                        "on-surface": "#041b3c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "caption": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #041b3c;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(223, 225, 230, 0.5);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+    <!-- Header -->
+    <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
+        <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
+            <div class="flex items-center gap-base cursor-pointer" data-nav="home">
+                <span class="material-symbols-outlined text-primary">home</span>
+                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
+            </div>
+        </nav>
+    </header>
+
+    <main class="min-h-screen flex items-center justify-center px-margin-mobile md:px-margin-desktop py-xl">
+        <div class="max-w-md w-full">
+            <!-- Login Card -->
+            <div class="glass-card p-lg rounded-xl shadow-sm">
+                <div class="text-center mb-lg">
+                    <h1 class="font-headline-md text-headline-md text-on-background mb-sm">Welcome Back</h1>
+                    <p class="text-on-surface-variant font-body-md">Sign in to your account</p>
+                </div>
+
+                <form id="loginForm" class="space-y-md">
+                    <!-- Email -->
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-background mb-sm">Email Address</label>
+                        <input type="email" required placeholder="you@example.com" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block font-label-sm text-label-sm text-on-background mb-sm">Password</label>
+                        <input type="password" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-xs">
+                            <input type="checkbox" id="remember" class="w-4 h-4 rounded border-outline-variant cursor-pointer"/>
+                            <label for="remember" class="font-caption text-caption text-on-surface-variant cursor-pointer">Remember me</label>
+                        </div>
+                        <a class="font-caption text-caption text-primary hover:underline cursor-pointer" data-nav="forgot-password">Forgot password?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                        Sign In
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="flex items-center gap-sm my-lg">
+                    <div class="flex-1 h-px bg-outline-variant"></div>
+                    <span class="text-caption text-on-surface-variant">or</span>
+                    <div class="flex-1 h-px bg-outline-variant"></div>
+                </div>
+
+                <!-- Social Login -->
+                <button type="button" class="w-full border border-outline-variant text-on-background px-md py-md rounded-xl font-label-sm text-label-sm hover:bg-surface-container transition-all cursor-pointer flex items-center justify-center gap-sm">
+                    <span class="material-symbols-outlined text-lg">search</span>
+                    Continue with Google
+                </button>
+
+                <!-- Sign Up Link -->
+                <p class="text-center text-on-surface-variant font-body-md mt-lg">
+                    Don't have an account? <span class="text-primary font-semibold cursor-pointer hover:underline" data-nav="signup">Sign up</span>
+                </p>
+            </div>
+
+            <!-- Support Info -->
+            <div class="text-center mt-lg">
+                <p class="text-on-surface-variant font-caption text-caption mb-sm">Need help?</p>
+                <p class="text-on-surface-variant font-caption text-caption">
+                    Contact our support team at <span class="text-primary font-semibold">support@experthub.com</span>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const navMap = {
+            'home': '/',
+            'signup': '/signup',
+            'forgot-password': '#',
+        };
+
+        function navigate(route) {
+            if (route === '#') return;
+            window.parent.postMessage({ type: 'navigate', route }, '*');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup navigation
+            document.querySelectorAll('[data-nav]').forEach(element => {
+                element.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const navKey = element.dataset.nav;
+                    const route = navMap[navKey];
+                    if (route) {
+                        navigate(route);
+                    }
+                });
+            });
+
+            // Form submission
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    // Navigate to search page after login
+                    navigate('/search');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

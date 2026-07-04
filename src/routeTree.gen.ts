@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerifyRouteImport } from './routes/verify'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
@@ -19,9 +22,24 @@ import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProfileTechRouteImport } from './routes/profile.tech'
 import { Route as ProfileDesignRouteImport } from './routes/profile.design'
 
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -69,7 +87,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
+  '/verify': typeof VerifyRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
   '/provider/login': typeof ProviderLoginRoute
@@ -80,7 +101,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
+  '/verify': typeof VerifyRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
   '/provider/login': typeof ProviderLoginRoute
@@ -92,7 +116,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/dashboard': typeof DashboardRoute
+  '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
+  '/verify': typeof VerifyRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
   '/provider/login': typeof ProviderLoginRoute
@@ -105,7 +132,10 @@ export interface FileRouteTypes {
     | '/'
     | '/booking'
     | '/dashboard'
+    | '/login'
     | '/search'
+    | '/signup'
+    | '/verify'
     | '/profile/design'
     | '/profile/tech'
     | '/provider/login'
@@ -116,7 +146,10 @@ export interface FileRouteTypes {
     | '/'
     | '/booking'
     | '/dashboard'
+    | '/login'
     | '/search'
+    | '/signup'
+    | '/verify'
     | '/profile/design'
     | '/profile/tech'
     | '/provider/login'
@@ -127,7 +160,10 @@ export interface FileRouteTypes {
     | '/'
     | '/booking'
     | '/dashboard'
+    | '/login'
     | '/search'
+    | '/signup'
+    | '/verify'
     | '/profile/design'
     | '/profile/tech'
     | '/provider/login'
@@ -139,7 +175,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
   DashboardRoute: typeof DashboardRoute
+  LoginRoute: typeof LoginRoute
   SearchRoute: typeof SearchRoute
+  SignupRoute: typeof SignupRoute
+  VerifyRoute: typeof VerifyRoute
   ProfileDesignRoute: typeof ProfileDesignRoute
   ProfileTechRoute: typeof ProfileTechRoute
   ProviderLoginRoute: typeof ProviderLoginRoute
@@ -149,11 +188,32 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -219,7 +279,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
   DashboardRoute: DashboardRoute,
+  LoginRoute: LoginRoute,
   SearchRoute: SearchRoute,
+  SignupRoute: SignupRoute,
+  VerifyRoute: VerifyRoute,
   ProfileDesignRoute: ProfileDesignRoute,
   ProfileTechRoute: ProfileTechRoute,
   ProviderLoginRoute: ProviderLoginRoute,
