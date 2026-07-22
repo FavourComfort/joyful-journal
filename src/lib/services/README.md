@@ -310,8 +310,8 @@ if (!result) {
 ## Environment Variables
 
 Required in `.env`:
-- `SUPABASE_URL` - Your Supabase project URL
-- `SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `VITE_SUPABASE_URL` - Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
 
 ## Best Practices
 

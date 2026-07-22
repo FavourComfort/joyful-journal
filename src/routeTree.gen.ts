@@ -9,24 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProviderVerificationRouteImport } from './routes/provider.verification'
 import { Route as ProviderSignupRouteImport } from './routes/provider.signup'
 import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProfileTechRouteImport } from './routes/profile.tech'
 import { Route as ProfileDesignRouteImport } from './routes/profile.design'
 
-const VerifyRoute = VerifyRouteImport.update({
-  id: '/verify',
-  path: '/verify',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -57,11 +50,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProviderVerificationRoute = ProviderVerificationRouteImport.update({
-  id: '/provider/verification',
-  path: '/provider/verification',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProviderSignupRoute = ProviderSignupRouteImport.update({
   id: '/provider/signup',
   path: '/provider/signup',
@@ -90,12 +78,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
-  '/verify': typeof VerifyRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/signup': typeof ProviderSignupRoute
-  '/provider/verification': typeof ProviderVerificationRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -104,12 +90,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
-  '/verify': typeof VerifyRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/signup': typeof ProviderSignupRoute
-  '/provider/verification': typeof ProviderVerificationRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -119,12 +103,10 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
-  '/verify': typeof VerifyRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/signup': typeof ProviderSignupRoute
-  '/provider/verification': typeof ProviderVerificationRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -135,12 +117,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/search'
     | '/signup'
-    | '/verify'
     | '/profile/design'
     | '/profile/tech'
     | '/provider/login'
     | '/provider/signup'
-    | '/provider/verification'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -149,12 +129,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/search'
     | '/signup'
-    | '/verify'
     | '/profile/design'
     | '/profile/tech'
     | '/provider/login'
     | '/provider/signup'
-    | '/provider/verification'
   id:
     | '__root__'
     | '/'
@@ -163,12 +141,10 @@ export interface FileRouteTypes {
     | '/login'
     | '/search'
     | '/signup'
-    | '/verify'
     | '/profile/design'
     | '/profile/tech'
     | '/provider/login'
     | '/provider/signup'
-    | '/provider/verification'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -178,23 +154,14 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
-  VerifyRoute: typeof VerifyRoute
   ProfileDesignRoute: typeof ProfileDesignRoute
   ProfileTechRoute: typeof ProfileTechRoute
   ProviderLoginRoute: typeof ProviderLoginRoute
   ProviderSignupRoute: typeof ProviderSignupRoute
-  ProviderVerificationRoute: typeof ProviderVerificationRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/verify': {
-      id: '/verify'
-      path: '/verify'
-      fullPath: '/verify'
-      preLoaderRoute: typeof VerifyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -237,13 +204,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/provider/verification': {
-      id: '/provider/verification'
-      path: '/provider/verification'
-      fullPath: '/provider/verification'
-      preLoaderRoute: typeof ProviderVerificationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/provider/signup': {
       id: '/provider/signup'
       path: '/provider/signup'
@@ -282,12 +242,10 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
-  VerifyRoute: VerifyRoute,
   ProfileDesignRoute: ProfileDesignRoute,
   ProfileTechRoute: ProfileTechRoute,
   ProviderLoginRoute: ProviderLoginRoute,
   ProviderSignupRoute: ProviderSignupRoute,
-  ProviderVerificationRoute: ProviderVerificationRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

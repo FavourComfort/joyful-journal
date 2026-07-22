@@ -55,14 +55,8 @@ function SignupComponent() {
             return;
           }
 
-          // Store signup data for verification page
-          sessionStorage.setItem(
-            "signupEmail",
-            data.email
-          );
-
-          // Navigate to verification page
-          await router.navigate({ to: "/verify" });
+          // Navigate directly to dashboard — verification skipped
+          await router.navigate({ to: "/dashboard" });
         } catch (err) {
           const errorMessage =
             err instanceof Error ? err.message : "An error occurred";
