@@ -6,6 +6,7 @@ export interface Provider {
   business_name: string;
   bio?: string;
   location?: string;
+  profile_picture_url?: string;
   rating: number;
   verified: boolean;
   created_at: string;
@@ -79,7 +80,8 @@ export async function createProvider(
   userId: string,
   businessName: string,
   bio?: string,
-  location?: string
+  location?: string,
+  profilePictureUrl?: string
 ): Promise<Provider | null> {
   try {
     const { data, error } = await supabase
@@ -90,6 +92,7 @@ export async function createProvider(
           business_name: businessName,
           bio,
           location,
+          profile_picture_url: profilePictureUrl,
           rating: 0,
           verified: false,
         },

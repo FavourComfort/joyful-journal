@@ -200,30 +200,30 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
                         <div>
                             <label class="block font-label-sm text-label-sm text-on-background mb-sm">First Name</label>
-                            <input type="text" required placeholder="John" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                            <input type="text" name="firstName" required placeholder="John" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                         </div>
                         <div>
                             <label class="block font-label-sm text-label-sm text-on-background mb-sm">Last Name</label>
-                            <input type="text" required placeholder="Doe" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                            <input type="text" name="lastName" required placeholder="Doe" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                         </div>
                     </div>
 
                     <!-- Email -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Email Address</label>
-                        <input type="email" required placeholder="john@example.com" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <input type="email" name="email" required placeholder="john@example.com" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
                     <!-- Phone -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Phone Number</label>
-                        <input type="tel" required placeholder="+1 (555) 000-0000" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <input type="tel" name="phone" required placeholder="+1 (555) 000-0000" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
                     <!-- Service Category -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Primary Service Category</label>
-                        <select required class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md">
+                        <select name="category" required class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md">
                             <option value="">Select a category</option>
                             <option value="maintenance">Home Maintenance & Repairs</option>
                             <option value="consulting">Business Consulting</option>
@@ -237,30 +237,30 @@
                     <!-- Experience -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Years of Experience</label>
-                        <input type="number" required min="0" max="70" placeholder="10" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <input type="number" name="experience" required min="0" max="70" placeholder="10" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
                     <!-- Bio -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Professional Bio</label>
-                        <textarea required placeholder="Tell us about your expertise and services..." rows="4" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"></textarea>
+                        <textarea name="bio" required placeholder="Tell us about your expertise and services..." rows="4" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"></textarea>
                     </div>
 
                     <!-- Password -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Password</label>
-                        <input type="password" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <input type="password" name="password" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
                     <!-- Confirm Password -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Confirm Password</label>
-                        <input type="password" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <input type="password" name="confirmPassword" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
                     <!-- Terms Checkbox -->
                     <div class="flex items-start gap-sm">
-                        <input type="checkbox" id="terms" required class="mt-xs w-4 h-4 rounded border-outline-variant cursor-pointer"/>
+                        <input type="checkbox" id="terms" name="terms" required class="mt-xs w-4 h-4 rounded border-outline-variant cursor-pointer"/>
                         <label for="terms" class="font-body-md text-on-surface-variant cursor-pointer">
                             I agree to the <span class="text-primary font-semibold">Terms of Service</span> and <span class="text-primary font-semibold">Privacy Policy</span>
                         </label>
@@ -334,8 +334,20 @@
             if (form) {
                 form.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    // Store form data (in real app, send to backend)
-                    navigate('/dashboard');
+                    const formData = new FormData(form);
+                    const data = {
+                        firstName: formData.get('firstName'),
+                        lastName: formData.get('lastName'),
+                        email: formData.get('email'),
+                        phone: formData.get('phone'),
+                        category: formData.get('category'),
+                        experience: formData.get('experience'),
+                        bio: formData.get('bio'),
+                        password: formData.get('password'),
+                        confirmPassword: formData.get('confirmPassword'),
+                        terms: formData.get('terms') === 'on',
+                    };
+                    window.parent.postMessage({ type: 'auth:signup', payload: data }, '*');
                 });
             }
         });

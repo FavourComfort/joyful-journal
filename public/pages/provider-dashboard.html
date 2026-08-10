@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Provider Dashboard | ExpertHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "outline": "#737685",
+                        "primary-fixed": "#dae2ff",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dee0e2",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0052cc",
+                        "on-background": "#041b3c",
+                        "secondary-fixed-dim": "#c5c6c8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e8edff",
+                        "tertiary": "#5e3c00",
+                        "outline-variant": "#c3c6d6",
+                        "tertiary-fixed": "#ffddb3",
+                        "on-primary-container": "#c4d2ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-tertiary-fixed": "#291800",
+                        "secondary": "#5c5f60",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-fixed": "#e1e2e4",
+                        "surface-container-low": "#f1f3ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "primary": "#003d9b",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#1d3052",
+                        "on-secondary-fixed-variant": "#444749",
+                        "tertiary-fixed-dim": "#ffb950",
+                        "tertiary-container": "#7d5200",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "surface-dim": "#cadaff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-container": "#ffca81",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#606365",
+                        "surface-tint": "#0c56d0",
+                        "on-primary-fixed": "#001848",
+                        "on-surface": "#041b3c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "caption": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #041b3c;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(223, 225, 230, 0.5);
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #434654;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .tab-btn:hover { background: #f1f3ff; }
+        .tab-btn.tab-active {
+            background: #003d9b;
+            color: #ffffff;
+        }
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e8edff;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+    <!-- Header -->
+    <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
+        <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
+            <div class="flex items-center gap-base cursor-pointer" data-nav="home">
+                <span class="material-symbols-outlined text-primary">home</span>
+                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
+            </div>
+            <div class="flex items-center gap-sm">
+                <button class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="home">
+                    Back to Home
+                </button>
+                <button id="signOutBtn" class="text-error hover:bg-error-container transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer">
+                    Sign out
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="min-h-screen pt-xl pb-xl px-margin-mobile md:px-margin-desktop">
+        <div class="max-w-5xl mx-auto">
+            <!-- Error / toast -->
+            <div id="toastBox" class="hidden fixed bottom-4 right-4 z-50 bg-error-container text-on-error-container px-md py-sm rounded-xl font-body-md shadow-lg"></div>
+
+            <!-- Loading -->
+            <div id="loadingState" class="flex flex-col items-center justify-center py-xl">
+                <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                <p class="mt-md text-on-surface-variant font-body-md">Loading your dashboard...</p>
+            </div>
+
+            <div id="dashboardContent" class="hidden">
+                <!-- Tab bar -->
+                <div class="flex items-center justify-between mb-lg flex-wrap gap-sm">
+                    <h1 class="font-headline-md text-headline-md text-on-background">Provider Dashboard</h1>
+                    <div class="flex gap-xs bg-surface-container-low rounded-xl p-xs">
+                        <button class="tab-btn tab-active" data-tab="overview">Overview</button>
+                        <button class="tab-btn" data-tab="services">Services</button>
+                        <button class="tab-btn" data-tab="bookings">Bookings</button>
+                    </div>
+                </div>
+
+                <!-- Overview -->
+                <section id="overview-panel">
+                    <div id="overviewContent" class="space-y-lg"></div>
+                </section>
+
+                <!-- Services -->
+                <section id="services-panel" class="hidden">
+                    <div class="bg-surface-container-low rounded-xl p-lg shadow-sm mb-lg">
+                        <h2 class="font-headline-md text-headline-md text-on-background mb-sm">Add a service</h2>
+                        <form id="serviceForm" class="space-y-md">
+                            <div>
+                                <label class="block font-label-sm text-label-sm text-on-background mb-sm">Service Title</label>
+                                <input id="svcTitle" type="text" required placeholder="e.g. Full home plumbing inspection" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+                                <div>
+                                    <label class="block font-label-sm text-label-sm text-on-background mb-sm">Category</label>
+                                    <select id="svcCategory" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md">
+                                        <option value="maintenance">Home Maintenance & Repairs</option>
+                                        <option value="consulting">Business Consulting</option>
+                                        <option value="design">Creative Design</option>
+                                        <option value="health">Health & Wellness</option>
+                                        <option value="events">Events & Dining</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block font-label-sm text-label-sm text-on-background mb-sm">Price (UGX)</label>
+                                    <input id="svcPrice" type="number" required min="0" step="0.01" placeholder="50000" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                                </div>
+                                <div>
+                                    <label class="block font-label-sm text-label-sm text-on-background mb-sm">Duration (min)</label>
+                                    <input id="svcDuration" type="number" min="5" step="5" placeholder="60" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block font-label-sm text-label-sm text-on-background mb-sm">Description (optional)</label>
+                                <textarea id="svcDescription" rows="2" placeholder="What does this service include?" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                                + Add Service
+                            </button>
+                        </form>
+                    </div>
+                    <div id="servicesList" class="space-y-sm"></div>
+                </section>
+
+                <!-- Bookings -->
+                <section id="bookings-panel" class="hidden">
+                    <div id="bookingsList" class="space-y-sm"></div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-low mt-xl py-lg border-t border-outline-variant">
+        <div class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop">
+            <p class="text-center text-caption text-on-surface-variant">© 2024 ExpertHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const navMap = {
+            'home': '/',
+        };
+
+        function navigate(route) {
+            window.parent.postMessage({ type: 'navigate', route }, '*');
+        }
+
+        const $ = (sel) => document.querySelector(sel);
+
+        let data = null;
+        let activeTab = 'overview';
+        let editingProfile = false;
+
+        function postToParent(type, payload) {
+            window.parent.postMessage({ type, payload }, '*');
+        }
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+            }[c]));
+        }
+
+        function formatPrice(n) {
+            const value = Number(n);
+            if (isNaN(value)) return '—';
+            return new Intl.NumberFormat('en-UG', {
+                style: 'currency',
+                currency: 'UGX',
+                minimumFractionDigits: 0,
+            }).format(value);
+        }
+
+        function formatDate(d) {
+            if (!d) return '—';
+            const parsed = new Date(String(d) + 'T00:00:00');
+            if (isNaN(parsed.getTime())) return String(d);
+            return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function formatTime(t) {
+            if (!t) return '';
+            const parts = String(t).split(':');
+            return parts.length >= 2 ? parts[0] + ':' + parts[1] : String(t);
+        }
+
+        function statusBadge(status) {
+            const map = {
+                pending: ['bg-[#fef3c7] text-[#92400e]', 'Pending'],
+                confirmed: ['bg-[#dbeafe] text-[#1e40af]', 'Confirmed'],
+                completed: ['bg-[#dcfce7] text-[#166534]', 'Completed'],
+                cancelled: ['bg-[#fee2e2] text-[#991b1b]', 'Cancelled'],
+            };
+            const [cls, label] = map[status] || ['bg-[#e5e7eb] text-[#374151]', status];
+            return '<span class="badge ' + cls + '">' + label + '</span>';
+        }
+
+        function showToast(message) {
+            const box = $('#toastBox');
+            if (!box) return;
+            box.textContent = message;
+            box.classList.remove('hidden');
+            clearTimeout(box._timer);
+            box._timer = setTimeout(() => box.classList.add('hidden'), 4000);
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach((b) => {
+                b.classList.toggle('tab-active', b.dataset.tab === tab);
+            });
+            ['overview', 'services', 'bookings'].forEach((t) => {
+                const panel = document.getElementById(t + '-panel');
+                if (panel) panel.classList.toggle('hidden', t !== tab);
+            });
+            if (tab === 'overview' && data) renderOverview();
+            if (tab === 'services' && data) renderServices();
+            if (tab === 'bookings' && data) renderBookings();
+        }
+
+        // ---------- Overview ----------
+        function renderOverview() {
+            const container = $('#overviewContent');
+            if (!container || !data) return;
+            const { provider, phone, bookings, avgRating, earnings, upcoming, completed } = data;
+
+            const verifiedBadge = provider.verified
+                ? '<span class="badge bg-[#dcfce7] text-[#166534]">✓ Verified</span>'
+                : '<span class="badge bg-[#fef3c7] text-[#92400e]">Pending verification</span>';
+
+            const stats = [
+                { label: 'Total bookings', value: bookings.length, icon: 'event_note' },
+                { label: 'Upcoming', value: upcoming, icon: 'schedule' },
+                { label: 'Completed', value: completed, icon: 'task_alt' },
+                { label: 'Avg rating', value: avgRating ? avgRating.toFixed(1) + ' ★' : '—', icon: 'star' },
+                { label: 'Earnings', value: formatPrice(earnings), icon: 'payments' },
+            ];
+
+            let statsHtml = '';
+            stats.forEach((s) => {
+                statsHtml += '<div class="stat-card flex items-center gap-md">' +
+                    '<div class="w-10 h-10 rounded-xl bg-primary-container/10 flex items-center justify-center shrink-0">' +
+                    '<span class="material-symbols-outlined text-primary">' + s.icon + '</span></div>' +
+                    '<div><p class="text-caption font-caption text-on-surface-variant">' + s.label + '</p>' +
+                    '<p class="font-headline-md text-headline-md text-on-background">' + s.value + '</p></div></div>';
+            });
+
+            const profileHtml = editingProfile
+                ? '<form id="profileEditForm" class="space-y-md">' +
+                    '<div class="grid grid-cols-1 md:grid-cols-2 gap-md">' +
+                    '<div><label class="block font-label-sm text-label-sm text-on-background mb-sm">Business Name</label>' +
+                    '<input id="editName" type="text" required value="' + escapeHtml(provider.business_name) + '" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/></div>' +
+                    '<div><label class="block font-label-sm text-label-sm text-on-background mb-sm">Location</label>' +
+                    '<input id="editLocation" type="text" value="' + escapeHtml(provider.location || '') + '" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/></div>' +
+                    '</div>' +
+                    '<div><label class="block font-label-sm text-label-sm text-on-background mb-sm">Phone Number</label>' +
+                    '<input id="editPhone" type="tel" value="' + escapeHtml(phone || '') + '" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/></div>' +
+                    '<div><label class="block font-label-sm text-label-sm text-on-background mb-sm">Business Description</label>' +
+                    '<textarea id="editBio" rows="3" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md">' + escapeHtml(provider.bio || '') + '</textarea></div>' +
+                    '<div class="flex gap-sm">' +
+                    '<button type="submit" class="flex-1 bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 transition-all cursor-pointer">Save changes</button>' +
+                    '<button type="button" id="cancelEditBtn" class="px-md py-md rounded-xl font-label-sm text-label-sm border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer">Cancel</button>' +
+                    '</div></form>'
+                : '<div class="flex items-start justify-between gap-md">' +
+                    '<div>' +
+                    '<div class="flex items-center gap-sm flex-wrap mb-sm">' +
+                    '<h3 class="font-headline-md text-headline-md text-on-background">' + escapeHtml(provider.business_name) + '</h3>' + verifiedBadge +
+                    '</div>' +
+                    (provider.location ? '<p class="font-body-md text-on-surface-variant mb-sm"><span class="material-symbols-outlined text-sm align-middle">location_on</span> ' + escapeHtml(provider.location) + '</p>' : '') +
+                    (phone ? '<p class="font-body-md text-on-surface-variant mb-sm"><span class="material-symbols-outlined text-sm align-middle">call</span> ' + escapeHtml(phone) + '</p>' : '') +
+                    (provider.bio ? '<p class="font-body-md text-on-surface-variant">' + escapeHtml(provider.bio) + '</p>' : '<p class="font-body-md text-on-surface-variant">No description yet.</p>') +
+                    '</div>' +
+                    '<button id="editProfileBtn" class="shrink-0 border border-outline-variant text-on-background px-sm py-xs rounded-xl font-label-sm text-label-sm hover:bg-surface-container transition-all cursor-pointer">Edit profile</button>' +
+                    '</div>';
+
+            container.innerHTML =
+                '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-sm">' + statsHtml + '</div>' +
+                '<div class="glass-card rounded-xl shadow-sm p-lg"><h2 class="font-label-sm text-label-sm text-on-background mb-md uppercase tracking-wide">Your profile</h2>' + profileHtml + '</div>';
+
+            const editBtn = $('#editProfileBtn');
+            if (editBtn) editBtn.addEventListener('click', () => { editingProfile = true; renderOverview(); });
+            const cancelBtn = $('#cancelEditBtn');
+            if (cancelBtn) cancelBtn.addEventListener('click', () => { editingProfile = false; renderOverview(); });
+            const editForm = $('#profileEditForm');
+            if (editForm) {
+                editForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    postToParent('dashboard:updateProfile', {
+                        businessName: $('#editName').value.trim(),
+                        location: $('#editLocation').value,
+                        phone: $('#editPhone').value,
+                        bio: $('#editBio').value,
+                    });
+                    editingProfile = false;
+                });
+            }
+        }
+
+        // ---------- Services ----------
+        function renderServices() {
+            const list = $('#servicesList');
+            if (!list || !data) return;
+            list.innerHTML = '';
+            if (!data.services.length) {
+                list.innerHTML = '<div class="text-center text-on-surface-variant font-body-md py-lg bg-surface-container-low rounded-xl">' +
+                    'You haven\'t added any services yet. Add your first one above.</div>';
+                return;
+            }
+            data.services.forEach((s) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between gap-md bg-surface-container-low rounded-xl p-md flex-wrap';
+
+                const info = document.createElement('div');
+                info.innerHTML =
+                    '<p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(s.title) +
+                    (s.active ? '' : ' <span class="badge bg-[#e5e7eb] text-[#374151]">Archived</span>') + '</p>' +
+                    '<p class="font-caption text-caption text-on-surface-variant">' + escapeHtml(s.category) + ' · ' +
+                    formatPrice(s.price) + (s.duration_minutes ? ' · ' + s.duration_minutes + ' min' : '') +
+                    (s.description ? ' · ' + escapeHtml(s.description) : '') + '</p>';
+
+                const actions = document.createElement('div');
+                actions.className = 'flex items-center gap-sm shrink-0';
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'border border-outline-variant text-on-background px-sm py-xs rounded-xl font-label-sm text-label-sm hover:bg-surface-container transition-all cursor-pointer';
+                toggleBtn.textContent = s.active ? 'Archive' : 'Activate';
+                toggleBtn.addEventListener('click', () => {
+                    postToParent('dashboard:updateService', { serviceId: s.id, updates: { active: !s.active } });
+                });
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'text-error hover:underline font-label-sm text-label-sm cursor-pointer';
+                removeBtn.textContent = 'Remove';
+                removeBtn.addEventListener('click', () => {
+                    if (window.confirm('Remove "' + s.title + '"? You can re-add it later.')) {
+                        postToParent('dashboard:removeService', { serviceId: s.id });
+                    }
+                });
+
+                actions.appendChild(toggleBtn);
+                actions.appendChild(removeBtn);
+                item.appendChild(info);
+                item.appendChild(actions);
+                list.appendChild(item);
+            });
+        }
+
+        // ---------- Bookings ----------
+        function renderBookings() {
+            const list = $('#bookingsList');
+            if (!list || !data) return;
+            list.innerHTML = '';
+            if (!data.bookings.length) {
+                list.innerHTML = '<div class="text-center text-on-surface-variant font-body-md py-lg bg-surface-container-low rounded-xl">' +
+                    'No bookings yet. When customers book your services, they\'ll show up here.</div>';
+                return;
+            }
+            data.bookings.forEach((b) => {
+                const item = document.createElement('div');
+                item.className = 'bg-surface-container-low rounded-xl p-md flex items-center justify-between gap-md flex-wrap';
+
+                const info = document.createElement('div');
+                info.innerHTML =
+                    '<div class="flex items-center gap-sm flex-wrap mb-xs">' +
+                    '<p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(b.customer_name) + '</p>' +
+                    statusBadge(b.status) + '</div>' +
+                    '<p class="font-caption text-caption text-on-surface-variant">' +
+                    formatDate(b.booking_date) + ' · ' + formatTime(b.start_time) + ' – ' + formatTime(b.end_time) +
+                    ' · ' + formatPrice(b.total_amount) + '</p>';
+
+                const actions = document.createElement('div');
+                actions.className = 'flex items-center gap-sm shrink-0';
+
+                if (b.status === 'pending') {
+                    const confirmBtn = document.createElement('button');
+                    confirmBtn.className = 'bg-primary text-on-primary px-sm py-xs rounded-xl font-label-sm text-label-sm hover:brightness-110 transition-all cursor-pointer';
+                    confirmBtn.textContent = 'Confirm';
+                    confirmBtn.addEventListener('click', () => postToParent('dashboard:updateBookingStatus', { bookingId: b.id, status: 'confirmed' }));
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'border border-outline-variant text-on-background px-sm py-xs rounded-xl font-label-sm text-label-sm hover:bg-surface-container transition-all cursor-pointer';
+                    cancelBtn.textContent = 'Cancel';
+                    cancelBtn.addEventListener('click', () => postToParent('dashboard:updateBookingStatus', { bookingId: b.id, status: 'cancelled' }));
+
+                    actions.appendChild(confirmBtn);
+                    actions.appendChild(cancelBtn);
+                } else if (b.status === 'confirmed') {
+                    const completeBtn = document.createElement('button');
+                    completeBtn.className = 'bg-primary text-on-primary px-sm py-xs rounded-xl font-label-sm text-label-sm hover:brightness-110 transition-all cursor-pointer';
+                    completeBtn.textContent = 'Mark completed';
+                    completeBtn.addEventListener('click', () => postToParent('dashboard:updateBookingStatus', { bookingId: b.id, status: 'completed' }));
+
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.className = 'border border-outline-variant text-on-background px-sm py-xs rounded-xl font-label-sm text-label-sm hover:bg-surface-container transition-all cursor-pointer';
+                    cancelBtn.textContent = 'Cancel';
+                    cancelBtn.addEventListener('click', () => postToParent('dashboard:updateBookingStatus', { bookingId: b.id, status: 'cancelled' }));
+
+                    actions.appendChild(completeBtn);
+                    actions.appendChild(cancelBtn);
+                }
+
+                item.appendChild(info);
+                if (actions.childNodes.length) item.appendChild(actions);
+                list.appendChild(item);
+            });
+        }
+
+        // Message protocol with the React shell
+        window.addEventListener('message', (event) => {
+            const msg = event.data || {};
+
+            if (msg.type === 'dashboard:ping') {
+                window.parent.postMessage({ type: 'dashboard:ready' }, '*');
+                return;
+            }
+
+            if (msg.type === 'dashboard:data') {
+                data = msg.payload;
+                $('#loadingState').classList.add('hidden');
+                $('#dashboardContent').classList.remove('hidden');
+                if (activeTab === 'overview') renderOverview();
+                if (activeTab === 'services') renderServices();
+                if (activeTab === 'bookings') renderBookings();
+            }
+
+            if (msg.type === 'dashboard:error') {
+                showToast((msg.payload && msg.payload.message) || 'Something went wrong. Please try again.');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-nav]').forEach((element) => {
+                element.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const route = navMap[element.dataset.nav];
+                    if (route) navigate(route);
+                });
+            });
+
+            const signOutBtn = $('#signOutBtn');
+            if (signOutBtn) signOutBtn.addEventListener('click', () => postToParent('dashboard:signOut'));
+
+            document.querySelectorAll('.tab-btn').forEach((b) => {
+                b.addEventListener('click', () => switchTab(b.dataset.tab));
+            });
+
+            const serviceForm = $('#serviceForm');
+            if (serviceForm) {
+                serviceForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const title = $('#svcTitle').value.trim();
+                    const price = $('#svcPrice').value;
+                    if (!title) {
+                        showToast('Please enter a service title.');
+                        return;
+                    }
+                    if (price === '' || Number(price) < 0) {
+                        showToast('Please enter a valid price.');
+                        return;
+                    }
+                    postToParent('dashboard:addService', {
+                        title,
+                        category: $('#svcCategory').value,
+                        price,
+                        durationMinutes: $('#svcDuration').value || undefined,
+                        description: $('#svcDescription').value,
+                    });
+                    serviceForm.reset();
+                });
+            }
+
+            // Handshake: tell the parent we're ready to receive data.
+            window.parent.postMessage({ type: 'dashboard:ready' }, '*');
+        });
+    </script>
+</body>
+</html>

@@ -63,13 +63,17 @@ export async function createProfile(
 
     if (error) {
       console.error('Error creating profile:', error);
-      return null;
+      throw new Error(error.message);
+    }
+
+    if (!data) {
+      throw new Error('Profile creation returned no data');
     }
 
     return data as Profile;
   } catch (error) {
     console.error('Error creating profile:', error);
-    return null;
+    throw error instanceof Error ? error : new Error('Unknown profile creation error');
   }
 }
 
@@ -112,8 +116,16 @@ export async function signUp(
       password,
     });
 
-    if (authError || !authData.user) {
-      return { data: null, error: authError?.message || 'Sign up failed' };
+    if (authError) {
+      return { data: null, error: authError.message };
+    }
+
+    if (!authData.user) {
+      return {
+        data: null,
+        error:
+          'Sign up requires email confirmation. Please check your inbox and confirm your email before signing in.',
+      };
     }
 
     const profile = await createProfile(authData.user.id, fullName, phone, role);

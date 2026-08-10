@@ -49,8 +49,8 @@ function SignupComponent() {
             "customer"
           );
 
-          if (!result) {
-            setError("Sign up failed. Please try again.");
+          if (result.error) {
+            setError(result.error);
             setLoading(false);
             return;
           }

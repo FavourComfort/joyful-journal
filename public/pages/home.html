@@ -147,10 +147,11 @@
 </div>
 <div class="flex items-center gap-md">
 <div class="hidden md:block">
-<button class="bg-primary text-on-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" data-nav="become-provider">Become a Provider</button>
+<button id="becomeProviderBtn" class="bg-primary text-on-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" data-nav="become-provider">Become a Provider</button>
 </div>
-<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border border-outline-variant">
-<span class="material-symbols-outlined" data-icon="person">person</span>
+<div id="providerIcon" class="hidden w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border border-outline-variant cursor-pointer" data-nav="provider-dashboard">
+<img id="providerAvatar" class="hidden w-full h-full object-cover" alt="Provider avatar" />
+<span id="providerIconFallback" class="material-symbols-outlined">person</span>
 </div>
 </div>
 </nav>
@@ -401,12 +402,64 @@
             'home-maintenance': '/search',
             'business-strategy': '/search',
             'creative-services': '/search',
-            'technical-support': '/search'
+            'technical-support': '/search',
+            'provider-dashboard': '/provider/dashboard'
         };
+        let isProvider = false;
 
         function navigate(route) {
             window.parent.postMessage({ type: 'navigate', route }, '*');
         }
+
+        function setProviderIconVisible(visible, avatarUrl) {
+            const icon = $('#providerIcon');
+            const avatar = $('#providerAvatar');
+            const fallback = $('#providerIconFallback');
+            if (!icon) return;
+
+            icon.classList.toggle('hidden', !visible);
+            if (!visible) {
+                if (avatar) avatar.classList.add('hidden');
+                if (fallback) fallback.classList.remove('hidden');
+                return;
+            }
+
+            if (avatarUrl && avatar) {
+                avatar.src = avatarUrl;
+                avatar.classList.remove('hidden');
+                if (fallback) fallback.classList.add('hidden');
+            } else {
+                if (avatar) {
+                    avatar.classList.add('hidden');
+                    avatar.removeAttribute('src');
+                }
+                if (fallback) fallback.classList.remove('hidden');
+            }
+        }
+
+        window.addEventListener('message', (event) => {
+            const msg = event.data || {};
+            if (msg.type === 'home:init') {
+                isProvider = !!msg.payload?.isProvider;
+                const onboarded = !!msg.payload?.onboarded;
+                const avatarUrl = msg.payload?.profilePictureUrl;
+
+                setProviderIconVisible(isProvider, avatarUrl);
+
+                const becomeBtn = $('#becomeProviderBtn');
+                if (becomeBtn) {
+                    if (isProvider) {
+                        // Providers always get routed to their dashboard via this button
+                        becomeBtn.dataset.nav = 'provider-dashboard';
+                        // If they've completed setup, show a friendlier label
+                        becomeBtn.textContent = onboarded ? '🤝My Dashboard😊' : 'Become a Provider';
+                    } else {
+                        becomeBtn.dataset.nav = 'become-provider';
+                        becomeBtn.textContent = 'Become a Provider';
+                    }
+                }
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             // Setup navigation links and buttons with data-nav attribute

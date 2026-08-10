@@ -16,7 +16,9 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProviderSignupRouteImport } from './routes/provider.signup'
+import { Route as ProviderOnboardingRouteImport } from './routes/provider.onboarding'
 import { Route as ProviderLoginRouteImport } from './routes/provider.login'
+import { Route as ProviderDashboardRouteImport } from './routes/provider.dashboard'
 import { Route as ProfileTechRouteImport } from './routes/profile.tech'
 import { Route as ProfileDesignRouteImport } from './routes/profile.design'
 
@@ -55,9 +57,19 @@ const ProviderSignupRoute = ProviderSignupRouteImport.update({
   path: '/provider/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProviderOnboardingRoute = ProviderOnboardingRouteImport.update({
+  id: '/provider/onboarding',
+  path: '/provider/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProviderLoginRoute = ProviderLoginRouteImport.update({
   id: '/provider/login',
   path: '/provider/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProviderDashboardRoute = ProviderDashboardRouteImport.update({
+  id: '/provider/dashboard',
+  path: '/provider/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileTechRoute = ProfileTechRouteImport.update({
@@ -80,7 +92,9 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
+  '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
+  '/provider/onboarding': typeof ProviderOnboardingRoute
   '/provider/signup': typeof ProviderSignupRoute
 }
 export interface FileRoutesByTo {
@@ -92,7 +106,9 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
+  '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
+  '/provider/onboarding': typeof ProviderOnboardingRoute
   '/provider/signup': typeof ProviderSignupRoute
 }
 export interface FileRoutesById {
@@ -105,7 +121,9 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
   '/profile/tech': typeof ProfileTechRoute
+  '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
+  '/provider/onboarding': typeof ProviderOnboardingRoute
   '/provider/signup': typeof ProviderSignupRoute
 }
 export interface FileRouteTypes {
@@ -119,7 +137,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/profile/design'
     | '/profile/tech'
+    | '/provider/dashboard'
     | '/provider/login'
+    | '/provider/onboarding'
     | '/provider/signup'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -131,7 +151,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/profile/design'
     | '/profile/tech'
+    | '/provider/dashboard'
     | '/provider/login'
+    | '/provider/onboarding'
     | '/provider/signup'
   id:
     | '__root__'
@@ -143,7 +165,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/profile/design'
     | '/profile/tech'
+    | '/provider/dashboard'
     | '/provider/login'
+    | '/provider/onboarding'
     | '/provider/signup'
   fileRoutesById: FileRoutesById
 }
@@ -156,7 +180,9 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   ProfileDesignRoute: typeof ProfileDesignRoute
   ProfileTechRoute: typeof ProfileTechRoute
+  ProviderDashboardRoute: typeof ProviderDashboardRoute
   ProviderLoginRoute: typeof ProviderLoginRoute
+  ProviderOnboardingRoute: typeof ProviderOnboardingRoute
   ProviderSignupRoute: typeof ProviderSignupRoute
 }
 
@@ -211,11 +237,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProviderSignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/provider/onboarding': {
+      id: '/provider/onboarding'
+      path: '/provider/onboarding'
+      fullPath: '/provider/onboarding'
+      preLoaderRoute: typeof ProviderOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/provider/login': {
       id: '/provider/login'
       path: '/provider/login'
       fullPath: '/provider/login'
       preLoaderRoute: typeof ProviderLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/provider/dashboard': {
+      id: '/provider/dashboard'
+      path: '/provider/dashboard'
+      fullPath: '/provider/dashboard'
+      preLoaderRoute: typeof ProviderDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile/tech': {
@@ -244,7 +284,9 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   ProfileDesignRoute: ProfileDesignRoute,
   ProfileTechRoute: ProfileTechRoute,
+  ProviderDashboardRoute: ProviderDashboardRoute,
   ProviderLoginRoute: ProviderLoginRoute,
+  ProviderOnboardingRoute: ProviderOnboardingRoute,
   ProviderSignupRoute: ProviderSignupRoute,
 }
 export const routeTree = rootRouteImport

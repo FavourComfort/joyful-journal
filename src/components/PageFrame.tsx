@@ -1,5 +1,5 @@
 import { Link, useLocation, useRouter } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type Ref } from "react";
 
 const NAV = [
   { to: "/", label: "Home" },
@@ -14,7 +14,17 @@ const NAV = [
   { to: "/provider/login", label: "Provider Login" },
 ] as const;
 
-export function PageFrame({ src, title }: { src: string; title: string }) {
+export function PageFrame({
+  src,
+  title,
+  onLoad,
+  iframeRef,
+}: {
+  src: string;
+  title: string;
+  onLoad?: () => void;
+  iframeRef?: Ref<HTMLIFrameElement>;
+}) {
   const { pathname } = useLocation();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -37,8 +47,10 @@ export function PageFrame({ src, title }: { src: string; title: string }) {
     <div className="relative h-screen w-screen overflow-hidden bg-[#f9f9ff]">
       <iframe
         key={src}
+        ref={iframeRef}
         src={src}
         title={title}
+        onLoad={onLoad}
         className="absolute inset-0 h-full w-full border-0"
       />
       {/* Floating screen-switcher */}

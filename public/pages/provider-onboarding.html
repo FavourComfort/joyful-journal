@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Provider Onboarding | ExpertHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "outline": "#737685",
+                        "primary-fixed": "#dae2ff",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dee0e2",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0052cc",
+                        "on-background": "#041b3c",
+                        "secondary-fixed-dim": "#c5c6c8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e8edff",
+                        "tertiary": "#5e3c00",
+                        "outline-variant": "#c3c6d6",
+                        "tertiary-fixed": "#ffddb3",
+                        "on-primary-container": "#c4d2ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-tertiary-fixed": "#291800",
+                        "secondary": "#5c5f60",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-fixed": "#e1e2e4",
+                        "surface-container-low": "#f1f3ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "primary": "#003d9b",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#1d3052",
+                        "on-secondary-fixed-variant": "#444749",
+                        "tertiary-fixed-dim": "#ffb950",
+                        "tertiary-container": "#7d5200",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "surface-dim": "#cadaff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-container": "#ffca81",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#606365",
+                        "surface-tint": "#0c56d0",
+                        "on-primary-fixed": "#001848",
+                        "on-surface": "#041b3c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "caption": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #041b3c;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(223, 225, 230, 0.5);
+        }
+        .step-item { opacity: 0.45; }
+        .step-item.step-active { opacity: 1; }
+        .step-item.step-done { opacity: 0.75; }
+        .step-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 9999px;
+            border: 2px solid #c3c6d6;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #737685;
+        }
+        .step-item.step-active .step-dot {
+            border-color: #003d9b;
+            background: #003d9b;
+            color: #ffffff;
+        }
+        .step-item.step-done .step-dot {
+            border-color: #0c56d0;
+            background: #e0e8ff;
+            color: #003d9b;
+        }
+        .step-label { font-size: 11px; font-weight: 600; margin-top: 6px; letter-spacing: 0.01em; }
+        .step-line { flex: 1; height: 2px; background: #c3c6d6; margin: 0 8px 22px 8px; }
+        .step-item.step-done + .step-line { background: #003d9b; }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+    <!-- Header -->
+    <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
+        <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
+            <div class="flex items-center gap-base cursor-pointer" data-nav="home">
+                <span class="material-symbols-outlined text-primary">home</span>
+                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
+            </div>
+            <button class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="provider-login">
+                Provider Sign In
+            </button>
+        </nav>
+    </header>
+
+    <main class="min-h-screen pt-xl pb-xl px-margin-mobile md:px-margin-desktop">
+        <div class="max-w-2xl mx-auto">
+            <!-- Error Box -->
+            <div id="errorBox" class="hidden mb-md bg-error-container text-on-error-container px-md py-sm rounded-xl font-body-md"></div>
+
+            <!-- Progress Stepper -->
+            <div id="stepper" class="flex items-start mb-xl">
+                <div class="step-item step-active flex flex-col items-center w-16 shrink-0" data-step="0">
+                    <div class="step-dot"><span class="step-num">1</span></div>
+                    <p class="step-label text-center">Account created</p>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item flex flex-col items-center w-16 shrink-0" data-step="1">
+                    <div class="step-dot"><span class="step-num">2</span></div>
+                    <p class="step-label text-center">Create profile</p>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item flex flex-col items-center w-16 shrink-0" data-step="2">
+                    <div class="step-dot"><span class="step-num">3</span></div>
+                    <p class="step-label text-center">Add your services</p>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item flex flex-col items-center w-16 shrink-0" data-step="3">
+                    <div class="step-dot"><span class="step-num">4</span></div>
+                    <p class="step-label text-center">Business details</p>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-item flex flex-col items-center w-16 shrink-0" data-step="4">
+                    <div class="step-dot"><span class="step-num">5</span></div>
+                    <p class="step-label text-center">Done</p>
+                </div>
+            </div>
+
+            <!-- Step 1: Account created -->
+            <section id="step-account" class="wizard-step">
+                <div class="glass-card rounded-xl shadow-sm p-lg text-center">
+                    <div class="w-20 h-20 rounded-full bg-primary-container/10 flex items-center justify-center mx-auto mb-md">
+                        <span class="material-symbols-outlined text-primary" style="font-size:44px">verified_user</span>
+                    </div>
+                    <h1 class="font-headline-md text-headline-md text-on-background mb-sm">Your account has been created</h1>
+                    <p class="text-on-surface-variant font-body-md mb-md">
+                        Welcome to ExpertHub<span id="greetingName"></span>. Let's get your business set up — this takes about 2 minutes.
+                    </p>
+                    <p id="accountEmail" class="text-primary font-label-sm text-label-sm mb-lg"></p>
+                    <button id="accountContinue" class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                        Continue
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 2: Create profile -->
+            <section id="step-profile" class="wizard-step hidden">
+                <div class="bg-surface-container-low rounded-xl p-lg shadow-sm">
+                    <h2 class="font-headline-md text-headline-md text-on-background mb-sm">Create your profile</h2>
+                    <p class="text-on-surface-variant font-body-md mb-lg">This is how customers will see you on ExpertHub.</p>
+
+                    <form id="profileForm" class="space-y-md">
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Business Name</label>
+                            <input id="businessName" type="text" required placeholder="e.g. Kampala Home Repairs" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        </div>
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Primary Service Category</label>
+                            <select id="businessCategory" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md">
+                                <option value="">Select a category</option>
+                                <option value="maintenance">Home Maintenance & Repairs</option>
+                                <option value="consulting">Business Consulting</option>
+                                <option value="design">Creative Design</option>
+                                <option value="health">Health & Wellness</option>
+                                <option value="events">Events & Dining</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Years of Experience</label>
+                            <input id="profileExperience" type="number" min="0" max="70" placeholder="10" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        </div>
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Professional Bio</label>
+                            <textarea id="profileBio" rows="4" placeholder="Tell customers about your expertise and what you offer..." class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"></textarea>
+                        </div>
+                        <button type="submit" data-busy class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            Save & Continue
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Step 3: Add your services -->
+            <section id="step-services" class="wizard-step hidden">
+                <div class="bg-surface-container-low rounded-xl p-lg shadow-sm">
+                    <h2 class="font-headline-md text-headline-md text-on-background mb-sm">Add your services</h2>
+                    <p class="text-on-surface-variant font-body-md mb-lg">List what you offer so customers know exactly what they can book.</p>
+
+                    <form id="serviceForm" class="space-y-md mb-lg bg-surface-container rounded-xl p-md">
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Service Title</label>
+                            <input id="serviceTitle" type="text" required placeholder="e.g. Full home plumbing inspection" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+                            <div>
+                                <label class="block font-label-sm text-label-sm text-on-background mb-sm">Category</label>
+                                <select id="serviceCategory" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md">
+                                    <option value="maintenance">Home Maintenance & Repairs</option>
+                                    <option value="consulting">Business Consulting</option>
+                                    <option value="design">Creative Design</option>
+                                    <option value="health">Health & Wellness</option>
+                                    <option value="events">Events & Dining</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-label-sm text-label-sm text-on-background mb-sm">Price (UGX)</label>
+                                <input id="servicePrice" type="number" required min="0" step="0.01" placeholder="50000" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                            </div>
+                            <div>
+                                <label class="block font-label-sm text-label-sm text-on-background mb-sm">Duration (min)</label>
+                                <input id="serviceDuration" type="number" min="5" step="5" placeholder="60" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Description (optional)</label>
+                            <textarea id="serviceDescription" rows="2" placeholder="What does this service include?" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"></textarea>
+                        </div>
+                        <button type="submit" data-busy class="w-full bg-primary-container text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            + Add Service
+                        </button>
+                    </form>
+
+                    <div id="servicesList" class="space-y-sm mb-lg"></div>
+
+                    <button id="servicesContinue" data-busy class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                        Continue
+                    </button>
+                </div>
+            </section>
+
+            <!-- Step 4: Business details -->
+            <section id="step-business" class="wizard-step hidden">
+                <div class="bg-surface-container-low rounded-xl p-lg shadow-sm">
+                    <h2 class="font-headline-md text-headline-md text-on-background mb-sm">Business details</h2>
+                    <p class="text-on-surface-variant font-body-md mb-lg">Help customers find and reach you.</p>
+
+                    <form id="businessForm" class="space-y-md">
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Business Name</label>
+                            <input id="businessNameFinal" type="text" required placeholder="e.g. Kampala Home Repairs" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                            <div>
+                                <label class="block font-label-sm text-label-sm text-on-background mb-sm">Location</label>
+                                <input id="businessLocation" type="text" placeholder="e.g. Kampala, Uganda" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                            </div>
+                            <div>
+                                <label class="block font-label-sm text-label-sm text-on-background mb-sm">Phone Number</label>
+                                <input id="businessPhone" type="tel" placeholder="+256 700 000 000" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Business Description</label>
+                            <textarea id="businessBio" rows="4" placeholder="Describe your business and what makes you stand out..." class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"></textarea>
+                        </div>
+                        <div>
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Profile Picture or Logo URL (optional)</label>
+                            <input id="businessPictureUrl" type="url" placeholder="https://example.com/logo.jpg" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md" />
+                        </div>
+                        <button type="submit" data-busy class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            Finish
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Step 5: Done -->
+            <section id="step-done" class="wizard-step hidden">
+                <div class="glass-card rounded-xl shadow-sm p-lg text-center">
+                    <div class="w-20 h-20 rounded-full bg-primary-container/10 flex items-center justify-center mx-auto mb-md">
+                        <span class="material-symbols-outlined text-primary" style="font-size:44px">check_circle</span>
+                    </div>
+                    <h1 class="font-headline-md text-headline-md text-on-background mb-sm">You're all set!</h1>
+                    <p class="text-on-surface-variant font-body-md mb-md">
+                        Your profile is now pending verification. Our team reviews every provider before they appear in search results — you'll be live soon.
+                    </p>
+                    <div class="text-left bg-surface-container rounded-xl p-md mb-lg space-y-sm">
+                        <p class="font-label-sm text-label-sm text-on-background">What happens next:</p>
+                        <p class="font-body-md text-on-surface-variant"><span class="text-primary font-semibold">1.</span> Our team reviews your profile and services.</p>
+                        <p class="font-body-md text-on-surface-variant"><span class="text-primary font-semibold">2.</span> Once verified, your business appears in ExpertHub search.</p>
+                        <p class="font-body-md text-on-surface-variant"><span class="text-primary font-semibold">3.</span> Customers can book your services and you manage bookings from your dashboard.</p>
+                    </div>
+                    <button id="goToDashboard" class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                        Go to your dashboard
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-low mt-xl py-lg border-t border-outline-variant">
+        <div class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop">
+            <p class="text-center text-caption text-on-surface-variant">© 2024 ExpertHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const navMap = {
+            'home': '/',
+            'provider-login': '/provider/login',
+        };
+
+        function navigate(route) {
+            window.parent.postMessage({ type: 'navigate', route }, '*');
+        }
+
+        const $ = (sel) => document.querySelector(sel);
+
+        let draft = {};
+        let providerId = null;
+        let services = [];
+
+        function postToParent(type, payload) {
+            window.parent.postMessage({ type, payload }, '*');
+        }
+
+        const STEP_ORDER = ['step-account', 'step-profile', 'step-services', 'step-business', 'step-done'];
+
+        function showStep(id) {
+            document.querySelectorAll('.wizard-step').forEach((s) => {
+                s.classList.add('hidden');
+                s.classList.remove('block');
+            });
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.remove('hidden');
+                el.classList.add('block');
+            }
+            const idx = STEP_ORDER.indexOf(id);
+            document.querySelectorAll('#stepper .step-item').forEach((item, i) => {
+                item.classList.remove('step-active', 'step-done');
+                if (i < idx) item.classList.add('step-done');
+                if (i === idx) item.classList.add('step-active');
+                const num = item.querySelector('.step-num');
+                if (num) num.textContent = i < idx ? '✓' : String(i + 1);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setBusy(b) {
+            document.querySelectorAll('[data-busy]').forEach((el) => {
+                el.disabled = b;
+            });
+        }
+
+        function showError(message) {
+            const box = $('#errorBox');
+            if (box) {
+                box.textContent = message;
+                box.classList.remove('hidden');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function clearError() {
+            const box = $('#errorBox');
+            if (box) box.classList.add('hidden');
+        }
+
+        function formatPrice(n) {
+            const value = Number(n);
+            if (isNaN(value)) return '—';
+            return new Intl.NumberFormat('en-UG', {
+                style: 'currency',
+                currency: 'UGX',
+                minimumFractionDigits: 0,
+            }).format(value);
+        }
+
+        function prefill() {
+            if (draft.email) {
+                const el = $('#accountEmail');
+                if (el) el.textContent = 'Account: ' + draft.email;
+            }
+            if (draft.firstName || draft.lastName) {
+                const greeting = $('#greetingName');
+                if (greeting) greeting.textContent = ', ' + [draft.firstName, draft.lastName].filter(Boolean).join(' ');
+            }
+            const category = $('#businessCategory');
+            if (category && draft.category) category.value = draft.category;
+            const serviceCategory = $('#serviceCategory');
+            if (serviceCategory && draft.category) serviceCategory.value = draft.category;
+            if (draft.experience) {
+                const exp = $('#profileExperience');
+                if (exp) exp.value = draft.experience;
+            }
+            if (draft.bio) {
+                const bio = $('#profileBio');
+                if (bio) bio.value = draft.bio;
+                const businessBio = $('#businessBio');
+                if (businessBio) businessBio.value = draft.bio;
+            }
+            const name = $('#businessNameFinal');
+            if (name && draft.businessName) name.value = draft.businessName;
+            if (draft.phone) {
+                const phone = $('#businessPhone');
+                if (phone) phone.value = draft.phone;
+            }
+            if (draft.profilePictureUrl) {
+                const pictureUrl = $('#businessPictureUrl');
+                if (pictureUrl) pictureUrl.value = draft.profilePictureUrl;
+            }
+        }
+
+        function renderServices() {
+            const list = $('#servicesList');
+            if (!list) return;
+            list.innerHTML = '';
+            if (!services.length) {
+                const empty = document.createElement('div');
+                empty.className = 'text-center text-on-surface-variant font-body-md py-lg';
+                empty.textContent = 'No services added yet. Add one above, or continue and add them later from your dashboard.';
+                list.appendChild(empty);
+                return;
+            }
+            services.forEach((s) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between gap-md bg-surface-container rounded-xl p-md';
+
+                const info = document.createElement('div');
+                const title = document.createElement('p');
+                title.className = 'font-label-sm text-label-sm text-on-background';
+                title.textContent = s.title;
+                const meta = document.createElement('p');
+                meta.className = 'font-caption text-caption text-on-surface-variant';
+                meta.textContent = s.category + ' · ' + formatPrice(s.price) +
+                    (s.duration_minutes ? ' · ' + s.duration_minutes + ' min' : '');
+                info.appendChild(title);
+                info.appendChild(meta);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'text-error hover:underline font-label-sm text-label-sm cursor-pointer shrink-0';
+                removeBtn.textContent = 'Remove';
+                removeBtn.addEventListener('click', () => {
+                    postToParent('onboarding:removeService', { serviceId: s.id });
+                });
+
+                item.appendChild(info);
+                item.appendChild(removeBtn);
+                list.appendChild(item);
+            });
+        }
+
+        // Message protocol with the React shell
+        window.addEventListener('message', (event) => {
+            const msg = event.data || {};
+
+            if (msg.type === 'onboarding:ping') {
+                window.parent.postMessage({ type: 'onboarding:ready' }, '*');
+                return;
+            }
+
+            if (msg.type === 'onboarding:init') {
+                draft = (msg.payload && msg.payload.draft) || {};
+                prefill();
+                return;
+            }
+
+            if (msg.type === 'onboarding:result') {
+                const step = msg.payload && msg.payload.step;
+                const data = (msg.payload && msg.payload.data) || {};
+                clearError();
+                setBusy(false);
+                if (step === 'profile') {
+                    providerId = data.providerId;
+                    showStep('step-services');
+                }
+                if (step === 'service') {
+                    services.push(data.service);
+                    renderServices();
+                    const form = $('#serviceForm');
+                    if (form) form.reset();
+                }
+                if (step === 'remove') {
+                    services = services.filter((s) => s.id !== data.serviceId);
+                    renderServices();
+                }
+                if (step === 'business') {
+                    showStep('step-done');
+                }
+            }
+
+            if (msg.type === 'onboarding:error') {
+                setBusy(false);
+                showError((msg.payload && msg.payload.message) || 'Something went wrong. Please try again.');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-nav]').forEach((element) => {
+                element.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const route = navMap[element.dataset.nav];
+                    if (route) navigate(route);
+                });
+            });
+
+            // Handshake: tell the parent we're ready to receive the draft.
+            window.parent.postMessage({ type: 'onboarding:ready' }, '*');
+
+            const accountContinue = $('#accountContinue');
+            if (accountContinue) accountContinue.addEventListener('click', () => showStep('step-profile'));
+
+            const profileForm = $('#profileForm');
+            if (profileForm) {
+                profileForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    clearError();
+                    const businessName = $('#businessName').value.trim();
+                    if (!businessName) {
+                        showError('Please enter your business name.');
+                        return;
+                    }
+                    setBusy(true);
+                    postToParent('onboarding:createProfile', {
+                        businessName,
+                        category: $('#businessCategory').value,
+                        experience: $('#profileExperience').value,
+                        bio: $('#profileBio').value,
+                    });
+                });
+            }
+
+            const serviceForm = $('#serviceForm');
+            if (serviceForm) {
+                serviceForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    clearError();
+                    const title = $('#serviceTitle').value.trim();
+                    const price = $('#servicePrice').value;
+                    if (!title) {
+                        showError('Please enter a service title.');
+                        return;
+                    }
+                    if (price === '' || Number(price) < 0) {
+                        showError('Please enter a valid price.');
+                        return;
+                    }
+                    setBusy(true);
+                    postToParent('onboarding:addService', {
+                        title,
+                        category: $('#serviceCategory').value,
+                        price,
+                        durationMinutes: $('#serviceDuration').value || undefined,
+                        description: $('#serviceDescription').value,
+                    });
+                });
+            }
+
+            const servicesContinue = $('#servicesContinue');
+            if (servicesContinue) servicesContinue.addEventListener('click', () => showStep('step-business'));
+
+            const businessForm = $('#businessForm');
+            if (businessForm) {
+                businessForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    clearError();
+                    const businessName = $('#businessNameFinal').value.trim();
+                    if (!businessName) {
+                        showError('Please enter your business name.');
+                        return;
+                    }
+                    setBusy(true);
+                    postToParent('onboarding:businessDetails', {
+                        businessName,
+                        location: $('#businessLocation').value,
+                        phone: $('#businessPhone').value,
+                        bio: $('#businessBio').value,
+                        profilePictureUrl: $('#businessPictureUrl').value.trim() || undefined,
+                    });
+                });
+            }
+
+            const goToDashboard = $('#goToDashboard');
+            if (goToDashboard) {
+                goToDashboard.addEventListener('click', () => postToParent('onboarding:finish'));
+            }
+        });
+    </script>
+</body>
+</html>
