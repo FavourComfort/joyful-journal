@@ -163,6 +163,9 @@
                 <button class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="home">
                     Back to Home
                 </button>
+                <button class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="provider-requests">
+                    Browse Requests
+                </button>
                 <button id="signOutBtn" class="text-error hover:bg-error-container transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer">
                     Sign out
                 </button>
@@ -257,6 +260,7 @@
     <script>
         const navMap = {
             'home': '/',
+            'provider-requests': '/provider/requests',
         };
 
         function navigate(route) {

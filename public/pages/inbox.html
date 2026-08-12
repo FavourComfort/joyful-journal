@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Inbox | ExpertHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "outline": "#737685",
+                        "primary-fixed": "#dae2ff",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dee0e2",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0052cc",
+                        "on-background": "#041b3c",
+                        "secondary-fixed-dim": "#c5c6c8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e8edff",
+                        "tertiary": "#5e3c00",
+                        "outline-variant": "#c3c6d6",
+                        "tertiary-fixed": "#ffddb3",
+                        "on-primary-container": "#c4d2ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-tertiary-fixed": "#291800",
+                        "secondary": "#5c5f60",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-fixed": "#e1e2e4",
+                        "surface-container-low": "#f1f3ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "primary": "#003d9b",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#1d3052",
+                        "on-secondary-fixed-variant": "#444749",
+                        "tertiary-fixed-dim": "#ffb950",
+                        "tertiary-container": "#7d5200",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "surface-dim": "#cadaff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-container": "#ffca81",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#606365",
+                        "surface-tint": "#0c56d0",
+                        "on-primary-fixed": "#001848",
+                        "on-surface": "#041b3c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "caption": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #041b3c;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(223, 225, 230, 0.5);
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+    <!-- Header -->
+    <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
+        <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
+            <div class="flex items-center gap-base cursor-pointer" data-nav="home">
+                <span class="material-symbols-outlined text-primary">home</span>
+                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
+            </div>
+            <button class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="home">
+                Home
+            </button>
+        </nav>
+    </header>
+
+    <main class="min-h-screen pt-xl pb-xl px-margin-mobile md:px-margin-desktop">
+        <div class="max-w-2xl mx-auto">
+            <!-- Error Box -->
+            <div id="errorBox" class="hidden mb-md bg-error-container text-on-error-container px-md py-sm rounded-xl font-body-md"></div>
+
+            <!-- Loading -->
+            <div id="loading" class="flex flex-col items-center justify-center py-xl text-on-surface-variant">
+                <div class="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin mb-md"></div>
+                <p class="font-body-md">Loading your inbox…</p>
+            </div>
+
+            <!-- Content -->
+            <div id="inboxContent" class="hidden">
+                <div class="glass-card rounded-xl shadow-sm p-lg mb-lg">
+                    <div class="flex items-center gap-md">
+                        <div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-primary" style="font-size:26px">forum</span>
+                        </div>
+                        <div>
+                            <h1 class="font-headline-md text-headline-md text-on-background">Inbox</h1>
+                            <p id="inboxGreeting" class="text-on-surface-variant font-body-md"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactions list -->
+                <div id="interactionsList" class="space-y-sm"></div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="hidden">
+                    <div class="bg-surface-container-low rounded-xl p-lg text-center shadow-sm">
+                        <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-md">
+                            <span class="material-symbols-outlined text-primary" style="font-size:32px" id="emptyIcon">forum</span>
+                        </div>
+                        <h2 id="emptyTitle" class="font-headline-md text-headline-md text-on-background mb-sm">No interactions yet</h2>
+                        <p id="emptyText" class="text-on-surface-variant font-body-md mb-lg max-w-sm mx-auto"></p>
+                        <button id="emptyCta" class="bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            Explore providers
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-low mt-xl py-lg border-t border-outline-variant">
+        <div class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop">
+            <p class="text-center text-caption text-on-surface-variant">© 2024 ExpertHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const navMap = {
+            'home': '/',
+        };
+
+        function navigate(route) {
+            window.parent.postMessage({ type: 'navigate', route }, '*');
+        }
+
+        function postToParent(type, payload) {
+            window.parent.postMessage({ type, payload }, '*');
+        }
+
+        const $ = (sel) => document.querySelector(sel);
+
+        const STATUS_MAP = {
+            pending: ['bg-[#fef3c7] text-[#92400e]', 'Pending'],
+            confirmed: ['bg-[#dbeafe] text-[#1e40af]', 'Confirmed'],
+            completed: ['bg-[#dcfce7] text-[#166534]', 'Completed'],
+            cancelled: ['bg-[#fee2e2] text-[#991b1b]', 'Cancelled'],
+        };
+
+        function statusBadge(status) {
+            const [cls, label] = STATUS_MAP[status] || ['bg-[#e5e7eb] text-[#374151]', status];
+            return '<span class="badge ' + cls + '">' + label + '</span>';
+        }
+
+        function formatDate(d) {
+            if (!d) return '';
+            const parsed = new Date(String(d) + 'T00:00:00');
+            if (isNaN(parsed.getTime())) return String(d);
+            return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+            }[c]));
+        }
+
+        function initials(name) {
+            const parts = String(name || '?').trim().split(/\s+/);
+            return ((parts[0] || '')[0] || '') + ((parts[1] || '')[0] || '');
+        }
+
+        function showError(message) {
+            const box = $('#errorBox');
+            if (box) {
+                box.textContent = message;
+                box.classList.remove('hidden');
+            }
+            const loading = $('#loading');
+            if (loading) loading.classList.add('hidden');
+        }
+
+        function renderInbox(payload) {
+            const loading = $('#loading');
+            const content = $('#inboxContent');
+            if (loading) loading.classList.add('hidden');
+            if (content) content.classList.remove('hidden');
+
+            const greeting = $('#inboxGreeting');
+            if (greeting) {
+                const roleText = payload.role === 'provider' ? 'Provider account' : 'Customer account';
+                greeting.textContent = payload.name ? payload.name + ' · ' + roleText : roleText;
+            }
+
+            const list = $('#interactionsList');
+            const empty = $('#emptyState');
+            if (!list || !empty) return;
+
+            list.innerHTML = '';
+            empty.classList.add('hidden');
+
+            if (payload.interactions.length) {
+                payload.interactions.forEach((item) => {
+                    const card = document.createElement('div');
+                    card.className = 'flex items-center gap-md bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm cursor-pointer hover:border-primary transition-colors';
+
+                    const avatarHtml = item.avatarUrl
+                        ? '<img src="' + escapeHtml(item.avatarUrl) + '" alt="' + escapeHtml(item.name) + '" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0"/>'
+                        : '<div class="w-12 h-12 rounded-full bg-primary-container/10 text-primary flex items-center justify-center font-label-sm text-label-sm shrink-0">' + escapeHtml(initials(item.name)) + '</div>';
+
+                    const info = document.createElement('div');
+                    info.innerHTML =
+                        '<p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(item.name) + ' ' + statusBadge(item.status) + '</p>' +
+                        '<p class="font-caption text-caption text-on-surface-variant">' + escapeHtml(item.subtitle) +
+                        (item.date ? ' · ' + escapeHtml(formatDate(item.date)) : '') + '</p>';
+
+                    card.innerHTML = avatarHtml;
+                    card.appendChild(info);
+                    list.appendChild(card);
+                });
+                return;
+            }
+
+            // Empty state — role-aware copy + CTA
+            const title = $('#emptyTitle');
+            const text = $('#emptyText');
+            const cta = $('#emptyCta');
+            const icon = $('#emptyIcon');
+
+            if (payload.role === 'customer') {
+                if (icon) icon.textContent = 'forum';
+                if (title) title.textContent = 'No interactions yet';
+                if (text) text.textContent = 'Talk to your providers — when you book a service, your conversations will show up here.';
+                if (cta) { cta.textContent = 'Explore providers'; cta.dataset.route = '/search'; }
+            } else if (!payload.onboarded) {
+                if (icon) icon.textContent = 'badge';
+                if (title) title.textContent = 'Finish setting up your business';
+                if (text) text.textContent = 'Complete your provider profile so clients can find you and start interacting.';
+                if (cta) { cta.textContent = 'Continue onboarding'; cta.dataset.route = '/provider/onboarding'; }
+            } else {
+                if (icon) icon.textContent = 'handshake';
+                if (title) title.textContent = 'No interactions yet';
+                if (text) text.textContent = 'Talk to your clients — when customers book your services, they will appear here.';
+                if (cta) { cta.textContent = 'View dashboard'; cta.dataset.route = '/provider/dashboard'; }
+            }
+            empty.classList.remove('hidden');
+        }
+
+        // Protocol with the React shell
+        window.addEventListener('message', (event) => {
+            const msg = event.data || {};
+
+            if (msg.type === 'inbox:ping') {
+                window.parent.postMessage({ type: 'inbox:ready' }, '*');
+                return;
+            }
+
+            if (msg.type === 'inbox:init') {
+                renderInbox(msg.payload || { role: 'customer', name: '', onboarded: true, interactions: [] });
+                return;
+            }
+
+            if (msg.type === 'inbox:error') {
+                showError((msg.payload && msg.payload.message) || 'Something went wrong. Please try again.');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-nav]').forEach((element) => {
+                element.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const route = navMap[element.dataset.nav];
+                    if (route) navigate(route);
+                });
+            });
+
+            const emptyCta = $('#emptyCta');
+            if (emptyCta) {
+                emptyCta.addEventListener('click', () => {
+                    const route = emptyCta.dataset.route || '/search';
+                    navigate(route);
+                });
+            }
+
+            // Tell the React shell we're ready to receive the inbox data.
+            window.parent.postMessage({ type: 'inbox:ready' }, '*');
+        });
+    </script>
+</body>
+</html>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { PageFrame } from "@/components/PageFrame";
 import { signIn } from "@/lib/services/auth.service";
+import { getProviderByUserId } from "@/lib/services/providers.service";
 
 interface LoginData {
   email: string;
@@ -38,8 +39,19 @@ function LoginComponent() {
             localStorage.setItem("rememberEmail", data.email);
           }
 
-          // Navigate to search page
-          await router.navigate({ to: "/search" });
+          // Route by role: customers go to their dashboard, providers to their
+          // own flow (onboarding when they haven't created a provider row yet).
+          if (result.data?.role === "provider") {
+            const provider = await getProviderByUserId(result.data.id);
+            if (!provider) {
+              await router.navigate({ to: "/provider/onboarding" });
+              return;
+            }
+            await router.navigate({ to: "/provider/dashboard" });
+            return;
+          }
+
+          await router.navigate({ to: "/dashboard" });
         } catch (err) {
           const errorMessage =
             err instanceof Error ? err.message : "An error occurred";

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Requests | ExpertHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+      body { font-family: 'Inter', sans-serif; background: #f9f9ff; margin: 0; }
+      .page { max-width: 1120px; margin: 0 auto; padding: 32px; }
+      .card { background: white; border: 1px solid #e6e9ef; border-radius: 20px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08); }
+      .button { background: #003d9b; color: white; border: none; border-radius: 999px; padding: 12px 20px; cursor: pointer; }
+      .button-secondary { background: #e6efff; color: #003d9b; }
+      .tag { display: inline-flex; align-items: center; gap: 6px; background: #e6efff; color: #003d9b; padding: 6px 12px; border-radius: 999px; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="mb-8">
+        <div class="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p class="text-sm uppercase tracking-[0.2em] text-slate-500">Provider Dashboard</p>
+            <h1 class="mt-3 text-4xl font-semibold text-slate-900">Customer Requests</h1>
+            <p class="mt-2 text-slate-600 max-w-2xl">Browse active customer requests, review the details, and send an offer when you're interested.</p>
+          </div>
+          <button class="button" id="refreshRequests">Refresh</button>
+        </div>
+      </header>
+
+      <div class="card overflow-hidden">
+        <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm text-slate-500">Matching requests from customers</p>
+              <p class="text-2xl font-semibold text-slate-900" id="requestCount">0 requests</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="button-secondary" data-nav="home">Home</button>
+              <button class="button-secondary" data-nav="provider-dashboard">Dashboard</button>
+            </div>
+          </div>
+        </div>
+        <div class="p-6" id="requestsContainer">
+          <div class="rounded-3xl border border-dashed border-slate-300 p-10 text-center text-slate-500" id="emptyState">
+            No customer requests are visible yet. Check back after more customers post requests.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <template id="requestTemplate">
+      <div class="border border-slate-200 rounded-3xl p-6 mb-5 bg-white shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div class="max-w-2xl">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="tag">New Request</span>
+              <span class="text-sm text-slate-500" id="requestLocation">Remote</span>
+            </div>
+            <h2 class="text-xl font-semibold text-slate-900" id="requestTitle">Service title</h2>
+            <p class="mt-3 text-slate-600" id="requestDescription">Request description here.</p>
+            <div class="mt-4 flex flex-wrap gap-3 text-sm text-slate-500">
+              <span id="budgetLabel">Budget: Not specified</span>
+              <span id="postedAt">Posted just now</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-3 items-start lg:items-end">
+            <button class="button" data-action="interested">I'm Interested</button>
+            <button class="button-secondary" data-action="viewDetails">View Details</button>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <script>
+      const emptyState = document.getElementById('emptyState');
+      const requestsContainer = document.getElementById('requestsContainer');
+      const requestCount = document.getElementById('requestCount');
+      const refreshRequests = document.getElementById('refreshRequests');
+      const template = document.getElementById('requestTemplate');
+
+      function navigate(route) {
+        window.parent.postMessage({ type: 'navigate', route }, '*');
+      }
+
+      function postToParent(type, payload) {
+        window.parent.postMessage({ type, payload }, '*');
+      }
+
+      function renderRequests(requests) {
+        requestsContainer.innerHTML = '';
+        if (!requests.length) {
+          requestCount.textContent = '0 requests';
+          requestsContainer.appendChild(emptyState);
+          return;
+        }
+
+        requestCount.textContent = `${requests.length} request${requests.length === 1 ? '' : 's'}`;
+        requests.forEach((request) => {
+          const clone = template.content.cloneNode(true);
+          clone.querySelector('#requestLocation').textContent = request.location || 'Any location';
+          clone.querySelector('#requestTitle').textContent = request.title;
+          clone.querySelector('#requestDescription').textContent = request.description;
+          clone.querySelector('#budgetLabel').textContent = request.budget_min || request.budget_max ? `Budget: ${request.budget_min || '-'} - ${request.budget_max || '-'}` : 'Budget: Not specified';
+          const postedAt = new Date(request.created_at).toLocaleString();
+          clone.querySelector('#postedAt').textContent = `Posted ${postedAt}`;
+          clone.querySelector('[data-action="interested"]').addEventListener('click', () => {
+            postToParent('provider-requests:interested', { requestId: request.id });
+          });
+          clone.querySelector('[data-action="viewDetails"]').addEventListener('click', () => {
+            postToParent('provider-requests:viewDetails', { requestId: request.id });
+          });
+          requestsContainer.appendChild(clone);
+        });
+      }
+
+      refreshRequests.addEventListener('click', () => {
+        postToParent('provider-requests:refresh');
+      });
+
+      document.querySelectorAll('[data-nav]').forEach((el) => {
+        el.addEventListener('click', () => {
+          const route = el.getAttribute('data-nav');
+          if (route) navigate(route === 'home' ? '/' : route === 'provider-dashboard' ? '/provider/dashboard' : route);
+        });
+      });
+
+      window.addEventListener('message', (event) => {
+        if (event.data?.type === 'provider-requests:init') {
+          renderRequests(event.data.payload.requests || []);
+          const status = document.getElementById('requestStatus');
+          if (status) status.textContent = '';
+        }
+
+        if (event.data?.type === 'provider-requests:offerCreated') {
+          const status = document.getElementById('requestStatus');
+          if (status) {
+            status.textContent = event.data.payload?.message || 'Offer response received.';
+          }
+        }
+      });
+
+      window.parent.postMessage({ type: 'provider-requests:ready' }, '*');
+    </script>
+  </body>
+</html>

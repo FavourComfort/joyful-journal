@@ -11,11 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as PostRequestRouteImport } from './routes/post-request'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BookingRouteImport } from './routes/booking'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProviderSignupRouteImport } from './routes/provider.signup'
+import { Route as ProviderRequestsRouteImport } from './routes/provider.requests'
 import { Route as ProviderOnboardingRouteImport } from './routes/provider.onboarding'
 import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProviderDashboardRouteImport } from './routes/provider.dashboard'
@@ -32,9 +35,19 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PostRequestRoute = PostRequestRouteImport.update({
+  id: '/post-request',
+  path: '/post-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InboxRoute = InboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -55,6 +68,11 @@ const IndexRoute = IndexRouteImport.update({
 const ProviderSignupRoute = ProviderSignupRouteImport.update({
   id: '/provider/signup',
   path: '/provider/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProviderRequestsRoute = ProviderRequestsRouteImport.update({
+  id: '/provider/requests',
+  path: '/provider/requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProviderOnboardingRoute = ProviderOnboardingRouteImport.update({
@@ -87,7 +105,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/dashboard': typeof DashboardRoute
+  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
@@ -95,13 +115,16 @@ export interface FileRoutesByFullPath {
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
+  '/provider/requests': typeof ProviderRequestsRoute
   '/provider/signup': typeof ProviderSignupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/dashboard': typeof DashboardRoute
+  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
@@ -109,6 +132,7 @@ export interface FileRoutesByTo {
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
+  '/provider/requests': typeof ProviderRequestsRoute
   '/provider/signup': typeof ProviderSignupRoute
 }
 export interface FileRoutesById {
@@ -116,7 +140,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/booking': typeof BookingRoute
   '/dashboard': typeof DashboardRoute
+  '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
@@ -124,6 +150,7 @@ export interface FileRoutesById {
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
+  '/provider/requests': typeof ProviderRequestsRoute
   '/provider/signup': typeof ProviderSignupRoute
 }
 export interface FileRouteTypes {
@@ -132,7 +159,9 @@ export interface FileRouteTypes {
     | '/'
     | '/booking'
     | '/dashboard'
+    | '/inbox'
     | '/login'
+    | '/post-request'
     | '/search'
     | '/signup'
     | '/profile/design'
@@ -140,13 +169,16 @@ export interface FileRouteTypes {
     | '/provider/dashboard'
     | '/provider/login'
     | '/provider/onboarding'
+    | '/provider/requests'
     | '/provider/signup'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/booking'
     | '/dashboard'
+    | '/inbox'
     | '/login'
+    | '/post-request'
     | '/search'
     | '/signup'
     | '/profile/design'
@@ -154,13 +186,16 @@ export interface FileRouteTypes {
     | '/provider/dashboard'
     | '/provider/login'
     | '/provider/onboarding'
+    | '/provider/requests'
     | '/provider/signup'
   id:
     | '__root__'
     | '/'
     | '/booking'
     | '/dashboard'
+    | '/inbox'
     | '/login'
+    | '/post-request'
     | '/search'
     | '/signup'
     | '/profile/design'
@@ -168,6 +203,7 @@ export interface FileRouteTypes {
     | '/provider/dashboard'
     | '/provider/login'
     | '/provider/onboarding'
+    | '/provider/requests'
     | '/provider/signup'
   fileRoutesById: FileRoutesById
 }
@@ -175,7 +211,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingRoute: typeof BookingRoute
   DashboardRoute: typeof DashboardRoute
+  InboxRoute: typeof InboxRoute
   LoginRoute: typeof LoginRoute
+  PostRequestRoute: typeof PostRequestRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   ProfileDesignRoute: typeof ProfileDesignRoute
@@ -183,6 +221,7 @@ export interface RootRouteChildren {
   ProviderDashboardRoute: typeof ProviderDashboardRoute
   ProviderLoginRoute: typeof ProviderLoginRoute
   ProviderOnboardingRoute: typeof ProviderOnboardingRoute
+  ProviderRequestsRoute: typeof ProviderRequestsRoute
   ProviderSignupRoute: typeof ProviderSignupRoute
 }
 
@@ -202,11 +241,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/post-request': {
+      id: '/post-request'
+      path: '/post-request'
+      fullPath: '/post-request'
+      preLoaderRoute: typeof PostRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inbox': {
+      id: '/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof InboxRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -235,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/provider/signup'
       fullPath: '/provider/signup'
       preLoaderRoute: typeof ProviderSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/provider/requests': {
+      id: '/provider/requests'
+      path: '/provider/requests'
+      fullPath: '/provider/requests'
+      preLoaderRoute: typeof ProviderRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/provider/onboarding': {
@@ -279,7 +339,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingRoute: BookingRoute,
   DashboardRoute: DashboardRoute,
+  InboxRoute: InboxRoute,
   LoginRoute: LoginRoute,
+  PostRequestRoute: PostRequestRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   ProfileDesignRoute: ProfileDesignRoute,
@@ -287,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProviderDashboardRoute: ProviderDashboardRoute,
   ProviderLoginRoute: ProviderLoginRoute,
   ProviderOnboardingRoute: ProviderOnboardingRoute,
+  ProviderRequestsRoute: ProviderRequestsRoute,
   ProviderSignupRoute: ProviderSignupRoute,
 }
 export const routeTree = rootRouteImport

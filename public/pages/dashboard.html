@@ -322,7 +322,7 @@
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
 <span class="text-label-sm font-label-sm">Bookings</span>
 </a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-all active:scale-90 duration-150" href="#">
+<a id="bottomNavInbox" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-all active:scale-90 duration-150" href="#">
 <span class="material-symbols-outlined">chat</span>
 <span class="text-label-sm font-label-sm">Inbox</span>
 </a>
@@ -645,6 +645,13 @@
             document.getElementById('avatarInput').addEventListener('change', handleAvatarInput);
             document.getElementById('addBookingButton').addEventListener('click', addBooking);
             document.getElementById('viewAllBookingsButton').addEventListener('click', () => switchTab('upcoming'));
+            const bottomNavInbox = document.getElementById('bottomNavInbox');
+            if (bottomNavInbox) {
+                bottomNavInbox.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    postToParent('navigate', { route: '/inbox' });
+                });
+            }
             switchTab('upcoming');
             // Tell the React shell the page is ready to receive the DB profile.
             postToParent('dashboard:ready');
