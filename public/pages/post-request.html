@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Post a Request — ExpertHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      body{font-family:Inter,system-ui,Arial;margin:24px}
+      .card{max-width:720px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;border:1px solid #e6e9ef}
+      label{display:block;margin-top:12px;font-weight:600}
+      input,textarea{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #d7dbe6}
+      button{margin-top:14px;padding:10px 14px;background:#003d9b;color:#fff;border-radius:6px;border:none}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Post a customer request</h1>
+      <p>Describe the service you need; providers in your area will be able to see and respond.</p>
+
+      <form id="requestForm">
+        <label for="title">Title</label>
+        <input id="title" name="title" required />
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="6" required></textarea>
+
+        <label for="location">Location (optional)</label>
+        <input id="location" name="location" />
+
+        <label for="budget_min">Budget min (optional)</label>
+        <input id="budget_min" name="budget_min" type="number" />
+
+        <label for="budget_max">Budget max (optional)</label>
+        <input id="budget_max" name="budget_max" type="number" />
+
+        <button type="submit">Post Request</button>
+      </form>
+
+      <p id="status" aria-live="polite" style="margin-top:12px;color:#334"> </p>
+    </div>
+
+    <script type="module">
+      // Replace these with your Supabase project values (safe to use anon key here)
+      const SUPABASE_URL = 'https://jtgazphazibkbtfmkzpt.supabase.co';
+      const SUPABASE_ANON_KEY = 'sb_publishable_qaKfqyoeES7sTJQK54rIbw_DEHPWu3t';
+
+      import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const form = document.getElementById('requestForm');
+      const status = document.getElementById('status');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        status.textContent = 'Posting...';
+
+        // get current user from Supabase auth
+        const user = (await supabase.auth.getUser()).data?.user;
+        if (!user) {
+          status.textContent = 'You must be signed in to post a request.';
+          return;
+        }
+
+        const payload = {
+          customer_id: user.id,
+          title: document.getElementById('title').value.trim(),
+          description: document.getElementById('description').value.trim(),
+          location: document.getElementById('location').value.trim() || null,
+          budget_min: document.getElementById('budget_min').value ? Number(document.getElementById('budget_min').value) : null,
+          budget_max: document.getElementById('budget_max').value ? Number(document.getElementById('budget_max').value) : null,
+        };
+
+        const { data, error } = await supabase.from('requests').insert([payload]).select().single();
+        if (error) {
+          console.error(error);
+          status.textContent = 'Failed to post request: ' + (error.message || String(error));
+          return;
+        }
+
+        status.textContent = 'Request posted — providers will be notified.';
+        form.reset();
+      });
+    </script>
+  </body>
+</html>
