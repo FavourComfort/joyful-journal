@@ -10,6 +10,7 @@ import {
 } from "@/lib/services/auth.service";
 import {
   updateProvider,
+  uploadProviderLogo,
   type Provider,
 } from "@/lib/services/providers.service";
 import {
@@ -210,6 +211,16 @@ function ProviderDashboardComponent() {
           };
           if (payload.location) providerUpdates.location = payload.location;
           if (payload.bio) providerUpdates.bio = payload.bio;
+
+          if (payload.logoFile) {
+            // New logo chosen — upload to Storage, save its public URL.
+            providerUpdates.profile_picture_url = await uploadProviderLogo(
+              userId,
+              payload.logoFile as File
+            );
+          } else if (payload.logoRemoved) {
+            providerUpdates.profile_picture_url = null;
+          }
 
           const updated = await updateProvider(provider.id, providerUpdates);
           if (!updated) throw new Error("Failed to update your profile.");

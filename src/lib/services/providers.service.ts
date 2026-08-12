@@ -6,7 +6,7 @@ export interface Provider {
   business_name: string;
   bio?: string;
   location?: string;
-  profile_picture_url?: string;
+  profile_picture_url?: string | null;
   rating: number;
   verified: boolean;
   created_at: string;
@@ -157,4 +157,42 @@ export async function searchProvidersByLocation(location: string): Promise<Provi
     console.error('Error searching providers:', error);
     return [];
   }
+}
+
+// Upload a file into the shared public images bucket and return its public URL.
+// The bucket (and its policies) is role-agnostic: providers store logos under
+// providers/<uid>/… and clients store avatars under avatars/<uid>/… — the RLS
+// policy only checks that the folder matches the uploader's user id. Constant
+// paths per user mean re-uploading overwrites the previous image.
+async function uploadImage(path: string, file: File | Blob): Promise<string> {
+  const { error } = await supabase.storage
+    .from('provider-images')
+    .upload(path, file, {
+      upsert: true,
+      contentType: file.type || 'image/jpeg',
+    });
+
+  if (error) {
+    console.error('Error uploading image:', error);
+    throw new Error(error.message || 'Failed to upload your image.');
+  }
+
+  const { data } = supabase.storage.from('provider-images').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+// Upload a provider logo to Supabase Storage and return its public URL.
+export async function uploadProviderLogo(
+  userId: string,
+  file: File | Blob
+): Promise<string> {
+  return uploadImage(`providers/${userId}/logo`, file);
+}
+
+// Upload a client profile picture to Supabase Storage and return its public URL.
+export async function uploadAvatar(
+  userId: string,
+  file: File | Blob
+): Promise<string> {
+  return uploadImage(`avatars/${userId}/avatar`, file);
 }

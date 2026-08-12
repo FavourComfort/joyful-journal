@@ -5,6 +5,7 @@ export interface Profile {
   full_name: string;
   phone?: string;
   role: 'customer' | 'provider' | 'admin';
+  avatar_url?: string | null;
   created_at: string;
 }
 

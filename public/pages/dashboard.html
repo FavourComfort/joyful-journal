@@ -105,7 +105,7 @@
       }
     </script>
 <style>
-        body {
+        body {i
             font-family: 'Inter', sans-serif;
             background-color: #f9f9ff;
         }
@@ -148,7 +148,7 @@
 <a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-xs py-xs rounded-lg font-label-sm text-label-sm" href="#">Providers</a>
 </nav>
 <div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant active:scale-95 transition-transform cursor-pointer">
-<img class="w-full h-full object-cover" data-alt="A professional headshot of a middle-aged male client for a corporate service platform. He has a friendly, trustworthy expression and is wearing a crisp navy blazer. The background is a clean, softly blurred modern office interior with neutral tones and cool daylight, matching a premium Service Blue color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbEBxW1-0zRtA6UYMpGhtWggiHhis3uE5A_47_G2DEida6hKSH8Xnw2yiqzAQGWUhrx-M7nlx6VLdk-pQvROEX5-0s5M8lbuoCDvVSewkDdgZ5D5XDanLd-FYCDhvCo7y3uMW4FJv7UiGY-EaciFV-akofKVVJmMh3aotrEjiKg6tnPYEZDtsBVFoZhmLeFi97i-fqhGKAjVMKcU-YCzvZPKRFnMFhChhnqUWyLauA-W03NFWplVBnkSHxggwfqT85GSZb8LM1tt0"/>
+<img id="navAvatar" class="w-full h-full object-cover" data-alt="Top navigation avatar" src="/images/dashboard-default-avatar.png"/>
 </div>
 </div>
 </div>
@@ -162,18 +162,19 @@
 <div class="flex flex-col items-center text-center">
 <div class="relative mb-md">
 <div class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary-fixed">
-<img class="w-full h-full object-cover" data-alt="A detailed portrait of a professional-looking individual, used as a user profile avatar. The person has a warm, confident smile and is dressed in business casual attire. The photography style is high-fidelity, featuring soft ambient lighting from the side, creating a clear and reliable persona against a minimalist, light grey studio background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgMyGz11EEmYF-QwkZdkon3IFpTl0v1sJ1YPp9ajQQyuGbBn6QNSp1ISSlCJjoJWxrYM9mhTGrOI0laV7W1eG9IU6Sd-9tbHkXqhjZgr6K7SuGOPRW7dsjOwzWC89vx6Ge91IkjbTrAXwYXzrmbKixH8ajcgyT-7jKjFrqEpVGVX0tTJ3lQoPJzRJOgi1sKA2xyXlaFVWbIsqIJGOkpOEQkz_Gvhn5X6_g4yboIHcqh67GMa4Z8ElSNyLyNmdIIplyERw1uHijxFw"/>
+<img id="profileAvatar" class="w-full h-full object-cover" data-alt="Customer avatar" src="https://images.unsplash.com/photo-1502685104226-ee32379fefbe?auto=format&fit=crop&w=400&q=80"/>
 </div>
-<button class="absolute bottom-0 right-0 bg-primary text-on-primary p-xs rounded-full shadow-md active:scale-90 transition-transform">
+<input id="avatarInput" type="file" accept="image/*" class="hidden" />
+<button id="profileAvatarButton" class="absolute bottom-0 right-0 bg-primary text-on-primary p-xs rounded-full shadow-md active:scale-90 transition-transform">
 <span class="material-symbols-outlined text-sm" style="font-size: 16px;">edit</span>
 </button>
 </div>
-<h2 class="text-headline-md font-headline-md text-on-surface">Alexander Sterling</h2>
-<p class="text-on-surface-variant font-body-md text-body-md mb-md">Premium Client</p>
-<a class="inline-flex items-center gap-xs text-primary font-label-sm text-label-sm hover:underline" href="#">
-                            Edit Profile
-                            <span class="material-symbols-outlined text-sm">open_in_new</span>
-</a>
+<h2 id="profileName" class="text-headline-md font-headline-md text-on-surface">Welcome</h2>
+<p id="profileRole" class="text-on-surface-variant font-body-md text-body-md mb-md">Your ExpertHub account</p>
+<button id="profileNameButton" class="inline-flex items-center gap-xs text-primary font-label-sm text-label-sm hover:underline" type="button">
+                            Edit name
+                            <span class="material-symbols-outlined text-sm">edit</span>
+</button>
 </div>
 <hr class="my-lg border-outline-variant"/>
 <div class="space-y-sm">
@@ -224,112 +225,90 @@
 </aside>
 <!-- Bookings Section (Col 5-12) -->
 <section class="md:col-span-8">
-<div class="flex flex-col h-full bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
-<div class="p-md md:p-lg border-b border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-md">
-<div>
-<h2 class="text-headline-md font-headline-md text-on-surface">My Bookings</h2>
-<p class="text-on-surface-variant font-body-md text-body-md">Manage your professional consultations and history.</p>
-</div>
-<div class="flex bg-surface-container-low p-xs rounded-lg">
-<button class="px-md py-xs rounded-md text-label-sm font-label-sm transition-all duration-200 bg-surface shadow-sm text-primary" id="tab-upcoming" onclick="switchTab('upcoming')">Upcoming</button>
-<button class="px-md py-xs rounded-md text-label-sm font-label-sm transition-all duration-200 text-on-surface-variant hover:text-on-surface" id="tab-history" onclick="switchTab('history')">History</button>
-</div>
-</div>
-<div class="p-md md:p-lg space-y-md flex-1">
-<!-- Upcoming Tab Content -->
-<div class="space-y-md" id="content-upcoming">
-<!-- Booking Card 1: Confirmed -->
-<div class="group flex flex-col sm:flex-row gap-md p-md bg-surface border border-outline-variant rounded-lg hover:border-primary/50 transition-all hover:shadow-md cursor-pointer">
-<div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant">
-<img class="w-full h-full object-cover" data-alt="A professional headshot of a female legal expert in a sophisticated office. She is wearing a tailored charcoal suit and a light blue silk blouse. The lighting is bright and architectural, reflecting a corporate modernism aesthetic with high clarity and professional trust." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDcUt0myMhSMpsOsaXqtT5RaExBlE5FY7AcFwaZ8qsgChjxYoCz2d-S1vDX6PnzrbtnnC0kQVPkcCve3Di_uv1Fjy77T_wyUXde0wx9f2PJaPIYJyOsjql8Lp6M_Xxjqb1AnkF67AwUKPP-fZy7y0wco5_B6SRkP8NZ1pdeb9C_uEQqJnixrSxUBB2biuDKjhyvNfPAIWpdWtbGhURK5A9kYcH-njKtcMOklXMZp3tBkDQf7ghUO4qJbS6yq_xEFwE0C-_cByKyhnI"/>
-</div>
-<div class="flex-1">
-<div class="flex flex-wrap justify-between items-start mb-xs">
-<div>
-<h4 class="text-body-lg font-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors">Sarah Jenkins, Esq.</h4>
-<p class="text-caption font-caption text-on-surface-variant">Corporate Law Consultation</p>
-</div>
-<span class="inline-flex items-center px-sm py-xs rounded-full bg-primary-fixed text-on-primary-fixed-variant text-caption font-label-sm">
-<span class="w-2 h-2 rounded-full bg-primary mr-xs"></span>
-                                            Confirmed
-                                        </span>
-</div>
-<div class="flex flex-wrap gap-md mt-sm">
-<div class="flex items-center gap-xs text-on-surface-variant">
-<span class="material-symbols-outlined text-sm">calendar_today</span>
-<span class="text-label-sm font-label-sm">Sept 24, 2024</span>
-</div>
-<div class="flex items-center gap-xs text-on-surface-variant">
-<span class="material-symbols-outlined text-sm">schedule</span>
-<span class="text-label-sm font-label-sm">10:00 AM - 11:30 AM</span>
-</div>
-</div>
-</div>
-</div>
-<!-- Booking Card 2: Pending -->
-<div class="group flex flex-col sm:flex-row gap-md p-md bg-surface border border-outline-variant rounded-lg hover:border-primary/50 transition-all hover:shadow-md cursor-pointer">
-<div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant">
-<img class="w-full h-full object-cover" data-alt="Close up of a male financial advisor in a sleek boardroom setting. He is looking at a tablet with a focused and professional expression. The atmosphere is high-value and reliable, using a color palette of service blue and warm greys, emphasized by soft-focus background elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBqRliENoOoGlfJNf8O65oNSozU953UA3m5PLxMvL9F4vyaqOjHZ2U1nySv8BLwIJAEJUeki7ZgKpo-n_G5eWVV0VI6nWDForeIxOwEyIUf-ZSe-tr6xylpm_ceSC4rOojM9QAWaWxVOeDklE44H28jB6SJDxJVKP80svkpzWae_ZxpLXIC9I-hzp-44HfR-Tte1P9ux3hruD6bKSyCypSKRsJsBJEAol0i_pnSmQ3xkDzpBtDciu1GnTz_B3Ugn_M2fgJvEpXJuE"/>
-</div>
-<div class="flex-1">
-<div class="flex flex-wrap justify-between items-start mb-xs">
-<div>
-<h4 class="text-body-lg font-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors">Marcus Thorne</h4>
-<p class="text-caption font-caption text-on-surface-variant">Tax Strategy Session</p>
-</div>
-<span class="inline-flex items-center px-sm py-xs rounded-full bg-tertiary-fixed text-on-tertiary-fixed-variant text-caption font-label-sm">
-<span class="w-2 h-2 rounded-full bg-tertiary mr-xs animate-pulse"></span>
-                                            Pending
-                                        </span>
-</div>
-<div class="flex flex-wrap gap-md mt-sm">
-<div class="flex items-center gap-xs text-on-surface-variant">
-<span class="material-symbols-outlined text-sm">calendar_today</span>
-<span class="text-label-sm font-label-sm">Sept 28, 2024</span>
-</div>
-<div class="flex items-center gap-xs text-on-surface-variant">
-<span class="material-symbols-outlined text-sm">schedule</span>
-<span class="text-label-sm font-label-sm">2:00 PM - 3:00 PM</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- History Tab Content (Hidden by default) -->
-<div class="hidden space-y-md" id="content-history">
-<div class="group flex flex-col sm:flex-row gap-md p-md bg-surface-container-low/50 border border-outline-variant rounded-lg grayscale hover:grayscale-0 transition-all cursor-pointer">
-<div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant opacity-60">
-<img class="w-full h-full object-cover" data-alt="A portrait of a male business consultant in a high-end minimalist lobby. Clean lines, soft professional lighting, corporate modernism style with a focus on competence and white-glove service feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgmF1-eAyfRAdWL_a9bRfNBKG7_PiVxEDWSjm2TVs_oPXJkCP5rNH9QHhD80a8wYIhtj0PveRcjwQSj8ddLJAWRl44IeGOyFGKF1xfxS2k-NSNlT083U6grdsUD24UdktN9dqcr7VQRfukVqq6AsJaJqonEUcoZIf5naLDKGa_E99rfmMtAhVf2JLW4yI-lYFYsEeXnU5fYdtt3ZdjAq4OC8E559flIp4icLMNNQhTWHzrV79Yqhqiki_AFFQzjYWJKLg3UvReJnQ"/>
-</div>
-<div class="flex-1">
-<div class="flex flex-wrap justify-between items-start mb-xs">
-<div>
-<h4 class="text-body-lg font-body-lg text-on-surface font-semibold">David Chen</h4>
-<p class="text-caption font-caption text-on-surface-variant">Initial Strategy Audit</p>
-</div>
-<span class="inline-flex items-center px-sm py-xs rounded-full bg-secondary-container text-on-secondary-container text-caption font-label-sm">
-<span class="material-symbols-outlined text-sm mr-xs">check_circle</span>
-                                            Completed
-                                        </span>
-</div>
-<div class="flex flex-wrap gap-md mt-sm">
-<div class="flex items-center gap-xs text-on-surface-variant">
-<span class="material-symbols-outlined text-sm">calendar_today</span>
-<span class="text-label-sm font-label-sm">Aug 15, 2024</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Footer link in Section -->
-<div class="p-md bg-surface-container-low/30 text-center">
-<button class="text-primary font-label-sm text-label-sm hover:underline inline-flex items-center gap-xs">
-                            View All Bookings
-                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-</button>
-</div>
-</div>
+    <!-- Dashboard Overview: welcome, search, stats, recommended -->
+    <div class="mb-lg">
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md md:p-lg shadow-sm mb-md">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-md">
+                <div>
+                    <h1 id="welcomeHeading" class="text-headline-md font-headline-md text-on-surface">Welcome</h1>
+                    <p class="text-on-surface-variant">Quickly find services, view bookings, and manage your account.</p>
+                </div>
+                <div class="w-full md:w-1/2">
+                    <div class="relative">
+                        <input class="w-full bg-white border border-outline-variant rounded-full py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all" placeholder="Search services, providers, or locations..." type="search">
+                        <span class="material-symbols-outlined absolute right-4 top-3 text-outline">search</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-md mt-md">
+                <div class="p-md bg-white rounded-lg border border-outline-variant text-center">
+                    <div class="text-caption text-on-surface-variant">Total Bookings</div>
+                    <div id="countTotal" class="text-headline-md font-bold">0</div>
+                </div>
+                <div class="p-md bg-white rounded-lg border border-outline-variant text-center">
+                    <div class="text-caption text-on-surface-variant">Upcoming</div>
+                    <div id="countUpcoming" class="text-headline-md font-bold">0</div>
+                </div>
+                <div class="p-md bg-white rounded-lg border border-outline-variant text-center">
+                    <div class="text-caption text-on-surface-variant">Completed</div>
+                    <div id="countCompleted" class="text-headline-md font-bold">0</div>
+                </div>
+            </div>
+
+            <div class="mt-md">
+                <h3 class="text-label-sm font-label-sm text-on-surface-variant mb-xs">Recommended Services</h3>
+                <div class="flex gap-sm overflow-x-auto py-sm">
+                    <div class="min-w-[220px] bg-white rounded-lg p-md border border-outline-variant shadow-sm">
+                        <div class="font-semibold">Business Consulting</div>
+                        <div class="text-caption text-on-surface-variant">Marcus Sterling · UGX 450,000/hr</div>
+                    </div>
+                    <div class="min-w-[220px] bg-white rounded-lg p-md border border-outline-variant shadow-sm">
+                        <div class="font-semibold">Tax Strategy Session</div>
+                        <div class="text-caption text-on-surface-variant">Marcus Thorne · UGX 356,250/hr</div>
+                    </div>
+                    <div class="min-w-[220px] bg-white rounded-lg p-md border border-outline-variant shadow-sm">
+                        <div class="font-semibold">Design Consultation</div>
+                        <div class="text-caption text-on-surface-variant">Julian Thorne · UGX 787,500/hr</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+            <div class="flex items-center justify-between mb-sm">
+              <h3 class="text-label-sm font-label-sm text-on-surface-variant">Recent Bookings</h3>
+              <button id="addBookingButton" class="text-primary font-label-sm text-label-sm hover:underline" type="button">Add booking</button>
+            </div>
+            <ul id="recentBookings" class="space-y-sm"></ul>
+            <p id="noBookingsMessage" class="text-center text-on-surface-variant hidden">No bookings yet. Book a service to see it here.</p>
+        </div>
+    </div>
+
+    <div class="flex flex-col h-full bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+        <div class="p-md md:p-lg border-b border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-md">
+            <div>
+                <h2 class="text-headline-md font-headline-md text-on-surface">My Bookings</h2>
+                <p class="text-on-surface-variant font-body-md text-body-md">Manage your professional consultations and history.</p>
+            </div>
+            <div class="flex bg-surface-container-low p-xs rounded-lg">
+                <button class="px-md py-xs rounded-md text-label-sm font-label-sm transition-all duration-200 bg-surface shadow-sm text-primary" id="tab-upcoming" onclick="switchTab('upcoming')">Upcoming</button>
+                <button class="px-md py-xs rounded-md text-label-sm font-label-sm transition-all duration-200 text-on-surface-variant hover:text-on-surface" id="tab-history" onclick="switchTab('history')">History</button>
+            </div>
+        </div>
+        <div class="p-md md:p-lg space-y-md flex-1">
+            <div class="space-y-md" id="content-upcoming"></div>
+            <div class="hidden space-y-md" id="content-history"></div>
+            <p id="bookingEmptyMessage" class="text-center text-on-surface-variant hidden">No bookings yet. Once you book a service, your upcoming and history counts will update automatically.</p>
+        </div>
+        <div class="p-md bg-surface-container-low/30 text-center">
+            <button class="text-primary font-label-sm text-label-sm hover:underline inline-flex items-center gap-xs" id="viewAllBookingsButton" type="button">
+                View All Bookings
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </button>
+        </div>
+    </div>
 </section>
 </div>
 </main>
@@ -391,7 +370,30 @@
 </div>
 </div>
 </footer>
+<div id="toastBox" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-error-container text-on-error-container px-md py-sm rounded-xl font-body-md shadow-lg max-w-sm text-center"></div>
 <script>
+        const STORAGE_KEYS = {
+            profileName: 'dashboardProfileName',
+            profileRole: 'dashboardProfileRole',
+            avatar: 'dashboardAvatarUrl',
+            bookings: 'dashboardBookings'
+        };
+
+        const DEFAULT_AVATAR = '/images/dashboard-default-avatar.png'; // replace this file with the attached default avatar image
+
+        function postToParent(type, payload) {
+            window.parent.postMessage({ type, payload }, '*');
+        }
+
+        function showToast(message) {
+            const box = document.getElementById('toastBox');
+            if (!box) return;
+            box.textContent = message;
+            box.classList.remove('hidden');
+            clearTimeout(box._timer);
+            box._timer = setTimeout(() => box.classList.add('hidden'), 4000);
+        }
+
         function switchTab(tab) {
             const upcomingBtn = document.getElementById('tab-upcoming');
             const historyBtn = document.getElementById('tab-history');
@@ -416,5 +418,238 @@
                 upcomingContent.classList.add('hidden');
             }
         }
+
+        function getStoredBookings() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEYS.bookings);
+                return stored ? JSON.parse(stored) : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        function saveStoredBookings(bookings) {
+            localStorage.setItem(STORAGE_KEYS.bookings, JSON.stringify(bookings));
+        }
+
+        function loadProfile() {
+            const profileName = localStorage.getItem(STORAGE_KEYS.profileName) || '';
+            const profileRole = localStorage.getItem(STORAGE_KEYS.profileRole) || '';
+            const profileAvatar = localStorage.getItem(STORAGE_KEYS.avatar) || DEFAULT_AVATAR;
+
+            document.getElementById('profileName').textContent = profileName || 'Welcome';
+            document.getElementById('profileRole').textContent = profileRole || 'Your ExpertHub account';
+            document.getElementById('profileAvatar').src = profileAvatar;
+            document.getElementById('navAvatar').src = profileAvatar;
+
+            const welcomeText = profileName ? `Welcome, ${profileName.split(' ')[0]}` : 'Welcome';
+            document.getElementById('welcomeHeading').textContent = welcomeText;
+        }
+
+        function renderBookingCard(item, container, isHistory) {
+            const card = document.createElement('div');
+            card.className = 'group flex flex-col sm:flex-row gap-md p-md bg-surface border border-outline-variant rounded-lg hover:border-primary/50 transition-all hover:shadow-md cursor-pointer';
+            const statusLabel = isHistory ? 'Completed' : 'Confirmed';
+            const statusClass = isHistory ? 'bg-secondary-container text-on-secondary-container' : 'bg-primary-fixed text-on-primary-fixed-variant';
+            const badgeColor = isHistory ? 'bg-secondary' : 'bg-primary';
+            const providerAvatar = item.providerAvatar || DEFAULT_AVATAR;
+
+            card.innerHTML = `
+                <div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant">
+                    <img class="w-full h-full object-cover" src="${providerAvatar}" alt="${item.provider || 'Provider'}" />
+                </div>
+                <div class="flex-1">
+                    <div class="flex flex-wrap justify-between items-start mb-xs">
+                        <div>
+                            <h4 class="text-body-lg font-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors">${item.provider || 'Provider'}</h4>
+                            <p class="text-caption font-caption text-on-surface-variant">${item.service || 'Service'}</p>
+                        </div>
+                        <span class="inline-flex items-center px-sm py-xs rounded-full ${statusClass} text-caption font-label-sm">
+                            <span class="w-2 h-2 rounded-full ${badgeColor} mr-xs"></span>${statusLabel}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-md mt-sm">
+                        <div class="flex items-center gap-xs text-on-surface-variant">
+                            <span class="material-symbols-outlined text-sm">calendar_today</span>
+                            <span class="text-label-sm font-label-sm">${item.date || 'TBD'}</span>
+                        </div>
+                        <div class="flex items-center gap-xs text-on-surface-variant">
+                            <span class="material-symbols-outlined text-sm">schedule</span>
+                            <span class="text-label-sm font-label-sm">${item.time || 'TBD'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(card);
+        }
+
+        function renderBookings() {
+            const bookings = getStoredBookings();
+            const total = bookings.length;
+            const upcomingCount = bookings.filter((booking) => booking.status === 'upcoming').length;
+            const completedCount = bookings.filter((booking) => booking.status === 'completed').length;
+            const recentList = document.getElementById('recentBookings');
+            const upcomingContent = document.getElementById('content-upcoming');
+            const historyContent = document.getElementById('content-history');
+            const noRecentMessage = document.getElementById('noBookingsMessage');
+            const bookingEmptyMessage = document.getElementById('bookingEmptyMessage');
+
+            document.getElementById('countTotal').textContent = total;
+            document.getElementById('countUpcoming').textContent = upcomingCount;
+            document.getElementById('countCompleted').textContent = completedCount;
+
+            recentList.innerHTML = '';
+            upcomingContent.innerHTML = '';
+            historyContent.innerHTML = '';
+
+            if (!total) {
+                noRecentMessage.classList.remove('hidden');
+                bookingEmptyMessage.classList.remove('hidden');
+                recentList.innerHTML = '<li class="p-sm rounded-lg bg-surface text-on-surface-variant">No bookings yet. Add your first booking to get started.</li>';
+                upcomingContent.innerHTML = '<div class="p-md rounded-lg bg-surface text-on-surface-variant">No upcoming bookings yet.</div>';
+                historyContent.innerHTML = '<div class="p-md rounded-lg bg-surface text-on-surface-variant">No booking history yet.</div>';
+                return;
+            }
+
+            noRecentMessage.classList.add('hidden');
+            bookingEmptyMessage.classList.add('hidden');
+
+            const recentItems = bookings.slice(-3).reverse();
+            recentItems.forEach((booking) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'p-sm bg-white rounded-lg border border-outline-variant flex justify-between items-center';
+                const statusLabel = booking.status === 'completed' ? 'Completed' : booking.status === 'pending' ? 'Pending' : 'Confirmed';
+                const statusClass = booking.status === 'completed' ? 'text-secondary-container' : booking.status === 'pending' ? 'text-tertiary-fixed' : 'text-primary';
+                listItem.innerHTML = `
+                    <div>
+                        <div class="font-semibold">${booking.customer || 'You'} — ${booking.service}</div>
+                        <div class="text-caption text-on-surface-variant">${booking.date || 'TBD'} · ${booking.time || 'TBD'}</div>
+                    </div>
+                    <div class="text-caption ${statusClass}">${statusLabel}</div>
+                `;
+                recentList.appendChild(listItem);
+            });
+
+            const upcomingBookings = bookings.filter((booking) => booking.status === 'upcoming');
+            const completedBookings = bookings.filter((booking) => booking.status === 'completed');
+
+            if (!upcomingBookings.length) {
+                upcomingContent.innerHTML = '<div class="p-md rounded-lg bg-surface text-on-surface-variant">No upcoming bookings yet.</div>';
+            } else {
+                upcomingBookings.forEach((booking) => renderBookingCard(booking, upcomingContent, false));
+            }
+
+            if (!completedBookings.length) {
+                historyContent.innerHTML = '<div class="p-md rounded-lg bg-surface text-on-surface-variant">No booking history yet.</div>';
+            } else {
+                completedBookings.forEach((booking) => renderBookingCard(booking, historyContent, true));
+            }
+        }
+
+        function updateProfileName() {
+            const currentName = localStorage.getItem(STORAGE_KEYS.profileName) || '';
+            const name = prompt('Enter your display name', currentName);
+            if (name === null) {
+                return;
+            }
+            const trimmed = name.trim();
+            if (trimmed) {
+                localStorage.setItem(STORAGE_KEYS.profileName, trimmed);
+                loadProfile();
+            }
+        }
+
+        function handleAvatarInput(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                showToast('Please choose an image file (JPG, PNG, WebP or GIF).');
+                event.target.value = '';
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image must be 5 MB or smaller.');
+                event.target.value = '';
+                return;
+            }
+            // Show the new picture instantly; upload to Supabase in the background.
+            const previewUrl = URL.createObjectURL(file);
+            document.getElementById('profileAvatar').src = previewUrl;
+            document.getElementById('navAvatar').src = previewUrl;
+            postToParent('dashboard:updateAvatar', { avatarFile: file });
+        }
+
+        // Protocol with the React shell: init carries the profile from the DB,
+        // avatarSaved confirms the upload, error surfaces failures.
+        window.addEventListener('message', (event) => {
+            const msg = event.data || {};
+            if (msg.type === 'dashboard:init') {
+                const payload = msg.payload || {};
+                if (payload.name) {
+                    localStorage.setItem(STORAGE_KEYS.profileName, payload.name);
+                }
+                if (payload.avatarUrl) {
+                    localStorage.setItem(STORAGE_KEYS.avatar, payload.avatarUrl);
+                }
+                loadProfile();
+            }
+            if (msg.type === 'dashboard:avatarSaved') {
+                const avatarUrl = msg.payload && msg.payload.avatarUrl;
+                if (avatarUrl) {
+                    localStorage.setItem(STORAGE_KEYS.avatar, avatarUrl);
+                }
+                loadProfile();
+            }
+            if (msg.type === 'dashboard:error') {
+                showToast((msg.payload && msg.payload.message) || 'Something went wrong. Please try again.');
+                loadProfile(); // restore the previous avatar
+            }
+        });
+
+        function addBooking() {
+            const provider = prompt('Provider name', 'Provider');
+            if (provider === null) return;
+            const service = prompt('Service title', 'Consultation');
+            if (service === null) return;
+            const date = prompt('Booking date', '2025-01-15');
+            if (date === null) return;
+            const time = prompt('Booking time', '10:00 AM');
+            if (time === null) return;
+            const statusPrompt = prompt('Status (upcoming, completed, pending)', 'upcoming');
+            if (statusPrompt === null) return;
+
+            const status = ['upcoming', 'completed', 'pending'].includes(statusPrompt.toLowerCase().trim()) ? statusPrompt.toLowerCase().trim() : 'upcoming';
+            const bookings = getStoredBookings();
+            bookings.push({
+                customer: 'You',
+                provider: provider.trim() || 'Provider',
+                service: service.trim() || 'Consultation',
+                date: date.trim() || 'TBD',
+                time: time.trim() || 'TBD',
+                status,
+                providerAvatar: DEFAULT_AVATAR
+            });
+            saveStoredBookings(bookings);
+            renderBookings();
+        }
+
+        function initDashboard() {
+            if (!localStorage.getItem(STORAGE_KEYS.bookings)) {
+                saveStoredBookings([]);
+            }
+            loadProfile();
+            renderBookings();
+            document.getElementById('profileNameButton').addEventListener('click', updateProfileName);
+            document.getElementById('profileAvatarButton').addEventListener('click', () => document.getElementById('avatarInput').click());
+            document.getElementById('avatarInput').addEventListener('change', handleAvatarInput);
+            document.getElementById('addBookingButton').addEventListener('click', addBooking);
+            document.getElementById('viewAllBookingsButton').addEventListener('click', () => switchTab('upcoming'));
+            switchTab('upcoming');
+            // Tell the React shell the page is ready to receive the DB profile.
+            postToParent('dashboard:ready');
+        }
+
+        document.addEventListener('DOMContentLoaded', initDashboard);
     </script>
 </body></html>

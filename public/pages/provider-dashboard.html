@@ -269,6 +269,11 @@
         let activeTab = 'overview';
         let editingProfile = false;
 
+        // Logo picker state
+        let selectedLogoFile = null;
+        let logoRemoved = false;
+        let logoPreviewUrl = null; // Object URL for the local preview
+
         function postToParent(type, payload) {
             window.parent.postMessage({ type, payload }, '*');
         }
@@ -365,6 +370,21 @@
 
             const profileHtml = editingProfile
                 ? '<form id="profileEditForm" class="space-y-md">' +
+                    '<div class="flex items-start gap-md flex-wrap mb-sm">' +
+                    '<button type="button" id="dashLogoPreviewBtn" class="relative w-20 h-20 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-lowest overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary transition-colors shrink-0" aria-label="Choose logo">' +
+                    '<img id="dashLogoPreviewImg" class="hidden w-full h-full object-cover" alt="Logo preview" />' +
+                    '<div id="dashLogoPlaceholder" class="flex flex-col items-center gap-xs text-on-surface-variant">' +
+                    '<span class="material-symbols-outlined" style="font-size:26px">add_a_photo</span>' +
+                    '<span class="font-caption text-caption">Add logo</span>' +
+                    '</div></button>' +
+                    '<div class="flex flex-col gap-sm pt-xs">' +
+                    '<p class="font-caption text-caption text-on-surface-variant">JPG, PNG, WebP or GIF. Max 5&nbsp;MB.</p>' +
+                    '<div class="flex gap-sm">' +
+                    '<button type="button" id="dashLogoChangeBtn" class="border border-outline-variant text-on-background px-sm py-xs rounded-lg font-label-sm text-label-sm hover:bg-surface-container transition-all cursor-pointer">Choose file</button>' +
+                    '<button type="button" id="dashLogoRemoveBtn" class="text-error hover:underline font-label-sm text-label-sm cursor-pointer hidden">Remove</button>' +
+                    '</div></div>' +
+                    '<input id="dashLogoInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" />' +
+                    '</div>' +
                     '<div class="grid grid-cols-1 md:grid-cols-2 gap-md">' +
                     '<div><label class="block font-label-sm text-label-sm text-on-background mb-sm">Business Name</label>' +
                     '<input id="editName" type="text" required value="' + escapeHtml(provider.business_name) + '" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/></div>' +
@@ -382,6 +402,9 @@
                 : '<div class="flex items-start justify-between gap-md">' +
                     '<div>' +
                     '<div class="flex items-center gap-sm flex-wrap mb-sm">' +
+                    (provider.profile_picture_url
+                        ? '<img src="' + escapeHtml(provider.profile_picture_url) + '" alt="' + escapeHtml(provider.business_name) + '" class="w-14 h-14 rounded-xl object-cover border border-outline-variant shrink-0"/>'
+                        : '') +
                     '<h3 class="font-headline-md text-headline-md text-on-background">' + escapeHtml(provider.business_name) + '</h3>' + verifiedBadge +
                     '</div>' +
                     (provider.location ? '<p class="font-body-md text-on-surface-variant mb-sm"><span class="material-symbols-outlined text-sm align-middle">location_on</span> ' + escapeHtml(provider.location) + '</p>' : '') +
@@ -396,7 +419,14 @@
                 '<div class="glass-card rounded-xl shadow-sm p-lg"><h2 class="font-label-sm text-label-sm text-on-background mb-md uppercase tracking-wide">Your profile</h2>' + profileHtml + '</div>';
 
             const editBtn = $('#editProfileBtn');
-            if (editBtn) editBtn.addEventListener('click', () => { editingProfile = true; renderOverview(); });
+            if (editBtn) editBtn.addEventListener('click', () => {
+                // Reset any pending logo edits when re-entering edit mode
+                if (logoPreviewUrl) { URL.revokeObjectURL(logoPreviewUrl); logoPreviewUrl = null; }
+                selectedLogoFile = null;
+                logoRemoved = false;
+                editingProfile = true;
+                renderOverview();
+            });
             const cancelBtn = $('#cancelEditBtn');
             if (cancelBtn) cancelBtn.addEventListener('click', () => { editingProfile = false; renderOverview(); });
             const editForm = $('#profileEditForm');
@@ -408,9 +438,71 @@
                         location: $('#editLocation').value,
                         phone: $('#editPhone').value,
                         bio: $('#editBio').value,
+                        logoFile: selectedLogoFile || undefined,
+                        logoRemoved: logoRemoved || undefined,
                     });
                     editingProfile = false;
                 });
+            }
+
+            // Logo picker (edit mode)
+            if (editingProfile) {
+                const logoInput = $('#dashLogoInput');
+                const openPicker = () => { if (logoInput) logoInput.click(); };
+                const previewBtn = $('#dashLogoPreviewBtn');
+                if (previewBtn) previewBtn.addEventListener('click', openPicker);
+                const changeBtn = $('#dashLogoChangeBtn');
+                if (changeBtn) changeBtn.addEventListener('click', openPicker);
+                const img = $('#dashLogoPreviewImg');
+                const placeholder = $('#dashLogoPlaceholder');
+                const removeBtn = $('#dashLogoRemoveBtn');
+
+                const renderPreview = () => {
+                    const src = logoPreviewUrl || provider.profile_picture_url;
+                    if (src && img) {
+                        img.src = src;
+                        img.classList.remove('hidden');
+                        if (placeholder) placeholder.classList.add('hidden');
+                        if (removeBtn) removeBtn.classList.remove('hidden');
+                        if (previewBtn) previewBtn.classList.remove('border-dashed');
+                    } else {
+                        if (img) { img.src = ''; img.classList.add('hidden'); }
+                        if (placeholder) placeholder.classList.remove('hidden');
+                        if (removeBtn) removeBtn.classList.add('hidden');
+                        if (previewBtn) previewBtn.classList.add('border-dashed');
+                    }
+                };
+
+                if (logoInput) {
+                    logoInput.addEventListener('change', () => {
+                        const file = logoInput.files && logoInput.files[0];
+                        if (!file) return;
+                        if (!file.type.startsWith('image/')) {
+                            showToast('Please choose an image file (JPG, PNG, WebP or GIF).');
+                            logoInput.value = '';
+                            return;
+                        }
+                        if (file.size > 5 * 1024 * 1024) {
+                            showToast('Image must be 5 MB or smaller.');
+                            logoInput.value = '';
+                            return;
+                        }
+                        if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+                        logoPreviewUrl = URL.createObjectURL(file);
+                        selectedLogoFile = file;
+                        logoRemoved = false;
+                        renderPreview();
+                    });
+                }
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => {
+                        if (logoPreviewUrl) { URL.revokeObjectURL(logoPreviewUrl); logoPreviewUrl = null; }
+                        selectedLogoFile = null;
+                        logoRemoved = true;
+                        renderPreview();
+                    });
+                }
+                renderPreview();
             }
         }
 

@@ -3,7 +3,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { PageFrame } from "@/components/PageFrame";
 import { supabase } from "@/lib/supabase";
 import { getCurrentProfile, updateProfile } from "@/lib/services/auth.service";
-import { createProvider, updateProvider } from "@/lib/services/providers.service";
+import { createProvider, updateProvider, uploadProviderLogo } from "@/lib/services/providers.service";
 import { createService, deleteService } from "@/lib/services/services.service";
 
 interface ProviderDraft {
@@ -86,7 +86,10 @@ function ProviderOnboardingComponent() {
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
       const win = iframeRef.current?.contentWindow;
-      if (!win || event.source !== win) return;
+      if (!win) return;
+      // Accept messages from the iframe window or its frameElement to be more resilient
+      const sourceIsIframe = event.source === win || (event.source && (event.source as any).frameElement === iframeRef.current);
+      if (!sourceIsIframe) return;
 
       const type = event.data?.type;
       const payload = event.data?.payload;
@@ -102,11 +105,16 @@ function ProviderOnboardingComponent() {
           if (!userId) throw new Error("You must be signed in to create a profile.");
 
           // Idempotent: refresh-safe — update if a row already exists.
-          const { data: existing } = await supabase
+          const { data: existing, error: lookupError } = await supabase
             .from("providers")
             .select("id")
             .eq("user_id", userId)
             .maybeSingle();
+
+          if (lookupError) {
+            console.error('Provider lookup error:', lookupError);
+            throw new Error('Failed to check existing provider. Please try again.');
+          }
 
           let providerId = existing?.id ?? null;
           if (providerId) {
@@ -200,11 +208,25 @@ function ProviderOnboardingComponent() {
             business_name: string;
             location?: string;
             bio?: string;
-            profile_picture_url?: string;
+            profile_picture_url?: string | null;
           }> = { business_name: payload.businessName };
           if (payload.location) providerUpdates.location = payload.location;
           if (payload.bio) providerUpdates.bio = payload.bio;
-          if (payload.profilePictureUrl) providerUpdates.profile_picture_url = payload.profilePictureUrl;
+
+          if (payload.logoFile) {
+            // New logo chosen in the wizard — upload to Storage, save its public URL.
+            providerUpdates.profile_picture_url = await uploadProviderLogo(
+              userId,
+              payload.logoFile as File
+            );
+          } else if (payload.logoRemoved) {
+            providerUpdates.profile_picture_url = null;
+          } else if (payload.logoUrl) {
+            providerUpdates.profile_picture_url = payload.logoUrl;
+          } else if (payload.profilePictureUrl) {
+            // Legacy iframe payloads sent a raw URL string.
+            providerUpdates.profile_picture_url = payload.profilePictureUrl;
+          }
 
           const updated = await updateProvider(providerId, providerUpdates);
           if (!updated) throw new Error("Failed to save business details.");

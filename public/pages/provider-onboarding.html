@@ -296,9 +296,14 @@
 
                     <div id="servicesList" class="space-y-sm mb-lg"></div>
 
-                    <button id="servicesContinue" data-busy class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
-                        Continue
-                    </button>
+                    <div class="flex gap-md">
+                        <button id="servicesContinue" data-busy class="flex-1 bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
+                            Continue
+                        </button>
+                        <button id="skipServices" type="button" class="flex-1 bg-surface-container-lowest text-primary border border-outline-variant px-md py-md rounded-xl font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">
+                            Skip for now
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -328,8 +333,24 @@
                             <textarea id="businessBio" rows="4" placeholder="Describe your business and what makes you stand out..." class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"></textarea>
                         </div>
                         <div>
-                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Profile Picture or Logo URL (optional)</label>
-                            <input id="businessPictureUrl" type="url" placeholder="https://example.com/logo.jpg" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md" />
+                            <label class="block font-label-sm text-label-sm text-on-background mb-sm">Profile Picture or Logo</label>
+                            <div class="flex items-start gap-md flex-wrap">
+                                <button type="button" id="logoPreviewBtn" class="relative w-24 h-24 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-lowest overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary transition-colors shrink-0" aria-label="Choose logo">
+                                    <img id="logoPreviewImg" class="hidden w-full h-full object-cover" alt="Logo preview" />
+                                    <div id="logoPlaceholder" class="flex flex-col items-center gap-xs text-on-surface-variant">
+                                        <span class="material-symbols-outlined" style="font-size:28px">add_a_photo</span>
+                                        <span class="font-caption text-caption">Add logo</span>
+                                    </div>
+                                </button>
+                                <div class="flex flex-col gap-sm pt-xs">
+                                    <p class="font-caption text-caption text-on-surface-variant">JPG, PNG, WebP or GIF. Max 5&nbsp;MB.</p>
+                                    <div class="flex gap-sm flex-wrap">
+                                        <button type="button" id="logoChangeBtn" class="border border-outline-variant text-on-background px-sm py-xs rounded-lg font-label-sm text-label-sm hover:bg-surface-container transition-all cursor-pointer">Choose file</button>
+                                        <button type="button" id="logoRemoveBtn" class="text-error hover:underline font-label-sm text-label-sm cursor-pointer hidden">Remove</button>
+                                    </div>
+                                </div>
+                                <input id="businessPictureInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" />
+                            </div>
                         </div>
                         <button type="submit" data-busy class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
                             Finish
@@ -384,6 +405,31 @@
         let draft = {};
         let providerId = null;
         let services = [];
+
+        // Logo picker state
+        let selectedLogoFile = null;   // File chosen in this session (uploaded on save)
+        let logoRemoved = false;       // User explicitly removed the picture
+        let currentLogoUrl = null;     // Last known good URL (from draft)
+        let selectedLogoPreviewUrl = null; // Object URL for the local preview
+
+        function updateLogoPreview() {
+            const img = $('#logoPreviewImg');
+            const placeholder = $('#logoPlaceholder');
+            const removeBtn = $('#logoRemoveBtn');
+            const previewBtn = $('#logoPreviewBtn');
+            const src = selectedLogoPreviewUrl || currentLogoUrl;
+            if (src) {
+                if (img) { img.src = src; img.classList.remove('hidden'); }
+                if (placeholder) placeholder.classList.add('hidden');
+                if (removeBtn) removeBtn.classList.remove('hidden');
+                if (previewBtn) previewBtn.classList.remove('border-dashed');
+            } else {
+                if (img) { img.src = ''; img.classList.add('hidden'); }
+                if (placeholder) placeholder.classList.remove('hidden');
+                if (removeBtn) removeBtn.classList.add('hidden');
+                if (previewBtn) previewBtn.classList.add('border-dashed');
+            }
+        }
 
         function postToParent(type, payload) {
             window.parent.postMessage({ type, payload }, '*');
@@ -472,9 +518,9 @@
                 if (phone) phone.value = draft.phone;
             }
             if (draft.profilePictureUrl) {
-                const pictureUrl = $('#businessPictureUrl');
-                if (pictureUrl) pictureUrl.value = draft.profilePictureUrl;
+                currentLogoUrl = draft.profilePictureUrl;
             }
+            updateLogoPreview();
         }
 
         function renderServices() {
@@ -626,6 +672,21 @@
             const servicesContinue = $('#servicesContinue');
             if (servicesContinue) servicesContinue.addEventListener('click', () => showStep('step-business'));
 
+            const skipServices = $('#skipServices');
+            if (skipServices) {
+                skipServices.addEventListener('click', () => {
+                    // Mark draft so user can add services later from dashboard
+                    try {
+                        draft.servicesSkipped = true;
+                        localStorage.setItem('providerSignupDraft', JSON.stringify(draft));
+                    } catch (e) {
+                        // ignore storage errors
+                    }
+                    clearError();
+                    showStep('step-business');
+                });
+            }
+
             const businessForm = $('#businessForm');
             if (businessForm) {
                 businessForm.addEventListener('submit', (e) => {
@@ -642,8 +703,53 @@
                         location: $('#businessLocation').value,
                         phone: $('#businessPhone').value,
                         bio: $('#businessBio').value,
-                        profilePictureUrl: $('#businessPictureUrl').value.trim() || undefined,
+                        logoFile: selectedLogoFile || undefined,
+                        logoRemoved: logoRemoved || undefined,
+                        logoUrl: (!selectedLogoFile && !logoRemoved) ? (currentLogoUrl || undefined) : undefined,
                     });
+                });
+            }
+
+            // Logo picker
+            const logoInput = $('#businessPictureInput');
+            const openLogoPicker = () => { if (logoInput) logoInput.click(); };
+            const logoPreviewBtn = $('#logoPreviewBtn');
+            if (logoPreviewBtn) logoPreviewBtn.addEventListener('click', openLogoPicker);
+            const logoChangeBtn = $('#logoChangeBtn');
+            if (logoChangeBtn) logoChangeBtn.addEventListener('click', openLogoPicker);
+            if (logoInput) {
+                logoInput.addEventListener('change', () => {
+                    const file = logoInput.files && logoInput.files[0];
+                    if (!file) return;
+                    if (!file.type.startsWith('image/')) {
+                        showError('Please choose an image file (JPG, PNG, WebP or GIF).');
+                        logoInput.value = '';
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) {
+                        showError('Image must be 5 MB or smaller.');
+                        logoInput.value = '';
+                        return;
+                    }
+                    if (selectedLogoPreviewUrl) URL.revokeObjectURL(selectedLogoPreviewUrl);
+                    selectedLogoPreviewUrl = URL.createObjectURL(file);
+                    selectedLogoFile = file;
+                    logoRemoved = false;
+                    clearError();
+                    updateLogoPreview();
+                });
+            }
+            const logoRemoveBtn = $('#logoRemoveBtn');
+            if (logoRemoveBtn) {
+                logoRemoveBtn.addEventListener('click', () => {
+                    if (selectedLogoPreviewUrl) {
+                        URL.revokeObjectURL(selectedLogoPreviewUrl);
+                        selectedLogoPreviewUrl = null;
+                    }
+                    selectedLogoFile = null;
+                    logoRemoved = true;
+                    clearError();
+                    updateLogoPreview();
                 });
             }
 
