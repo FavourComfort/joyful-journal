@@ -22,7 +22,6 @@ import { Route as ProviderRequestsRouteImport } from './routes/provider.requests
 import { Route as ProviderOnboardingRouteImport } from './routes/provider.onboarding'
 import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProviderDashboardRouteImport } from './routes/provider.dashboard'
-import { Route as ProfileTechRouteImport } from './routes/profile.tech'
 import { Route as ProfileDesignRouteImport } from './routes/profile.design'
 
 const SignupRoute = SignupRouteImport.update({
@@ -90,11 +89,6 @@ const ProviderDashboardRoute = ProviderDashboardRouteImport.update({
   path: '/provider/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileTechRoute = ProfileTechRouteImport.update({
-  id: '/profile/tech',
-  path: '/profile/tech',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProfileDesignRoute = ProfileDesignRouteImport.update({
   id: '/profile/design',
   path: '/profile/design',
@@ -111,7 +105,6 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
-  '/profile/tech': typeof ProfileTechRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
@@ -128,7 +121,6 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
-  '/profile/tech': typeof ProfileTechRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
@@ -146,7 +138,6 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/profile/design': typeof ProfileDesignRoute
-  '/profile/tech': typeof ProfileTechRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
@@ -165,7 +156,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/profile/design'
-    | '/profile/tech'
     | '/provider/dashboard'
     | '/provider/login'
     | '/provider/onboarding'
@@ -182,7 +172,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/profile/design'
-    | '/profile/tech'
     | '/provider/dashboard'
     | '/provider/login'
     | '/provider/onboarding'
@@ -199,7 +188,6 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/profile/design'
-    | '/profile/tech'
     | '/provider/dashboard'
     | '/provider/login'
     | '/provider/onboarding'
@@ -217,7 +205,6 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   ProfileDesignRoute: typeof ProfileDesignRoute
-  ProfileTechRoute: typeof ProfileTechRoute
   ProviderDashboardRoute: typeof ProviderDashboardRoute
   ProviderLoginRoute: typeof ProviderLoginRoute
   ProviderOnboardingRoute: typeof ProviderOnboardingRoute
@@ -318,13 +305,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProviderDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile/tech': {
-      id: '/profile/tech'
-      path: '/profile/tech'
-      fullPath: '/profile/tech'
-      preLoaderRoute: typeof ProfileTechRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/profile/design': {
       id: '/profile/design'
       path: '/profile/design'
@@ -345,7 +325,6 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   ProfileDesignRoute: ProfileDesignRoute,
-  ProfileTechRoute: ProfileTechRoute,
   ProviderDashboardRoute: ProviderDashboardRoute,
   ProviderLoginRoute: ProviderLoginRoute,
   ProviderOnboardingRoute: ProviderOnboardingRoute,

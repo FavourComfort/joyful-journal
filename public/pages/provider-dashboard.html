@@ -169,6 +169,9 @@
                 <button id="signOutBtn" class="text-error hover:bg-error-container transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer">
                     Sign out
                 </button>
+                <div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant shrink-0">
+                    <img id="navLogo" class="w-full h-full object-cover" alt="Your logo" src="/images/dashboard-default-avatar.png"/>
+                </div>
             </div>
         </nav>
     </header>
@@ -406,10 +409,9 @@
                 : '<div class="flex items-start justify-between gap-md">' +
                     '<div>' +
                     '<div class="flex items-center gap-sm flex-wrap mb-sm">' +
-                    (provider.profile_picture_url
-                        ? '<img src="' + escapeHtml(provider.profile_picture_url) + '" alt="' + escapeHtml(provider.business_name) + '" class="w-14 h-14 rounded-xl object-cover border border-outline-variant shrink-0"/>'
-                        : '') +
+                    '<img src="' + (provider.profile_picture_url ? escapeHtml(provider.profile_picture_url) : '/images/dashboard-default-avatar.png') + '" alt="' + escapeHtml(provider.business_name) + '" class="w-16 h-16 rounded-xl object-cover border border-outline-variant shrink-0"/>' +
                     '<h3 class="font-headline-md text-headline-md text-on-background">' + escapeHtml(provider.business_name) + '</h3>' + verifiedBadge +
+                    (provider.profile_picture_url ? '' : '<button type="button" id="addLogoBtn" class="text-primary hover:underline font-label-sm text-label-sm cursor-pointer">Add a logo</button>') +
                     '</div>' +
                     (provider.location ? '<p class="font-body-md text-on-surface-variant mb-sm"><span class="material-symbols-outlined text-sm align-middle">location_on</span> ' + escapeHtml(provider.location) + '</p>' : '') +
                     (phone ? '<p class="font-body-md text-on-surface-variant mb-sm"><span class="material-symbols-outlined text-sm align-middle">call</span> ' + escapeHtml(phone) + '</p>' : '') +
@@ -425,6 +427,14 @@
             const editBtn = $('#editProfileBtn');
             if (editBtn) editBtn.addEventListener('click', () => {
                 // Reset any pending logo edits when re-entering edit mode
+                if (logoPreviewUrl) { URL.revokeObjectURL(logoPreviewUrl); logoPreviewUrl = null; }
+                selectedLogoFile = null;
+                logoRemoved = false;
+                editingProfile = true;
+                renderOverview();
+            });
+            const addLogoBtn = $('#addLogoBtn');
+            if (addLogoBtn) addLogoBtn.addEventListener('click', () => {
                 if (logoPreviewUrl) { URL.revokeObjectURL(logoPreviewUrl); logoPreviewUrl = null; }
                 selectedLogoFile = null;
                 logoRemoved = false;
@@ -470,8 +480,8 @@
                         if (removeBtn) removeBtn.classList.remove('hidden');
                         if (previewBtn) previewBtn.classList.remove('border-dashed');
                     } else {
-                        if (img) { img.src = ''; img.classList.add('hidden'); }
-                        if (placeholder) placeholder.classList.remove('hidden');
+                        if (img) { img.src = '/images/dashboard-default-avatar.png'; img.classList.remove('hidden'); }
+                        if (placeholder) placeholder.classList.add('hidden');
                         if (removeBtn) removeBtn.classList.add('hidden');
                         if (previewBtn) previewBtn.classList.add('border-dashed');
                     }
@@ -632,6 +642,10 @@
                 data = msg.payload;
                 $('#loadingState').classList.add('hidden');
                 $('#dashboardContent').classList.remove('hidden');
+                if (data && data.provider) {
+                    const navLogo = $('#navLogo');
+                    if (navLogo) navLogo.src = data.provider.profile_picture_url || '/images/dashboard-default-avatar.png';
+                }
                 if (activeTab === 'overview') renderOverview();
                 if (activeTab === 'services') renderServices();
                 if (activeTab === 'bookings') renderBookings();

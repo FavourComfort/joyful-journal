@@ -386,10 +386,6 @@
 <span class="material-symbols-outlined" data-icon="chat">chat</span>
 <span class="text-label-sm font-label-sm">Inbox</span>
 </a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant cursor-pointer" data-nav="profile">
-<span class="material-symbols-outlined" data-icon="person">person</span>
-<span class="text-label-sm font-label-sm">Profile</span>
-</a>
 </nav>
 <!-- Micro-interactions & Navigation Script -->
 <script>
@@ -398,7 +394,6 @@
             'explore': '/search',
             'bookings': '/login',
             'inbox': '/inbox',
-            'profile': '/profile/tech',
             'home': '/',
             'search-experts': '/search',
             'post-request': '/post-request',
@@ -429,16 +424,12 @@
                 return;
             }
 
-            if (avatarUrl && avatar) {
-                avatar.src = avatarUrl;
+            if (avatar) {
+                avatar.src = avatarUrl || '/images/dashboard-default-avatar.png';
                 avatar.classList.remove('hidden');
                 if (fallback) fallback.classList.add('hidden');
-            } else {
-                if (avatar) {
-                    avatar.classList.add('hidden');
-                    avatar.removeAttribute('src');
-                }
-                if (fallback) fallback.classList.remove('hidden');
+            } else if (fallback) {
+                fallback.classList.remove('hidden');
             }
         }
 

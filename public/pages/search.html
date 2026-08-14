@@ -129,7 +129,7 @@
         <a class="text-on-surface-variant font-label-sm hover:text-primary transition-colors" href="#">Bookings</a>
       </div>
       <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
-        <img class="w-full h-full object-cover" alt="Profile" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80">
+        <img class="w-full h-full object-cover" alt="Profile" src="/images/dashboard-default-avatar.png">
       </div>
     </div>
   </div>
@@ -168,7 +168,7 @@
   const searchInput = document.getElementById('searchInput');
   let allProviders = [];
 
-  const fallbackImage = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80';
+  const fallbackImage = '/images/dashboard-default-avatar.png';
 
   function getProviderImage(provider) {
     return provider.profile_picture_url || fallbackImage;

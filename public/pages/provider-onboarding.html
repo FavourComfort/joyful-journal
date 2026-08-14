@@ -336,8 +336,8 @@
                             <label class="block font-label-sm text-label-sm text-on-background mb-sm">Profile Picture or Logo</label>
                             <div class="flex items-start gap-md flex-wrap">
                                 <button type="button" id="logoPreviewBtn" class="relative w-24 h-24 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-lowest overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary transition-colors shrink-0" aria-label="Choose logo">
-                                    <img id="logoPreviewImg" class="hidden w-full h-full object-cover" alt="Logo preview" />
-                                    <div id="logoPlaceholder" class="flex flex-col items-center gap-xs text-on-surface-variant">
+                                    <img id="logoPreviewImg" class="w-full h-full object-cover" alt="Logo preview" src="/images/dashboard-default-avatar.png" />
+                                    <div id="logoPlaceholder" class="hidden flex flex-col items-center gap-xs text-on-surface-variant">
                                         <span class="material-symbols-outlined" style="font-size:28px">add_a_photo</span>
                                         <span class="font-caption text-caption">Add logo</span>
                                     </div>
@@ -424,8 +424,8 @@
                 if (removeBtn) removeBtn.classList.remove('hidden');
                 if (previewBtn) previewBtn.classList.remove('border-dashed');
             } else {
-                if (img) { img.src = ''; img.classList.add('hidden'); }
-                if (placeholder) placeholder.classList.remove('hidden');
+                if (img) { img.src = '/images/dashboard-default-avatar.png'; img.classList.remove('hidden'); }
+                if (placeholder) placeholder.classList.add('hidden');
                 if (removeBtn) removeBtn.classList.add('hidden');
                 if (previewBtn) previewBtn.classList.add('border-dashed');
             }
