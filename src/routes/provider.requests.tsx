@@ -3,7 +3,11 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { PageFrame } from "@/components/PageFrame";
 import { getCurrentProfile } from "@/lib/services/auth.service";
 import { getProviderByUserId } from "@/lib/services/providers.service";
-import { createOffer, getRequestsForProvider } from "@/lib/services/requests.service";
+import {
+  createOffer,
+  getNotificationsForProvider,
+  getRequestsForProvider,
+} from "@/lib/services/requests.service";
 
 function ProviderRequestsComponent() {
   const router = useRouter();
@@ -19,8 +23,12 @@ function ProviderRequestsComponent() {
 
   const loadRequests = async () => {
     if (!providerId) return;
-    const requests = await getRequestsForProvider(providerLocation);
-    sendToIframe({ type: "provider-requests:init", payload: { requests } });
+    const [requests, notifications] = await Promise.all([
+      getRequestsForProvider(providerLocation),
+      getNotificationsForProvider(providerId),
+    ]);
+
+    sendToIframe({ type: "provider-requests:init", payload: { requests, notifications } });
   };
 
   useEffect(() => {

@@ -410,6 +410,7 @@
             'provider-dashboard': '/provider/dashboard'
         };
         let isProvider = false;
+        const $ = (sel) => document.querySelector(sel);
 
         function navigate(route) {
             window.parent.postMessage({ type: 'navigate', route }, '*');

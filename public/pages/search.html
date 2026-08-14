@@ -113,211 +113,178 @@
     </style>
 </head>
 <body class="bg-background text-on-background font-body-md selection:bg-primary-container selection:text-on-primary-container">
-<!-- TopAppBar -->
 <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
-<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-[1440px] mx-auto z-50">
-<div class="flex items-center gap-sm">
-<button class="material-symbols-outlined text-primary dark:text-primary-fixed-dim hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors p-xs rounded-lg active:scale-95 transition-transform" data-icon="menu">menu</button>
-<span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
-</div>
-<!-- Desktop Search Navigation (Hidden on Mobile) -->
-<div class="hidden md:flex flex-1 max-w-xl mx-lg relative">
-<input class="w-full bg-surface-container-lowest border border-outline-variant rounded-full py-base px-xl focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all" placeholder="Search experts, services, or locations..." type="text">
-<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
-</div>
-<div class="flex items-center gap-md">
-<div class="hidden md:flex gap-md">
-<a class="text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm" href="#">Explore</a>
-<a class="text-on-surface-variant dark:text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors" href="#">Bookings</a>
-</div>
-<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
-<img class="w-full h-full object-cover" data-alt="A professional headshot of a female executive in a modern office setting. She has a confident, warm expression, wearing corporate attire. The background is softly blurred with neutral professional tones, high-key lighting, and a clean minimalist aesthetic matching a premium service platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7VB97v5J6Q6RkVCrQy_QSguF0lGrRA2cqUnN7qJBrbx64tJlHSSBRc5KaTquU_7fnTSjUPfCAkYQTRvWZ-eJcJqLYshTMdjqxJpvVGCrA6sr6min0igL0cJA7d8i_2BmrRkJcInzPahV5eWElutfsk6hluwm7KBdti2X_uCE9tCCuPcfjGFBET3Ab1ObH_6Y1YQVvL6gQ-4JpZvvu0Z7OWUcI-SzHk7vIZWUuugz-q-ZHmqSul3EdZLtU96fIDn5tTipVjNqe8GE">
-</div>
-</div>
-</div>
+  <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-[1440px] mx-auto z-50">
+    <div class="flex items-center gap-sm">
+      <button class="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-xs rounded-lg active:scale-95" data-icon="menu">menu</button>
+      <span class="text-headline-md font-headline-md font-bold text-primary">ExpertHub</span>
+    </div>
+    <div class="hidden md:flex flex-1 max-w-xl mx-lg relative">
+      <input id="searchInput" class="w-full bg-surface-container-lowest border border-outline-variant rounded-full py-base px-xl focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all" placeholder="Search experts, services, or locations..." type="text">
+      <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline" data-icon="search">search</span>
+    </div>
+    <div class="flex items-center gap-md">
+      <div class="hidden md:flex gap-md">
+        <a class="text-primary font-label-sm" href="#">Explore</a>
+        <a class="text-on-surface-variant font-label-sm hover:text-primary transition-colors" href="#">Bookings</a>
+      </div>
+      <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed">
+        <img class="w-full h-full object-cover" alt="Profile" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80">
+      </div>
+    </div>
+  </div>
 </header>
+
 <main class="w-full max-w-[1440px] mx-auto pb-xl">
-<!-- Sticky Search & Filter Header -->
-<section class="sticky top-[64px] z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant px-margin-mobile md:px-margin-desktop py-md">
-<div class="flex flex-col gap-sm md:flex-row md:items-center md:justify-between">
-<div class="flex items-center gap-sm overflow-x-auto pb-xs scrollbar-hide">
-<!-- Filter Chips -->
-<button class="flex items-center gap-xs px-md py-xs bg-primary text-on-primary rounded-full text-label-sm font-label-sm whitespace-nowrap active:scale-95 transition-transform">
-<span class="material-symbols-outlined text-[18px]" data-icon="tune">tune</span>
-                        All Filters
-                    </button>
-<button class="flex items-center gap-xs px-md py-xs bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full text-label-sm font-label-sm whitespace-nowrap hover:bg-surface-container-low transition-colors">
-                        Price
-                        <span class="material-symbols-outlined text-[16px]" data-icon="keyboard_arrow_down">keyboard_arrow_down</span>
-</button>
-<button class="flex items-center gap-xs px-md py-xs bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full text-label-sm font-label-sm whitespace-nowrap hover:bg-surface-container-low transition-colors">
-                        Rating (4.5+)
-                    </button>
-<button class="flex items-center gap-xs px-md py-xs bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full text-label-sm font-label-sm whitespace-nowrap hover:bg-surface-container-low transition-colors">
-                        Availability
-                        <span class="material-symbols-outlined text-[16px]" data-icon="event_available">event_available</span>
-</button>
-<button class="flex items-center gap-xs px-md py-xs bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full text-label-sm font-label-sm whitespace-nowrap hover:bg-surface-container-low transition-colors">
-                        Experience
-                    </button>
-</div>
-<p class="text-caption font-caption text-on-surface-variant mt-xs md:mt-0">128 experts available in your area</p>
-</div>
-</section>
-<!-- Search Content Area -->
-<section class="px-margin-mobile md:px-margin-desktop mt-lg">
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
-<!-- Provider Card 1 -->
-<div class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 flex flex-col">
-<div class="relative h-48 w-full">
-<img class="w-full h-full object-cover" data-alt="A professional male financial consultant sitting in a bright, modern glass-walled boardroom. He is dressed in a sharp navy suit, looking at a tablet. The environment is clean, corporate, and trustworthy, with high-fidelity lighting and professional blue and white color accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQbK9DhxHzGxVi8YeRS1CBi9LjMX7wgbH75VU_8hq0aASMZN6iIal4lgkeXMI8TROAaJ7F04YqmI2IEoJXg2Ok6PBqYQLPzPrwPlz9aFJv4jtMdLMA1E33w-4R8Cx5WtsWo-cyaXAWmlH_Ys0y3xfFAakIxZsVnwsiHUtMlJPdJnlnbC4NjTsB_SJz-Cs4CPuW9-pcYCTJZFyW41r0fxlX1M8oeHNstfDiPM_uG-Xo9pkFnhh3n1IgQwRJWPFJZ6chVVqOpmCFWtY">
-<button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
-<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
-</button>
-<div class="absolute bottom-sm left-sm bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-lg text-caption font-label-sm flex items-center gap-xs">
-<span class="material-symbols-outlined text-[14px]" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
-                            Top Rated
-                        </div>
-</div>
-<div class="p-md flex-1 flex flex-col">
-<div class="flex justify-between items-start mb-xs">
-<h3 class="text-body-lg font-headline-md font-semibold text-primary">Marcus Sterling</h3>
-<div class="flex items-center gap-xs">
-<span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="text-label-sm font-bold">4.9</span>
-</div>
-</div>
-<p class="text-label-sm text-on-surface-variant mb-base">Senior Financial Strategist</p>
-<div class="flex flex-wrap gap-xs mb-md">
-<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">Tax Planning</span>
-<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">Retirement</span>
-</div>
-<div class="mt-auto pt-md border-t border-outline-variant flex items-center justify-between">
-<div>
-<span class="text-caption text-on-surface-variant">Starts at</span>
-<p class="text-body-lg font-bold text-on-surface">UGX 450,000<span class="text-caption font-normal">/hr</span></p>
-</div>
-<button class="bg-primary text-on-primary px-md py-sm rounded-lg text-label-sm font-label-sm hover:bg-primary/90 transition-colors active:scale-95">
-                                View Profile
-                            </button>
-</div>
-</div>
-</div>
-<!-- Provider Card 2 -->
-<div class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 flex flex-col">
-<div class="relative h-48 w-full">
-<img class="w-full h-full object-cover" data-alt="A professional female legal advisor in a contemporary studio space with minimalist bookshelves. She has an approachable yet authoritative presence, wearing a neutral business-casual blazer. The lighting is soft and natural, emphasizing competence and trust in a modern corporate setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAA9MH0fkIUkDcO-EpNc-fxnebYPdMsm6jJAbNpvvaxpLAAtpbZxxZ9qncMcyDFzZ8_rWllBO8_CD9aMZL6O1BvIFvK_0Vg_Gd5Vx5jOPvoPeI4l2WUJn7Td--d8LlwDWptvNtrpQ4-P2F4N9yaMs_wN80j72a_eKMTIawLk4z9uPY9ggvXM10j-NM26Gk4HpKJGWSQXrfg7rLQ7zSMi6rQNBqvoryCZP1wETNaALNWUthZ2pQpYZGsdBlLsYzmUC7vDl9eFRcpY_U">
-<button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
-<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
-</button>
-<button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
-<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
-</button></div>
-<div class="p-md flex-1 flex flex-col">
-<div class="flex justify-between items-start mb-xs">
-<h3 class="text-body-lg font-headline-md font-semibold text-primary">Elena Rodriguez</h3>
-<div class="flex items-center gap-xs">
-<span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="text-label-sm font-bold">4.8</span>
-</div>
-</div>
-<p class="text-label-sm text-on-surface-variant mb-base">Corporate Law Consultant</p>
-<div class="flex flex-wrap gap-xs mb-md">
-<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">Contracts</span>
-<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">IP Law</span>
-</div>
-<div class="mt-auto pt-md border-t border-outline-variant flex items-center justify-between">
-<div>
-<span class="text-caption text-on-surface-variant">Starts at</span>
-<p class="text-body-lg font-bold text-on-surface">UGX 693,750<span class="text-caption font-normal">/hr</span></p>
-</div>
-<button class="bg-primary text-on-primary px-md py-sm rounded-lg text-label-sm font-label-sm hover:bg-primary/90 transition-colors active:scale-95">
-                                View Profile
-                            </button>
-</div>
-</div>
-</div>
-<!-- Provider Card 3 -->
-<div class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 flex flex-col">
-<div class="relative h-48 w-full">
-<img class="w-full h-full object-cover" data-alt="A male creative director working in a high-end architectural studio. He is pointing at a digital blueprint on a large screen. The space features industrial-chic design, sleek surfaces, and a professional, tech-forward atmosphere. The color palette is cool and neutral with intentional blue accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-7u6FHUqgMzEn7k_W-MmS-lTGAztxEdZXZxKidDtLqhmRfxdqzuJMGF5dSbx6FgGDpH457iax0wXdtPXFXEuEwBZj0AlnWr747NrDGBPADl6lR9zkdqKSJJZbl7B1B2GgrSmOzoYUeUL-ln7Z0v96SgFR1CawXbgbOpxkctKaEUCzvKB7NoWoYiVUAoVf8-eX8O3NaLOq6Z4zbp4Wzio-CO-cM5IPPq4XyQhH0MMgpLNUSt4n3UTAVou5JEVFXSIn3gjLla8C_8Y">
-<button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
-<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
-</button>
-<div class="absolute bottom-sm left-sm bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-lg text-caption font-label-sm flex items-center gap-xs">
-<span class="material-symbols-outlined text-[14px]" data-icon="timer">timer</span>
-                            Last minute avail.
-                        </div>
-</div>
-<div class="p-md flex-1 flex flex-col">
-<div class="flex justify-between items-start mb-xs">
-<h3 class="text-body-lg font-headline-md font-semibold text-primary">Julian Thorne</h3>
-<div class="flex items-center gap-xs">
-<span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="text-label-sm font-bold">5.0</span>
-</div>
-</div>
-<p class="text-label-sm text-on-surface-variant mb-base">Design &amp; Architecture Expert</p>
-<div class="flex flex-wrap gap-xs mb-md">
-<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">3D Modeling</span>
-<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">Interiors</span>
-</div>
-<div class="mt-auto pt-md border-t border-outline-variant flex items-center justify-between">
-<div>
-<span class="text-caption text-on-surface-variant">Starts at</span>
-<p class="text-body-lg font-bold text-on-surface">UGX 787,500<span class="text-caption font-normal">/hr</span></p>
-</div>
-<button class="bg-primary text-on-primary px-md py-sm rounded-lg text-label-sm font-label-sm hover:bg-primary/90 transition-colors active:scale-95">
-                                View Profile
-                            </button>
-</div>
-</div>
-</div>
-<!-- Provider Card 4 -->
-<div class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 flex flex-col">
-<div class="relative h-48 w-full">
-<img class="w-full h-full object-cover" data-alt="A focused female software engineering lead in a high-tech startup office. Multiple monitors show complex code in the background. She is looking thoughtfully at the camera. The style is modern, innovative, and highly professional with crisp clean lines and a premium corporate light-mode finish." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9bxQRqEKA68jQTmzLMPFoC77wAiT7jQjmMLJo6rDOwBmufcwVaKIy6IHIqjueiD3Kc3tVg-H7DFfleT7AHmjgzSpSFBnw9RS-iUtu6UYKGMoC1OqLBpk-ZYUqCru1UnuJsVPIX_YkUnPIBuvWwAfor2DK0kOzgUh1PH4iSeANuxykb0GzYOxKdmMR49DRc9NFgxqQZwbvM82r9gHenooyha2ykkdD7wp-f9l7WOkr0gjRdu39_rKZVeqxRQKjSfFe72ghCdOBKoE">
-<button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
-<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
-</button>
-<button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
-<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
-</button></div>
-<div class="p-md flex-1 flex flex-col">
-<div class="flex justify-between items-start mb-xs">
-<h3 class="text-body-lg font-headline-md font-semibold text-primary">Sarah Jenkins</h3>
-<div class="flex items-center gap-xs">
-<span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
-<span class="text-label-sm font-bold">4.7</span>
-</div>
-</div>
-<p class="text-label-sm text-on-surface-variant mb-base">CTO &amp; Technical Architect</p>
-<div class="flex flex-wrap gap-xs mb-md">
-<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">Scaling</span>
-<span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">Cloud Ops</span>
-</div>
-<div class="mt-auto pt-md border-t border-outline-variant flex items-center justify-between">
-<div>
-<span class="text-caption text-on-surface-variant">Starts at</span>
-<p class="text-body-lg font-bold text-on-surface">UGX 562,500<span class="text-caption font-normal">/hr</span></p>
-</div>
-<button class="bg-primary text-on-primary px-md py-sm rounded-lg text-label-sm font-label-sm hover:bg-primary/90 transition-colors active:scale-95">
-                                View Profile
-                            </button>
-</div>
-</div>
-</div>
-<!-- Provider Card 5 -->
-<div class="group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 flex flex-col">
-<div class="relative h-48 w-full">
-<img class="w-full h-full object-cover" data-alt="A senior marketing professional, male, standing in a lush terrace garden of a corporate building during golden hour. He is holding a coffee cup and looking confident. The image captures a high-end professional lifestyle, clean luxury aesthetic, and reliable competence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADDQh-Escsr0PjeW1hdV8nM_VP_xFkpZzfvvmXR1Fc_Q41hXvVrvGCfPKhE1ywEYbB9JxISiYK1E_CDGO0h-Te36p7TpFcu9qjwL64C9yzADaACTw06C17kiZKMY7MS3oYT0PVk3NpmTu4MYErinTQhH1PYIDrIl1PgFF0EEFAnyERNC2OeKxJ2c4ss7rnHyfKv5qlDg6vLt7N22a3ow2t-z08MpAvJjL1OoL_aPUKODFP4-JDghOv6fLfaOoX9n3vnFJb0QI2UdI">
-<button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
-<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
-</button>
-<button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
-<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
-</button></div>
-<div class="p-md flex-1 flex flex-col">
+  <section class="sticky top-[64px] z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant px-margin-mobile md:px-margin-desktop py-md">
+    <div class="flex flex-col gap-sm md:flex-row md:items-center md:justify-between">
+      <div class="flex items-center gap-sm overflow-x-auto pb-xs scrollbar-hide">
+        <button class="flex items-center gap-xs px-md py-xs bg-primary text-on-primary rounded-full text-label-sm whitespace-nowrap active:scale-95">
+          <span class="material-symbols-outlined text-[18px]" data-icon="tune">tune</span>
+          All Filters
+        </button>
+        <button class="flex items-center gap-xs px-md py-xs bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full text-label-sm whitespace-nowrap">Price <span class="material-symbols-outlined text-[16px]" data-icon="keyboard_arrow_down">keyboard_arrow_down</span></button>
+        <button class="flex items-center gap-xs px-md py-xs bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full text-label-sm whitespace-nowrap">Rating (4.5+)</button>
+        <button class="flex items-center gap-xs px-md py-xs bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full text-label-sm whitespace-nowrap">Availability <span class="material-symbols-outlined text-[16px]" data-icon="event_available">event_available</span></button>
+        <button class="flex items-center gap-xs px-md py-xs bg-surface-container-lowest border border-outline-variant text-on-surface-variant rounded-full text-label-sm whitespace-nowrap">Experience</button>
+      </div>
+      <p id="resultCount" class="text-caption font-caption text-on-surface-variant mt-xs md:mt-0">0 providers</p>
+    </div>
+  </section>
+
+  <section class="px-margin-mobile md:px-margin-desktop mt-lg">
+    <div id="providersGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter"></div>
+  </section>
+</main>
+
+<script type="module">
+  const SUPABASE_URL = 'https://jtgazphazibkbtfmkzpt.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_qaKfqyoeES7sTJQK54rIbw_DEHPWu3t';
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const providersGrid = document.getElementById('providersGrid');
+  const resultCount = document.getElementById('resultCount');
+  const searchInput = document.getElementById('searchInput');
+  let allProviders = [];
+
+  const fallbackImage = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80';
+
+  function getProviderImage(provider) {
+    return provider.profile_picture_url || fallbackImage;
+  }
+
+  function renderProviders(list) {
+    providersGrid.innerHTML = '';
+    if (!list.length) {
+      providersGrid.innerHTML = `
+        <div class="col-span-full rounded-xl border border-dashed border-outline-variant bg-white p-10 text-center text-on-surface-variant">
+          <p class="text-lg font-semibold text-on-surface">No provider profiles yet</p>
+          <p class="mt-2 text-sm">Once a provider creates a profile, it will appear here in the search results.</p>
+        </div>
+      `;
+      resultCount.textContent = '0 providers';
+      return;
+    }
+
+    resultCount.textContent = `${list.length} provider${list.length === 1 ? '' : 's'}`;
+
+    list.forEach((provider) => {
+      const card = document.createElement('div');
+      card.className = 'group bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-soft hover:shadow-elevated transition-all duration-300 flex flex-col';
+
+      const ratingText = Number(provider.rating || 0).toFixed(1);
+      const verifiedBadge = provider.verified ? `
+        <div class="absolute bottom-sm left-sm bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-lg text-caption font-label-sm flex items-center gap-xs">
+          <span class="material-symbols-outlined text-[14px]" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+          Verified
+        </div>
+      ` : '';
+
+      const businessName = provider.business_name || 'Provider profile';
+      const location = provider.location || 'Location not set';
+      const summary = (provider.bio || 'New provider profile.').slice(0, 120);
+
+      card.innerHTML = `
+        <div class="relative h-48 w-full">
+          <img class="w-full h-full object-cover" src="${getProviderImage(provider)}" alt="${businessName}" />
+          <button class="absolute top-sm right-sm w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors active:scale-90">
+            <span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+          </button>
+          ${verifiedBadge}
+        </div>
+        <div class="p-md flex-1 flex flex-col">
+          <div class="flex justify-between items-start mb-xs">
+            <h3 class="text-body-lg font-headline-md font-semibold text-primary">${businessName}</h3>
+            <div class="flex items-center gap-xs">
+              <span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+              <span class="text-label-sm font-bold">${ratingText}</span>
+            </div>
+          </div>
+          <p class="text-label-sm text-on-surface-variant mb-base">${location}</p>
+          <div class="flex flex-wrap gap-xs mb-md">
+            <span class="bg-primary-fixed text-on-primary-fixed-variant px-sm py-xs rounded text-caption">${provider.verified ? 'Verified' : 'Open for bookings'}</span>
+          </div>
+          <p class="text-sm text-slate-600 mt-1 mb-4">${summary}${(provider.bio || '').length > 120 ? '...' : ''}</p>
+          <div class="mt-auto pt-md border-t border-outline-variant flex items-center justify-between">
+            <div>
+              <span class="text-caption text-on-surface-variant">Status</span>
+              <p class="text-body-lg font-bold text-on-surface">${provider.verified ? 'Available' : 'Open'}</p>
+            </div>
+            <button type="button" class="bg-primary text-on-primary px-md py-sm rounded-lg text-label-sm font-label-sm hover:bg-primary/90 transition-colors active:scale-95">
+              View Profile
+            </button>
+          </div>
+        </div>
+      `;
+
+      providersGrid.appendChild(card);
+    });
+  }
+
+  function filterProviders() {
+    const query = (searchInput.value || '').trim().toLowerCase();
+    if (!query) {
+      renderProviders(allProviders);
+      return;
+    }
+
+    const filtered = allProviders.filter((provider) => {
+      const haystack = [provider.business_name, provider.location, provider.bio].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(query);
+    });
+
+    renderProviders(filtered);
+  }
+
+  async function fetchProviders() {
+    const { data, error } = await supabase
+      .from('providers')
+      .select('id, business_name, bio, location, profile_picture_url, rating, verified, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading providers:', error);
+      providersGrid.innerHTML = `
+        <div class="col-span-full rounded-xl border border-dashed border-outline-variant bg-white p-10 text-center text-on-surface-variant">
+          <p class="text-lg font-semibold text-on-surface">Could not load providers</p>
+          <p class="mt-2 text-sm">Please check your Supabase table and permissions.</p>
+        </div>
+      `;
+      resultCount.textContent = '0 providers';
+      return;
+    }
+
+    allProviders = data || [];
+    renderProviders(allProviders);
+  }
+
+  searchInput.addEventListener('input', filterProviders);
+  fetchProviders();
+</script>
+</body></html>
+
+<!-- truncated original tail continues but replaced above -->
 <div class="flex justify-between items-start mb-xs">
 <h3 class="text-body-lg font-headline-md font-semibold text-primary">David Chen</h3>
 <div class="flex items-center gap-xs">

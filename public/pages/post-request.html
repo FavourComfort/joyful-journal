@@ -19,17 +19,14 @@
       <p>Describe the service you need; providers in your area will be able to see and respond.</p>
 
       <form id="requestForm">
-        <label for="title">Title</label>
+        <label for="title">State your desired service here</label>
         <input id="title" name="title" required />
 
-        <label for="description">Description</label>
+        <label for="description">Describe what you need/happened</label>
         <textarea id="description" name="description" rows="6" required></textarea>
 
         <label for="location">Location (optional)</label>
         <input id="location" name="location" />
-
-        <label for="budget_min">Budget min (optional)</label>
-        <input id="budget_min" name="budget_min" type="number" />
 
         <label for="budget_max">Budget max (optional)</label>
         <input id="budget_max" name="budget_max" type="number" />
@@ -55,7 +52,6 @@
         e.preventDefault();
         status.textContent = 'Posting...';
 
-        // get current user from Supabase auth
         const user = (await supabase.auth.getUser()).data?.user;
         if (!user) {
           status.textContent = 'You must be signed in to post a request.';
@@ -67,18 +63,70 @@
           title: document.getElementById('title').value.trim(),
           description: document.getElementById('description').value.trim(),
           location: document.getElementById('location').value.trim() || null,
-          budget_min: document.getElementById('budget_min').value ? Number(document.getElementById('budget_min').value) : null,
           budget_max: document.getElementById('budget_max').value ? Number(document.getElementById('budget_max').value) : null,
         };
 
-        const { data, error } = await supabase.from('requests').insert([payload]).select().single();
+        const { data: createdRequest, error } = await supabase
+          .from('requests')
+          .insert([payload])
+          .select()
+          .single();
+
         if (error) {
           console.error(error);
           status.textContent = 'Failed to post request: ' + (error.message || String(error));
           return;
         }
 
-        status.textContent = 'Request posted — providers will be notified.';
+        try {
+          // Keep the data flow working without a live email domain configured yet.
+          // When you are ready, replace this placeholder block with a Resend call.
+          const REQUEST_EMAILS_ENABLED = false;
+
+          const requestLocation = (createdRequest?.location || '').trim();
+          const { data: providers, error: providerLookupError } = await supabase
+            .from('providers')
+            .select('id, business_name, location')
+            .eq('verified', true);
+
+          if (providerLookupError) {
+            console.warn('Provider lookup failed:', providerLookupError);
+          }
+
+          const matchingProviders = (providers || []).filter((provider) => {
+            if (!requestLocation) return true;
+            const providerLocation = (provider.location || '').toLowerCase();
+            return providerLocation.includes(requestLocation.toLowerCase());
+          });
+
+          if (matchingProviders.length > 0 && REQUEST_EMAILS_ENABLED) {
+            const requestLink = `${window.location.origin}/provider/requests?requestId=${createdRequest.id}`;
+            const notificationRows = matchingProviders.map((provider) => ({
+              request_id: createdRequest.id,
+              provider_id: provider.id,
+              subject: 'You have a new service request from ExpertHub',
+              message: `A new request, "${createdRequest.title}", is waiting for you. View it here: ${requestLink}`,
+              link: requestLink,
+              status: 'new',
+            }));
+
+            const { error: notifyError } = await supabase
+              .from('request_notifications')
+              .insert(notificationRows);
+
+            if (notifyError) {
+              console.warn('Notification insert failed:', notifyError);
+            }
+          }
+
+          if (!REQUEST_EMAILS_ENABLED) {
+            console.info('Provider email delivery is disabled until your domain is added for Resend. Request data and matching still work.');
+          }
+        } catch (notificationError) {
+          console.warn('Notification flow failed:', notificationError);
+        }
+
+        status.textContent = 'Request posted — matching providers are queued for notification when your email domain is ready.';
         form.reset();
       });
     </script>

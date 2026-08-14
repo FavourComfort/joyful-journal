@@ -29,16 +29,32 @@
         </div>
       </header>
 
+      <div class="card overflow-hidden mb-6">
+        <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-sm text-slate-500">New request notifications</p>
+              <p class="text-2xl font-semibold text-slate-900" id="notificationCount">0</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="button-secondary" data-nav="home">Home</button>
+              <button class="button-secondary" data-nav="provider-dashboard">Dashboard</button>
+            </div>
+          </div>
+        </div>
+        <div class="p-6" id="notificationsContainer">
+          <div class="rounded-3xl border border-dashed border-slate-300 p-6 text-center text-slate-500" id="notificationEmptyState">
+            No new request notifications yet.
+          </div>
+        </div>
+      </div>
+
       <div class="card overflow-hidden">
         <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
           <div class="flex items-center justify-between gap-4">
             <div>
               <p class="text-sm text-slate-500">Matching requests from customers</p>
               <p class="text-2xl font-semibold text-slate-900" id="requestCount">0 requests</p>
-            </div>
-            <div class="flex gap-2">
-              <button class="button-secondary" data-nav="home">Home</button>
-              <button class="button-secondary" data-nav="provider-dashboard">Dashboard</button>
             </div>
           </div>
         </div>
@@ -49,6 +65,19 @@
         </div>
       </div>
     </div>
+
+    <template id="notificationTemplate">
+      <div class="border border-slate-200 rounded-2xl p-4 mb-4 bg-white shadow-sm">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs uppercase tracking-[0.18em] text-slate-500">New Request</p>
+            <h3 class="mt-2 text-lg font-semibold text-slate-900" id="notificationSubject">Subject</h3>
+            <p class="mt-2 text-sm text-slate-600" id="notificationMessage">Message</p>
+          </div>
+          <span class="text-xs font-medium text-[#003d9b] bg-[#e6efff] px-2 py-1 rounded-full" id="notificationStatus">new</span>
+        </div>
+      </div>
+    </template>
 
     <template id="requestTemplate">
       <div class="border border-slate-200 rounded-3xl p-6 mb-5 bg-white shadow-sm">
@@ -75,10 +104,14 @@
 
     <script>
       const emptyState = document.getElementById('emptyState');
+      const notificationEmptyState = document.getElementById('notificationEmptyState');
+      const notificationsContainer = document.getElementById('notificationsContainer');
+      const notificationCount = document.getElementById('notificationCount');
       const requestsContainer = document.getElementById('requestsContainer');
       const requestCount = document.getElementById('requestCount');
       const refreshRequests = document.getElementById('refreshRequests');
       const template = document.getElementById('requestTemplate');
+      const notificationTemplate = document.getElementById('notificationTemplate');
 
       function navigate(route) {
         window.parent.postMessage({ type: 'navigate', route }, '*');
@@ -86,6 +119,24 @@
 
       function postToParent(type, payload) {
         window.parent.postMessage({ type, payload }, '*');
+      }
+
+      function renderNotifications(notifications) {
+        notificationsContainer.innerHTML = '';
+        if (!notifications.length) {
+          notificationCount.textContent = '0';
+          notificationsContainer.appendChild(notificationEmptyState);
+          return;
+        }
+
+        notificationCount.textContent = String(notifications.length);
+        notifications.forEach((notification) => {
+          const clone = notificationTemplate.content.cloneNode(true);
+          clone.querySelector('#notificationSubject').textContent = notification.subject || 'New service request';
+          clone.querySelector('#notificationMessage').textContent = notification.message || 'A customer has posted a new request.';
+          clone.querySelector('#notificationStatus').textContent = notification.status || 'new';
+          notificationsContainer.appendChild(clone);
+        });
       }
 
       function renderRequests(requests) {
@@ -128,6 +179,7 @@
 
       window.addEventListener('message', (event) => {
         if (event.data?.type === 'provider-requests:init') {
+          renderNotifications(event.data.payload.notifications || []);
           renderRequests(event.data.payload.requests || []);
           const status = document.getElementById('requestStatus');
           if (status) status.textContent = '';
