@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { PageFrame } from "@/components/PageFrame";
-import { getCurrentProfile } from "@/lib/services/auth.service";
+import { getCurrentProfile, signOut } from "@/lib/services/auth.service";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/")({
@@ -14,15 +14,36 @@ export const Route = createFileRoute("/")({
     ],
   }),
   component: () => {
+    const router = useRouter();
     const iframeRef = useRef<HTMLIFrameElement | null>(null);
     const [isProvider, setIsProvider] = useState(false);
+    const [accountRole, setAccountRole] = useState<"customer" | "provider" | null>(null);
     const [isOnboarded, setIsOnboarded] = useState(false);
     const [providerAvatarUrl, setProviderAvatarUrl] = useState<string | null>(null);
 
     useEffect(() => {
+      const handleMessage = async (event: MessageEvent) => {
+        if (event.source !== iframeRef.current?.contentWindow) return;
+        if (event.data?.type === "auth:signout") {
+          await signOut();
+          await router.navigate({ to: "/login" });
+        }
+      };
+
+      window.addEventListener("message", handleMessage);
+      return () => window.removeEventListener("message", handleMessage);
+    }, [router]);
+
+    useEffect(() => {
       const checkProvider = async () => {
         const profile = await getCurrentProfile();
-        if (!profile || profile.role !== "provider") return;
+        if (!profile) {
+          setAccountRole(null);
+          return;
+        }
+
+        setAccountRole(profile.role === "provider" ? "provider" : "customer");
+        if (profile.role !== "provider") return;
 
         setIsProvider(true);
         const { data, error } = await supabase
@@ -45,7 +66,7 @@ export const Route = createFileRoute("/")({
     useEffect(() => {
       if (!iframeRef.current) return;
       iframeRef.current.contentWindow?.postMessage(
-        { type: "home:init", payload: { isProvider, onboarded: isOnboarded, profilePictureUrl: providerAvatarUrl } },
+        { type: "home:init", payload: { role: accountRole, isProvider, onboarded: isOnboarded, profilePictureUrl: providerAvatarUrl } },
         "*"
       );
     }, [isProvider, isOnboarded, providerAvatarUrl]);
@@ -57,7 +78,7 @@ export const Route = createFileRoute("/")({
         iframeRef={iframeRef}
         onLoad={() => {
           iframeRef.current?.contentWindow?.postMessage(
-            { type: "home:init", payload: { isProvider, onboarded: isOnboarded, profilePictureUrl: providerAvatarUrl } },
+            { type: "home:init", payload: { role: accountRole, isProvider, onboarded: isOnboarded, profilePictureUrl: providerAvatarUrl } },
             "*"
           );
         }}

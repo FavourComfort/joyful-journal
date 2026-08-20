@@ -1,36 +1,85 @@
 import { useState } from "react";
+import { getCurrentProfile } from "@/lib/services/auth.service";
+import {
+  createCustomerRequest,
+  findMatchingProvidersForRequest,
+  createRequestNotificationsForProviders,
+} from "@/lib/services/requests.service";
 
 export default function PostRequestForm() {
   const [result, setResult] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setResult("This request flow is handled by Supabase. Web3Forms is no longer used.");
+    if (submitting) return;
+
+    setSubmitting(true);
+    setResult("Posting your request...");
+
+    try {
+      const profile = await getCurrentProfile();
+      if (!profile) {
+        setResult("You must be signed in to post a request.");
+        return;
+      }
+
+      const formData = new FormData(event.currentTarget);
+      const location = String(formData.get("location") || "").trim();
+      const createdRequest = await createCustomerRequest({
+        customer_id: profile.id,
+        title: String(formData.get("title") || "").trim(),
+        description: String(formData.get("description") || "").trim(),
+        location: location || undefined,
+        budget_max: formData.get("budget_max")
+          ? Number(formData.get("budget_max"))
+          : null,
+      });
+
+      if (!createdRequest) {
+        setResult("We could not post your request. Please try again.");
+        return;
+      }
+
+      const providers = await findMatchingProvidersForRequest(location);
+      await createRequestNotificationsForProviders(
+        createdRequest.id,
+        providers.map((provider) => provider.id),
+        createdRequest.title,
+        "/provider/requests"
+      );
+      event.currentTarget.reset();
+      setResult("Your request was posted successfully.");
+    } catch (error) {
+      setResult(error instanceof Error ? error.message : "Failed to post your request.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ maxWidth: 720, margin: "0 auto", background: "#fff", padding: 20, borderRadius: 8, border: "1px solid #e6e9ef" }}>
-        <h1>Post a customer request</h1>
-        <p>Describe the service you need; providers in your area will be able to see and respond.</p>
+    <div className="request-form-page">
+      <div className="request-form-card">
+        <h1 className="request-form-title">Post a service request</h1>
+        <p className="request-form-intro">Describe the service you need; providers in your area will be able to see and respond.</p>
 
-        <form onSubmit={onSubmit}>
-          <label style={{ display: "block", marginTop: 12, fontWeight: 600 }} htmlFor="title">Title</label>
-          <input id="title" name="title" required style={{ width: "100%", padding: 8, marginTop: 6, borderRadius: 6, border: "1px solid #d7dbe6" }} />
+        <form className="request-form" onSubmit={onSubmit}>
+          <label htmlFor="title">Title</label>
+          <input id="title" name="title" required />
 
-          <label style={{ display: "block", marginTop: 12, fontWeight: 600 }} htmlFor="description">Description</label>
-          <textarea id="description" name="description" rows={6} required style={{ width: "100%", padding: 8, marginTop: 6, borderRadius: 6, border: "1px solid #d7dbe6" }} />
+          <label htmlFor="description">Description</label>
+          <textarea id="description" name="description" rows={6} required />
 
-          <label style={{ display: "block", marginTop: 12, fontWeight: 600 }} htmlFor="location">Location (optional)</label>
-          <input id="location" name="location" style={{ width: "100%", padding: 8, marginTop: 6, borderRadius: 6, border: "1px solid #d7dbe6" }} />
+          <label htmlFor="location">Location (optional)</label>
+          <input id="location" name="location" />
 
-          <label style={{ display: "block", marginTop: 12, fontWeight: 600 }} htmlFor="budget_max">Budget max (optional)</label>
-          <input id="budget_max" name="budget_max" type="number" style={{ width: "100%", padding: 8, marginTop: 6, borderRadius: 6, border: "1px solid #d7dbe6" }} />
+          <label htmlFor="budget_max">Budget max (optional)</label>
+          <input id="budget_max" name="budget_max" type="number" />
 
-          <button type="submit" style={{ marginTop: 14, padding: "10px 14px", background: "#003d9b", color: "#fff", borderRadius: 6, border: "none" }}>Post Request</button>
+          <button className="request-form-submit" disabled={submitting} type="submit">{submitting ? "Posting..." : "Post Request"}</button>
         </form>
 
-        <p aria-live="polite" style={{ marginTop: 12, color: "#334" }}>{result}</p>
+        <p className="request-form-status" aria-live="polite">{result}</p>
       </div>
     </div>
   );

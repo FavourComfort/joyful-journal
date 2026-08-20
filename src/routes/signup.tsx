@@ -55,7 +55,13 @@ function SignupComponent() {
             return;
           }
 
-          // Navigate directly to dashboard — verification skipped
+          const redirect = sessionStorage.getItem("authRedirect");
+          if (redirect) {
+            sessionStorage.removeItem("authRedirect");
+            window.location.href = redirect;
+            return;
+          }
+
           await router.navigate({ to: "/dashboard" });
         } catch (err) {
           const errorMessage =

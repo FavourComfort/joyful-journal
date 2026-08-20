@@ -15,11 +15,14 @@ CREATE POLICY "Requests select for owner or providers"
     OR EXISTS (SELECT 1 FROM public.providers p WHERE p.user_id = auth.uid())
   );
 
--- REQUESTS: allow insert only when auth.uid() equals the `customer_id`
-CREATE POLICY "Requests insert by owner"
+-- REQUESTS: any authenticated account may post, using its own user id.
+DROP POLICY IF EXISTS "Requests insert by owner" ON public.requests;
+DROP POLICY IF EXISTS "Requests insert by authenticated owner" ON public.requests;
+
+CREATE POLICY "Requests insert by authenticated owner"
   ON public.requests
   FOR INSERT
-  WITH CHECK (auth.uid() = customer_id);
+  WITH CHECK (auth.uid() IS NOT NULL AND auth.uid() = customer_id);
 
 -- REQUESTS: allow update/delete only by the owner (customer)
 CREATE POLICY "Requests update/delete by owner"

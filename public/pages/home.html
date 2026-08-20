@@ -124,6 +124,17 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(223, 225, 230, 0.5);
         }
+        .drawer-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #041b3c;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .drawer-link:hover { background: #f1f3ff; color: #003d9b; }
     </style>
 <style>
     body {
@@ -136,7 +147,7 @@
 <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
 <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto z-50">
 <div class="flex items-center gap-base">
-<span class="material-symbols-outlined text-primary" data-icon="menu">menu</span>
+<button id="customerMenuBtn" class="p-xs rounded-lg text-primary hover:bg-surface-container-low" type="button" aria-label="Open customer menu" aria-expanded="false"><span class="material-symbols-outlined" data-icon="menu">menu</span></button>
 <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
 </div>
 <!-- Desktop Nav Items -->
@@ -146,16 +157,70 @@
 <a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="inbox">Inbox</a>
 </div>
 <div class="flex items-center gap-md">
-<div class="hidden md:block">
-<button id="becomeProviderBtn" class="bg-primary text-on-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" data-nav="become-provider">Become a Provider</button>
+<div class="relative hidden md:block">
+<button id="authOptionsBtn" class="border border-primary text-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:bg-primary-fixed active:scale-95 transition-all" type="button" aria-expanded="false">Sign Up / Login</button>
+<div id="authOptionsMenu" class="hidden absolute right-0 top-full mt-sm w-64 rounded-xl border border-outline-variant bg-white p-sm shadow-lg">
+<p class="px-sm py-xs text-caption text-on-surface-variant">Choose an account type</p>
+<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="customer-signup" href="#"><span class="material-symbols-outlined text-primary">person_add</span>Sign up as a customer</a>
+<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="provider-signup" href="#"><span class="material-symbols-outlined text-primary">business_center</span>Sign up as a provider</a>
+<div class="my-xs border-t border-outline-variant"></div>
+<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="customer-login" href="#"><span class="material-symbols-outlined text-primary">login</span>Log in as a customer</a>
+<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="provider-login" href="#"><span class="material-symbols-outlined text-primary">storefront</span>Log in as a provider</a>
 </div>
-<div id="providerIcon" class="hidden w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border border-outline-variant cursor-pointer" data-nav="provider-dashboard">
+</div>
+<div class="hidden md:block">
+<button id="becomeProviderBtn" class="flex items-center gap-sm bg-primary text-on-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" data-nav="become-provider">
+<span id="providerIcon" class="hidden h-8 w-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border border-white/60">
 <img id="providerAvatar" class="hidden w-full h-full object-cover" alt="Provider avatar" />
 <span id="providerIconFallback" class="material-symbols-outlined">person</span>
-</div>
+ </span>
+<span id="providerButtonLabel">Become a Provider</span>
+</button>
 </div>
 </nav>
 </header>
+<div id="customerDrawerBackdrop" class="hidden fixed inset-0 z-[60] bg-on-background/30"></div>
+<aside id="customerDrawer" class="fixed left-0 top-0 z-[70] h-full w-80 max-w-[88vw] -translate-x-full overflow-y-auto bg-white p-lg shadow-2xl transition-transform duration-300" aria-hidden="true">
+<div class="flex items-center justify-between border-b border-outline-variant pb-md">
+<span class="text-headline-md font-bold text-primary">ExpertHub</span>
+<button id="closeCustomerDrawer" class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded-lg" type="button" aria-label="Close customer menu"><span class="material-symbols-outlined">close</span></button>
+</div>
+<nav id="customerMenu" class="mt-lg flex flex-col gap-xs" aria-label="Customer menu">
+<a class="drawer-link" data-nav="home" href="#"><span class="material-symbols-outlined">home</span>Home</a>
+<a class="drawer-link" data-nav="post-request" href="#"><span class="material-symbols-outlined">add_circle</span>Post a service request</a>
+<a class="drawer-link" data-nav="search-experts" href="#"><span class="material-symbols-outlined">search</span>Find a service</a>
+<a class="drawer-link" data-nav="my-requests" href="#"><span class="material-symbols-outlined">assignment</span>My requests</a>
+<a class="drawer-link" data-nav="bookings" href="#"><span class="material-symbols-outlined">calendar_month</span>My bookings</a>
+<a class="drawer-link" data-nav="inbox" href="#"><span class="material-symbols-outlined">chat</span>Messages</a>
+<a class="drawer-link" data-nav="saved-providers" href="#"><span class="material-symbols-outlined">bookmark</span>Saved providers</a>
+<a class="drawer-link" data-nav="reviews" href="#"><span class="material-symbols-outlined">star</span>Reviews</a>
+<div class="my-md border-t border-outline-variant"></div>
+<a class="drawer-link" data-nav="settings" href="#"><span class="material-symbols-outlined">settings</span>Settings</a>
+<a class="drawer-link" data-nav="profile" href="#"><span class="material-symbols-outlined">person</span>Profile</a>
+<a class="drawer-link" data-nav="help" href="#"><span class="material-symbols-outlined">help</span>Help &amp; Support</a>
+<button class="drawer-link w-full text-left text-error hover:bg-error-container" data-action="sign-out" type="button"><span class="material-symbols-outlined">logout</span>Sign Out</button>
+</nav>
+<nav id="providerMenu" class="mt-lg hidden flex-col gap-xs" aria-label="Provider menu">
+<a class="drawer-link" data-nav="provider-dashboard" href="#"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
+<a class="drawer-link" data-nav="provider-requests" href="#"><span class="material-symbols-outlined">near_me</span>Requests Near Me</a>
+<a class="drawer-link" data-nav="provider-services" href="#"><span class="material-symbols-outlined">work</span>My Services</a>
+<a class="drawer-link" data-nav="provider-bookings" href="#"><span class="material-symbols-outlined">calendar_month</span>Bookings</a>
+<a class="drawer-link" data-nav="inbox" href="#"><span class="material-symbols-outlined">chat</span>Messages</a>
+<a class="drawer-link" data-nav="provider-earnings" href="#"><span class="material-symbols-outlined">payments</span>Earnings</a>
+<div class="my-md border-t border-outline-variant"></div>
+<a class="drawer-link" data-nav="provider-settings" href="#"><span class="material-symbols-outlined">settings</span>Settings</a>
+<a class="drawer-link" data-nav="provider-profile" href="#"><span class="material-symbols-outlined">person</span>Profile Settings</a>
+<button class="drawer-link w-full text-left text-error hover:bg-error-container" data-action="sign-out" type="button"><span class="material-symbols-outlined">logout</span>Sign Out</button>
+</nav>
+<nav id="guestMenu" class="mt-lg hidden flex-col gap-xs" aria-label="Account menu">
+<p class="px-sm py-xs text-caption text-on-surface-variant">Choose how you want to use ExpertHub</p>
+<a class="drawer-link" data-nav="customer-signup" href="#"><span class="material-symbols-outlined">person_add</span>Sign up as a customer</a>
+<a class="drawer-link" data-nav="provider-signup" href="#"><span class="material-symbols-outlined">business_center</span>Sign up as a provider</a>
+<div class="my-md border-t border-outline-variant"></div>
+<a class="drawer-link" data-nav="customer-login" href="#"><span class="material-symbols-outlined">login</span>Log in as a customer</a>
+<a class="drawer-link" data-nav="provider-login" href="#"><span class="material-symbols-outlined">storefront</span>Log in as a provider</a>
+</nav>
+</aside>
 <main>
 <!-- Hero Section -->
 <section class="relative min-h-[707px] flex items-center justify-center overflow-hidden py-xl px-margin-mobile md:px-margin-desktop">
@@ -392,19 +457,40 @@
         // Navigation mapping for links to routes
         const navMap = {
             'explore': '/search',
-            'bookings': '/login',
+            'bookings': '/booking',
             'inbox': '/inbox',
             'home': '/',
             'search-experts': '/search',
             'post-request': '/post-request',
+            'my-requests': '/post-request',
             'become-provider': '/provider/signup',
+            'customer-signup': '/signup',
+            'provider-signup': '/provider/signup',
+            'customer-login': '/login',
+            'provider-login': '/provider/login',
+            'my-requests': '/post-request',
+            'saved-providers': '/search',
+            'reviews': '/dashboard',
+            'settings': '/profile/design',
+            'profile': '/profile/design',
+            'help': '/inbox',
+            'provider-services': '/provider/dashboard',
+            'provider-bookings': '/provider/dashboard',
+            'provider-earnings': '/provider/dashboard',
+            'provider-settings': '/provider/dashboard',
+            'provider-profile': '/provider/dashboard',
+            'profile': '/profile/design',
+            'settings': '/profile/design',
+            'help': '/inbox',
+            'saved-providers': '/search',
+            'reviews': '/booking',
             'home-maintenance': '/search',
             'business-strategy': '/search',
             'creative-services': '/search',
             'technical-support': '/search',
             'provider-dashboard': '/provider/dashboard'
         };
-        let isProvider = false;
+        let accountRole = null;
         const $ = (sel) => document.querySelector(sel);
 
         function navigate(route) {
@@ -436,9 +522,17 @@
         window.addEventListener('message', (event) => {
             const msg = event.data || {};
             if (msg.type === 'home:init') {
-                isProvider = !!msg.payload?.isProvider;
+                accountRole = msg.payload?.role || null;
+                const isProvider = accountRole === 'provider';
                 const onboarded = !!msg.payload?.onboarded;
                 const avatarUrl = msg.payload?.profilePictureUrl;
+
+                $('#customerMenu')?.classList.toggle('hidden', accountRole !== 'customer');
+                $('#customerMenu')?.classList.toggle('flex', accountRole === 'customer');
+                $('#providerMenu')?.classList.toggle('hidden', !isProvider);
+                $('#providerMenu')?.classList.toggle('flex', isProvider);
+                $('#guestMenu')?.classList.toggle('hidden', !!accountRole);
+                $('#guestMenu')?.classList.toggle('flex', !accountRole);
 
                 setProviderIconVisible(isProvider, avatarUrl);
 
@@ -448,16 +542,53 @@
                         // Providers always get routed to their dashboard via this button
                         becomeBtn.dataset.nav = 'provider-dashboard';
                         // If they've completed setup, show a friendlier label
-                        becomeBtn.textContent = onboarded ? '🤝My Dashboard😊' : 'Become a Provider';
+                        $('#providerButtonLabel').textContent = onboarded ? 'My Dashboard' : 'Complete Provider Profile';
+                        $('#providerIcon').classList.remove('hidden');
                     } else {
                         becomeBtn.dataset.nav = 'become-provider';
-                        becomeBtn.textContent = 'Become a Provider';
+                        $('#providerButtonLabel').textContent = 'Become a Provider';
+                        $('#providerIcon').classList.add('hidden');
                     }
                 }
             }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            const drawer = $('#customerDrawer');
+            const backdrop = $('#customerDrawerBackdrop');
+            const menuButton = $('#customerMenuBtn');
+            const closeButton = $('#closeCustomerDrawer');
+            const closeDrawer = () => {
+                drawer?.classList.add('-translate-x-full');
+                backdrop?.classList.add('hidden');
+                menuButton?.setAttribute('aria-expanded', 'false');
+                drawer?.setAttribute('aria-hidden', 'true');
+            };
+            const openDrawer = () => {
+                drawer?.classList.remove('-translate-x-full');
+                backdrop?.classList.remove('hidden');
+                menuButton?.setAttribute('aria-expanded', 'true');
+                drawer?.setAttribute('aria-hidden', 'false');
+            };
+            menuButton?.addEventListener('click', openDrawer);
+            closeButton?.addEventListener('click', closeDrawer);
+            backdrop?.addEventListener('click', closeDrawer);
+
+            const authOptionsBtn = $('#authOptionsBtn');
+            const authOptionsMenu = $('#authOptionsMenu');
+            if (authOptionsBtn && authOptionsMenu) {
+                authOptionsBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const isOpen = !authOptionsMenu.classList.contains('hidden');
+                    authOptionsMenu.classList.toggle('hidden', isOpen);
+                    authOptionsBtn.setAttribute('aria-expanded', String(!isOpen));
+                });
+                document.addEventListener('click', () => {
+                    authOptionsMenu.classList.add('hidden');
+                    authOptionsBtn.setAttribute('aria-expanded', 'false');
+                });
+            }
+
             // Setup navigation links and buttons with data-nav attribute
             document.querySelectorAll('[data-nav]').forEach(element => {
                 element.addEventListener('click', (e) => {
@@ -465,8 +596,17 @@
                     const navKey = element.dataset.nav;
                     const route = navMap[navKey];
                     if (route) {
+                        closeDrawer();
                         navigate(route);
                     }
+                });
+            });
+
+            document.querySelectorAll('[data-action="sign-out"]').forEach(element => {
+                element.addEventListener('click', () => {
+                    if (!window.confirm('Are you sure you want to sign out?')) return;
+                    closeDrawer();
+                    window.parent.postMessage({ type: 'auth:signout' }, '*');
                 });
             });
 

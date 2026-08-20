@@ -51,6 +51,13 @@ function LoginComponent() {
             return;
           }
 
+          const redirect = sessionStorage.getItem("authRedirect");
+          if (redirect) {
+            sessionStorage.removeItem("authRedirect");
+            window.location.href = redirect;
+            return;
+          }
+
           await router.navigate({ to: "/dashboard" });
         } catch (err) {
           const errorMessage =

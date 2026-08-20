@@ -149,15 +149,17 @@
             font-size: 12px;
             font-weight: 600;
         }
+        .drawer-link { display: flex; align-items: center; gap: 12px; border-radius: 8px; padding: 10px 12px; color: #041b3c; font-size: 14px; font-weight: 600; }
+        .drawer-link:hover { background: #f1f3ff; color: #003d9b; }
     </style>
 </head>
 <body class="font-body-md text-body-md overflow-x-hidden">
     <!-- Header -->
     <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
         <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
-            <div class="flex items-center gap-base cursor-pointer" data-nav="home">
-                <span class="material-symbols-outlined text-primary">home</span>
-                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
+            <div class="flex items-center gap-base cursor-pointer">
+                <button id="providerMenuBtn" class="p-xs rounded-lg text-primary hover:bg-surface-container-low" type="button" aria-label="Open provider menu" aria-expanded="false"><span class="material-symbols-outlined">menu</span></button>
+                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim" data-nav="home">ExpertHub</span>
             </div>
             <div class="flex items-center gap-sm">
                 <button class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="home">
@@ -175,6 +177,26 @@
             </div>
         </nav>
     </header>
+
+    <div id="providerDrawerBackdrop" class="hidden fixed inset-0 z-[60] bg-on-background/30"></div>
+    <aside id="providerDrawer" class="fixed left-0 top-0 z-[70] h-full w-80 max-w-[88vw] -translate-x-full overflow-y-auto bg-white p-lg shadow-2xl transition-transform duration-300" aria-hidden="true">
+        <div class="flex items-center justify-between border-b border-outline-variant pb-md">
+            <span class="text-headline-md font-bold text-primary">ExpertHub</span>
+            <button id="closeProviderDrawer" class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded-lg" type="button" aria-label="Close provider menu"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <nav class="mt-lg flex flex-col gap-xs" aria-label="Provider menu">
+            <a class="drawer-link" data-nav="provider-dashboard" href="#"><span class="material-symbols-outlined">dashboard</span>Dashboard</a>
+            <a class="drawer-link" data-nav="provider-requests" href="#"><span class="material-symbols-outlined">near_me</span>Requests Near Me</a>
+            <a class="drawer-link" data-nav="provider-services" href="#"><span class="material-symbols-outlined">work</span>My Services</a>
+            <a class="drawer-link" data-nav="provider-bookings" href="#"><span class="material-symbols-outlined">calendar_month</span>Bookings</a>
+            <a class="drawer-link" data-nav="inbox" href="#"><span class="material-symbols-outlined">chat</span>Messages</a>
+            <a class="drawer-link" data-nav="provider-earnings" href="#"><span class="material-symbols-outlined">payments</span>Earnings</a>
+            <div class="my-md border-t border-outline-variant"></div>
+            <a class="drawer-link" data-nav="provider-settings" href="#"><span class="material-symbols-outlined">settings</span>Settings</a>
+            <a class="drawer-link" data-nav="provider-profile" href="#"><span class="material-symbols-outlined">person</span>Profile Settings</a>
+            <button id="drawerSignOutBtn" class="drawer-link w-full text-left text-error hover:bg-error-container" type="button"><span class="material-symbols-outlined">logout</span>Sign Out</button>
+        </nav>
+    </aside>
 
     <main class="min-h-screen pt-xl pb-xl px-margin-mobile md:px-margin-desktop">
         <div class="max-w-5xl mx-auto">
@@ -263,7 +285,14 @@
     <script>
         const navMap = {
             'home': '/',
+            'provider-dashboard': '/provider/dashboard',
             'provider-requests': '/provider/requests',
+            'provider-services': '/provider/dashboard',
+            'provider-bookings': '/provider/dashboard',
+            'inbox': '/inbox',
+            'provider-earnings': '/provider/dashboard',
+            'provider-settings': '/provider/dashboard',
+            'provider-profile': '/provider/dashboard',
         };
 
         function navigate(route) {
@@ -657,16 +686,47 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            const drawer = $('#providerDrawer');
+            const backdrop = $('#providerDrawerBackdrop');
+            const menuButton = $('#providerMenuBtn');
+            const closeButton = $('#closeProviderDrawer');
+            const closeDrawer = () => {
+                drawer?.classList.add('-translate-x-full');
+                backdrop?.classList.add('hidden');
+                menuButton?.setAttribute('aria-expanded', 'false');
+                drawer?.setAttribute('aria-hidden', 'true');
+            };
+            const openDrawer = () => {
+                drawer?.classList.remove('-translate-x-full');
+                backdrop?.classList.remove('hidden');
+                menuButton?.setAttribute('aria-expanded', 'true');
+                drawer?.setAttribute('aria-hidden', 'false');
+            };
+            menuButton?.addEventListener('click', openDrawer);
+            closeButton?.addEventListener('click', closeDrawer);
+            backdrop?.addEventListener('click', closeDrawer);
+
             document.querySelectorAll('[data-nav]').forEach((element) => {
                 element.addEventListener('click', (e) => {
                     e.preventDefault();
                     const route = navMap[element.dataset.nav];
-                    if (route) navigate(route);
+                    if (route) {
+                        closeDrawer();
+                        navigate(route);
+                    }
                 });
             });
 
             const signOutBtn = $('#signOutBtn');
-            if (signOutBtn) signOutBtn.addEventListener('click', () => postToParent('dashboard:signOut'));
+            if (signOutBtn) signOutBtn.addEventListener('click', () => {
+                if (window.confirm('Are you sure you want to sign out?')) postToParent('dashboard:signOut');
+            });
+            const drawerSignOutBtn = $('#drawerSignOutBtn');
+            if (drawerSignOutBtn) drawerSignOutBtn.addEventListener('click', () => {
+                if (!window.confirm('Are you sure you want to sign out?')) return;
+                closeDrawer();
+                postToParent('dashboard:signOut');
+            });
 
             document.querySelectorAll('.tab-btn').forEach((b) => {
                 b.addEventListener('click', () => switchTab(b.dataset.tab));

@@ -117,6 +117,8 @@
         .shadow-soft { box-shadow: 0px 2px 4px rgba(23, 43, 77, 0.05); }
         .shadow-elevated { box-shadow: 0px 12px 24px rgba(23, 43, 77, 0.08); }
         body { -webkit-font-smoothing: antialiased; }
+        .drawer-link { display: flex; align-items: center; gap: 12px; border-radius: 8px; padding: 10px 12px; color: #041b3c; font-size: 14px; font-weight: 600; }
+        .drawer-link:hover { background: #f1f3ff; color: #003d9b; }
         
         /* Custom scrollbar for better aesthetics */
         ::-webkit-scrollbar { width: 6px; }
@@ -129,8 +131,8 @@
 <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
 <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
 <div class="flex items-center gap-sm">
-<button class="active:scale-95 transition-transform hover:bg-surface-container-low p-2 rounded-lg">
-<span class="material-symbols-outlined text-primary">arrow_back</span>
+<button id="customerMenuBtn" class="active:scale-95 transition-transform hover:bg-surface-container-low p-2 rounded-lg" type="button" aria-label="Open customer menu" aria-expanded="false">
+<span class="material-symbols-outlined text-primary">menu</span>
 </button>
 <h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</h1>
 </div>
@@ -144,7 +146,42 @@
 </div>
 </nav>
 </header>
-<main class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop py-lg md:py-xl">
+<div id="customerDrawerBackdrop" class="hidden fixed inset-0 z-[60] bg-on-background/30"></div>
+<aside id="customerDrawer" class="fixed left-0 top-0 z-[70] h-full w-80 max-w-[88vw] -translate-x-full overflow-y-auto bg-white p-lg shadow-2xl transition-transform duration-300" aria-hidden="true">
+<div class="flex items-center justify-between border-b border-outline-variant pb-md">
+<span class="text-headline-md font-bold text-primary">ExpertHub</span>
+<button id="closeCustomerDrawer" class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded-lg" type="button" aria-label="Close customer menu"><span class="material-symbols-outlined">close</span></button>
+</div>
+<nav class="mt-lg flex flex-col gap-xs" aria-label="Customer menu">
+<a class="drawer-link" data-nav="home" href="#"><span class="material-symbols-outlined">home</span>Home</a>
+<a class="drawer-link" data-nav="post-request" href="#"><span class="material-symbols-outlined">add_circle</span>Post a service request</a>
+<a class="drawer-link" data-nav="search-experts" href="#"><span class="material-symbols-outlined">search</span>Find a service</a>
+<a class="drawer-link" data-nav="my-requests" href="#"><span class="material-symbols-outlined">assignment</span>My requests</a>
+<a class="drawer-link" data-nav="bookings" href="#"><span class="material-symbols-outlined">calendar_month</span>My bookings</a>
+<a class="drawer-link" data-nav="inbox" href="#"><span class="material-symbols-outlined">chat</span>Messages</a>
+<a class="drawer-link" data-nav="saved-providers" href="#"><span class="material-symbols-outlined">bookmark</span>Saved providers</a>
+<a class="drawer-link" data-nav="reviews" href="#"><span class="material-symbols-outlined">star</span>Reviews</a>
+<div class="my-md border-t border-outline-variant"></div>
+<a class="drawer-link" data-nav="settings" href="#"><span class="material-symbols-outlined">settings</span>Settings</a>
+<a class="drawer-link" data-nav="profile" href="#"><span class="material-symbols-outlined">person</span>Profile</a>
+<a class="drawer-link" data-nav="help" href="#"><span class="material-symbols-outlined">help</span>Help &amp; Support</a>
+<button class="drawer-link w-full text-left text-error hover:bg-error-container" data-action="sign-out" type="button"><span class="material-symbols-outlined">logout</span>Sign Out</button>
+</nav>
+</aside>
+<main id="customerBookingsView" class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop py-lg md:py-xl">
+<div class="mb-lg flex flex-col gap-md md:flex-row md:items-end md:justify-between">
+<div><p class="text-label-sm font-label-sm text-primary">Customer account</p><h2 class="text-display-lg-mobile font-bold text-on-background">My bookings</h2><p class="text-on-surface-variant">Keep track of upcoming appointments and completed services.</p></div>
+<button id="findServiceBtn" class="rounded-xl bg-primary px-lg py-md text-label-sm font-bold text-white hover:brightness-110" type="button">Find a service</button>
+</div>
+<div class="mb-lg flex gap-sm border-b border-outline-variant" role="tablist">
+<button class="booking-filter border-b-2 border-primary px-md py-sm text-label-sm font-bold text-primary" data-filter="all" type="button">All</button>
+<button class="booking-filter px-md py-sm text-label-sm font-bold text-on-surface-variant" data-filter="upcoming" type="button">Upcoming</button>
+<button class="booking-filter px-md py-sm text-label-sm font-bold text-on-surface-variant" data-filter="completed" type="button">Completed</button>
+</div>
+<div id="bookingsStatus" class="rounded-xl border border-outline-variant bg-white p-lg text-on-surface-variant">Loading your bookings...</div>
+<div id="bookingsList" class="hidden grid gap-md lg:grid-cols-2"></div>
+</main>
+<main id="bookingMock" class="hidden max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop py-lg md:py-xl">
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-xl">
 <!-- Left Column: Booking Flow -->
 <div class="lg:col-span-7 flex flex-col gap-lg">
@@ -319,17 +356,117 @@
 </button>
 </nav>
 <script>
-        // Simple Micro-interaction for selecting time slots
-        const timeButtons = document.querySelectorAll('button.border-outline-variant:not(.opacity-50)');
-        timeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                timeButtons.forEach(b => {
-                    b.classList.remove('border-2', 'border-primary', 'bg-primary-fixed-dim', 'font-bold', 'text-primary');
-                    b.classList.add('border', 'border-outline-variant');
-                });
-                btn.classList.remove('border', 'border-outline-variant');
-                btn.classList.add('border-2', 'border-primary', 'bg-primary-fixed-dim', 'font-bold', 'text-primary');
+        const navMap = {
+            home: '/',
+            'post-request': '/post-request',
+            'my-requests': '/post-request',
+            'search-experts': '/search',
+            bookings: '/booking',
+            inbox: '/inbox',
+            'saved-providers': '/search',
+            reviews: '/booking',
+            settings: '/profile/design',
+            profile: '/profile/design',
+            help: '/inbox'
+        };
+        let allBookings = [];
+        let activeFilter = 'all';
+        const $ = selector => document.querySelector(selector);
+
+        function navigate(route) {
+            window.parent.postMessage({ type: 'navigate', route }, '*');
+        }
+
+        function closeDrawer() {
+            $('#customerDrawer')?.classList.add('-translate-x-full');
+            $('#customerDrawerBackdrop')?.classList.add('hidden');
+            $('#customerMenuBtn')?.setAttribute('aria-expanded', 'false');
+        }
+
+        function renderBookings() {
+            const status = $('#bookingsStatus');
+            const list = $('#bookingsList');
+            const visible = allBookings.filter(booking => {
+                if (activeFilter === 'completed') return booking.status === 'completed';
+                if (activeFilter === 'upcoming') return ['pending', 'confirmed'].includes(booking.status);
+                return true;
             });
+
+            if (!visible.length) {
+                status.textContent = activeFilter === 'all' ? 'You do not have any bookings yet.' : `No ${activeFilter} bookings found.`;
+                status.classList.remove('hidden');
+                list.classList.add('hidden');
+                return;
+            }
+
+            status.classList.add('hidden');
+            list.classList.remove('hidden');
+            list.innerHTML = visible.map(booking => {
+                const date = new Date(`${booking.booking_date}T${booking.start_time}`);
+                const formattedDate = Number.isNaN(date.getTime()) ? booking.booking_date : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                const canCancel = ['pending', 'confirmed'].includes(booking.status);
+                const statusLabel = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+                return `<article class="rounded-xl border border-outline-variant bg-white p-md shadow-soft">
+                    <div class="mb-md flex items-start justify-between gap-md">
+                        <div><p class="text-label-sm font-bold text-primary">Service booking</p><p class="text-caption text-on-surface-variant">Provider ID: ${booking.provider_id}</p></div>
+                        <span class="rounded-full bg-primary-fixed px-sm py-xs text-caption font-bold text-primary">${statusLabel}</span>
+                    </div>
+                    <div class="space-y-sm text-body-md text-on-surface-variant">
+                        <p><span class="material-symbols-outlined mr-xs align-middle text-primary" style="font-size: 18px;">event</span>${formattedDate}</p>
+                        <p><span class="material-symbols-outlined mr-xs align-middle text-primary" style="font-size: 18px;">payments</span>UGX ${Number(booking.total_amount || 0).toLocaleString()}</p>
+                    </div>
+                    ${canCancel ? `<button class="cancel-booking mt-md rounded-lg border border-red-300 px-md py-sm text-label-sm font-bold text-red-700 hover:bg-red-50" data-booking-id="${booking.id}" type="button">Cancel booking</button>` : ''}
+                </article>`;
+            }).join('');
+
+            list.querySelectorAll('[data-booking-id]').forEach(button => {
+                button.addEventListener('click', () => {
+                    button.disabled = true;
+                    button.textContent = 'Cancelling...';
+                    window.parent.postMessage({ type: 'bookings:cancel', payload: { bookingId: button.dataset.bookingId } }, '*');
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const drawer = $('#customerDrawer');
+            $('#customerMenuBtn')?.addEventListener('click', () => {
+                drawer?.classList.remove('-translate-x-full');
+                $('#customerDrawerBackdrop')?.classList.remove('hidden');
+                $('#customerMenuBtn')?.setAttribute('aria-expanded', 'true');
+            });
+            $('#closeCustomerDrawer')?.addEventListener('click', closeDrawer);
+            $('#customerDrawerBackdrop')?.addEventListener('click', closeDrawer);
+            $('#findServiceBtn')?.addEventListener('click', () => navigate('/search'));
+            document.querySelectorAll('[data-nav]').forEach(element => element.addEventListener('click', event => {
+                event.preventDefault();
+                const route = navMap[element.dataset.nav];
+                if (route) { closeDrawer(); navigate(route); }
+            }));
+            document.querySelectorAll('[data-action="sign-out"]').forEach(element => element.addEventListener('click', () => {
+                if (!window.confirm('Are you sure you want to sign out?')) return;
+                closeDrawer();
+                window.parent.postMessage({ type: 'auth:signout' }, '*');
+            }));
+            document.querySelectorAll('.booking-filter').forEach(button => button.addEventListener('click', () => {
+                activeFilter = button.dataset.filter;
+                document.querySelectorAll('.booking-filter').forEach(filter => filter.classList.remove('border-b-2', 'border-primary', 'text-primary'));
+                button.classList.add('border-b-2', 'border-primary', 'text-primary');
+                renderBookings();
+            }));
+            window.parent.postMessage({ type: 'bookings:ready' }, '*');
+        });
+
+        window.addEventListener('message', event => {
+            if (event.data?.type === 'bookings:init') {
+                allBookings = event.data.payload?.bookings || [];
+                renderBookings();
+            }
+            if (event.data?.type === 'bookings:cancelResult' && !event.data.payload?.success) {
+                renderBookings();
+                $('#bookingsStatus').textContent = 'We could not cancel that booking. Please try again.';
+                $('#bookingsStatus').classList.remove('hidden');
+            }
         });
     </script>
 

@@ -112,13 +112,29 @@ export async function signUp(
   role: 'customer' | 'provider' = 'customer'
 ): Promise<AuthResponse> {
   try {
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data: currentSession } = await supabase.auth.getSession();
+    if (currentSession.session?.user) {
+      return { data: null, error: 'You already have an account signed in. Please sign out before creating an account.' };
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
     });
 
     if (authError) {
-      return { data: null, error: authError.message };
+      const duplicateEmail = /already registered|already exists|user already/i.test(authError.message);
+      return {
+        data: null,
+        error: duplicateEmail
+          ? 'An account already exists for this email. Please log in instead.'
+          : authError.message,
+      };
+    }
+
+    if (authData.user && authData.user.identities?.length === 0) {
+      return { data: null, error: 'An account already exists for this email. Please log in instead.' };
     }
 
     if (!authData.user) {
@@ -171,6 +187,9 @@ export async function signOut(): Promise<{ error: string | null }> {
     if (error) {
       return { error: error.message };
     }
+
+    sessionStorage.removeItem('authRedirect');
+    localStorage.removeItem('providerSignupDraft');
 
     return { error: null };
   } catch (error) {
