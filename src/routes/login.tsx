@@ -39,8 +39,14 @@ function LoginComponent() {
             localStorage.setItem("rememberEmail", data.email);
           }
 
-          // Route by role: customers go to their dashboard, providers to their
-          // own flow (onboarding when they haven't created a provider row yet).
+          // Route by role: admins go to the moderation console, customers go to
+          // their dashboard, providers to their own flow (onboarding when they
+          // haven't created a provider row yet).
+          if (result.data?.role === "admin") {
+            await router.navigate({ to: "/admin/dashboard" });
+            return;
+          }
+
           if (result.data?.role === "provider") {
             const provider = await getProviderByUserId(result.data.id);
             if (!provider) {

@@ -269,8 +269,8 @@
                 location: formData.get('location'),
                 password: formData.get('password'),
                 confirmPassword: formData.get('confirmPassword'),
-                newsletter: formData.get('newsletter') === 'on',
-                terms: formData.get('terms') === 'on',
+                newsletter: document.getElementById('newsletter').checked,
+                terms: document.getElementById('terms').checked,
             };
         }
 

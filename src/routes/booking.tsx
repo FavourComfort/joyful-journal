@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { PageFrame } from "@/components/PageFrame";
 import { getCurrentProfile, signOut } from "@/lib/services/auth.service";
 import { cancelBooking, getCustomerBookings } from "@/lib/services/bookings.service";
+import { createReview } from "@/lib/services/reviews.service";
 
 function BookingComponent() {
   const router = useRouter();
@@ -69,6 +70,27 @@ function BookingComponent() {
         iframeRef.current?.contentWindow?.postMessage({
           type: "bookings:cancelResult",
           payload: { bookingId, success: cancelled },
+        }, "*");
+      }
+
+      if (event.data?.type === "bookings:review") {
+        const { bookingId, providerId, rating, comment } = event.data.payload || {};
+        if (!bookingId || !providerId || !rating) return;
+
+        const profile = await getCurrentProfile();
+        if (!profile) return;
+
+        const review = await createReview(
+          bookingId,
+          profile.id,
+          providerId,
+          Number(rating),
+          comment || undefined
+        );
+
+        iframeRef.current?.contentWindow?.postMessage({
+          type: "bookings:reviewResult",
+          payload: { bookingId, success: !!review },
         }, "*");
       }
     };

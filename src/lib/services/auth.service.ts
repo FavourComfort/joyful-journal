@@ -113,11 +113,6 @@ export async function signUp(
 ): Promise<AuthResponse> {
   try {
     const normalizedEmail = email.trim().toLowerCase();
-    const { data: currentSession } = await supabase.auth.getSession();
-    if (currentSession.session?.user) {
-      return { data: null, error: 'You already have an account signed in. Please sign out before creating an account.' };
-    }
-
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,

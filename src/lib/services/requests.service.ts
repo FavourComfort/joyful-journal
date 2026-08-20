@@ -30,6 +30,7 @@ export interface ProviderOffer {
   message?: string;
   price?: number | null;
   estimated_start?: string | null;
+  status?: 'pending' | 'accepted' | 'declined';
   created_at: string;
 }
 
@@ -208,6 +209,91 @@ export async function getOffersForRequest(requestId: string) {
   } catch (err) {
     console.error('Exception fetching offers:', err);
     return [];
+  }
+}
+
+// Get all requests posted by a specific customer
+export async function getCustomerRequests(customerId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('requests')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error fetching customer requests:', error);
+      return [];
+    }
+    return (data || []) as CustomerRequest[];
+  } catch (err) {
+    console.error('Exception fetching customer requests:', err);
+    return [];
+  }
+}
+
+// Get offers for multiple requests with provider info
+export async function getOffersWithProvidersForRequests(
+  requestIds: string[]
+): Promise<Array<ProviderOffer & { provider_name?: string; provider_business_name?: string }>> {
+  try {
+    if (!requestIds.length) return [];
+
+    const { data, error } = await supabase
+      .from('offers')
+      .select('*, providers(business_name)')
+      .in('request_id', requestIds)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching offers with providers:', error);
+      return [];
+    }
+
+    return (data || []).map((offer: any) => ({
+      ...offer,
+      provider_business_name: offer.providers?.business_name || 'Provider',
+    }));
+  } catch (err) {
+    console.error('Exception fetching offers with providers:', err);
+    return [];
+  }
+}
+
+// Accept an offer - customer accepts provider's offer on their request
+export async function acceptOffer(offerId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('offers')
+      .update({ status: 'accepted' })
+      .eq('id', offerId);
+
+    if (error) {
+      console.error('Error accepting offer:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Exception accepting offer:', err);
+    return false;
+  }
+}
+
+// Decline an offer
+export async function declineOffer(offerId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('offers')
+      .update({ status: 'declined' })
+      .eq('id', offerId);
+
+    if (error) {
+      console.error('Error declining offer:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Exception declining offer:', err);
+    return false;
   }
 }
 

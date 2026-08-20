@@ -155,6 +155,7 @@
 <a class="text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm cursor-pointer" data-nav="explore">Explore</a>
 <a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="bookings">Bookings</a>
 <a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="inbox">Inbox</a>
+<a id="adminNavLink" class="hidden text-error hover:bg-error-container transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="admin-dashboard">Admin</a>
 </div>
 <div class="flex items-center gap-md">
 <div class="relative hidden md:block">
@@ -219,6 +220,13 @@
 <div class="my-md border-t border-outline-variant"></div>
 <a class="drawer-link" data-nav="customer-login" href="#"><span class="material-symbols-outlined">login</span>Log in as a customer</a>
 <a class="drawer-link" data-nav="provider-login" href="#"><span class="material-symbols-outlined">storefront</span>Log in as a provider</a>
+</nav>
+<nav id="adminMenu" class="mt-lg hidden flex-col gap-xs" aria-label="Admin menu">
+<a class="drawer-link" data-nav="admin-dashboard" href="#"><span class="material-symbols-outlined">shield</span>Admin Console</a>
+<a class="drawer-link" data-nav="inbox" href="#"><span class="material-symbols-outlined">chat</span>Messages</a>
+<div class="my-md border-t border-outline-variant"></div>
+<a class="drawer-link" data-nav="settings" href="#"><span class="material-symbols-outlined">settings</span>Settings</a>
+<button class="drawer-link w-full text-left text-error hover:bg-error-container" data-action="sign-out" type="button"><span class="material-symbols-outlined">logout</span>Sign Out</button>
 </nav>
 </aside>
 <main>
@@ -462,13 +470,12 @@
             'home': '/',
             'search-experts': '/search',
             'post-request': '/post-request',
-            'my-requests': '/post-request',
+            'my-requests': '/my-requests',
             'become-provider': '/provider/signup',
             'customer-signup': '/signup',
             'provider-signup': '/provider/signup',
             'customer-login': '/login',
             'provider-login': '/provider/login',
-            'my-requests': '/post-request',
             'saved-providers': '/search',
             'reviews': '/dashboard',
             'settings': '/profile/design',
@@ -488,7 +495,8 @@
             'business-strategy': '/search',
             'creative-services': '/search',
             'technical-support': '/search',
-            'provider-dashboard': '/provider/dashboard'
+            'provider-dashboard': '/provider/dashboard',
+            'admin-dashboard': '/admin/dashboard'
         };
         let accountRole = null;
         const $ = (sel) => document.querySelector(sel);
@@ -533,6 +541,9 @@
                 $('#providerMenu')?.classList.toggle('flex', isProvider);
                 $('#guestMenu')?.classList.toggle('hidden', !!accountRole);
                 $('#guestMenu')?.classList.toggle('flex', !accountRole);
+                $('#adminMenu')?.classList.toggle('hidden', accountRole !== 'admin');
+                $('#adminMenu')?.classList.toggle('flex', accountRole === 'admin');
+                $('#adminNavLink')?.classList.toggle('hidden', accountRole !== 'admin');
 
                 setProviderIconVisible(isProvider, avatarUrl);
 

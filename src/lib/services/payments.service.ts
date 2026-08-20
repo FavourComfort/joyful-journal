@@ -162,24 +162,30 @@ export async function getPaymentsByStatus(
 export async function getProviderRevenue(providerId: string): Promise<number> {
   try {
     const { data, error } = await supabase
-      .from('payments')
-      .select('amount')
-      .eq('payment_status', 'paid')
-      .in(
-        'booking_id',
-        // This is a simplified version, ideally use a join
-        []
-      );
+      .from('bookings')
+      .select('id, total_amount')
+      .eq('provider_id', providerId)
+      .eq('status', 'completed');
 
     if (error) {
       console.error('Error fetching revenue:', error);
       return 0;
     }
 
-    const total = (data || []).reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    const total = (data || []).reduce(
+      (sum, booking) => sum + (Number(booking.total_amount) || 0),
+      0
+    );
     return total;
   } catch (error) {
     console.error('Error getting provider revenue:', error);
     return 0;
   }
+}
+
+// Get payment status for a booking (enriched with provider info)
+export async function getPaymentForBooking(
+  bookingId: string
+): Promise<Payment | null> {
+  return getPaymentByBookingId(bookingId);
 }

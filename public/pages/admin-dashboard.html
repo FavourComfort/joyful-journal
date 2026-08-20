@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Admin Dashboard | ExpertHub</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "outline": "#737685",
+                        "primary-fixed": "#dae2ff",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dee0e2",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0052cc",
+                        "on-background": "#041b3c",
+                        "secondary-fixed-dim": "#c5c6c8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e8edff",
+                        "tertiary": "#5e3c00",
+                        "outline-variant": "#c3c6d6",
+                        "tertiary-fixed": "#ffddb3",
+                        "on-primary-container": "#c4d2ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-tertiary-fixed": "#291800",
+                        "secondary": "#5c5f60",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-fixed": "#e1e2e4",
+                        "surface-container-low": "#f1f3ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "primary": "#003d9b",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#1d3052",
+                        "on-secondary-fixed-variant": "#444749",
+                        "tertiary-fixed-dim": "#ffb950",
+                        "tertiary-container": "#7d5200",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "surface-dim": "#cadaff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-container": "#ffca81",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#606365",
+                        "surface-tint": "#0c56d0",
+                        "on-primary-fixed": "#001848",
+                        "on-surface": "#041b3c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "base": "8px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "xl": "80px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Inter"],
+                        "caption": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #f9f9ff;
+            color: #041b3c;
+            min-height: 100dvh;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(223, 225, 230, 0.5);
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #434654;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .tab-btn:hover { background: #f1f3ff; }
+        .tab-btn.tab-active {
+            background: #003d9b;
+            color: #ffffff;
+        }
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e8edff;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .drawer-link { display: flex; align-items: center; gap: 12px; border-radius: 8px; padding: 10px 12px; color: #041b3c; font-size: 14px; font-weight: 600; }
+        .drawer-link:hover { background: #f1f3ff; color: #003d9b; }
+        .table-row-link:hover { background: #f1f3ff; }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+    <!-- TopAppBar -->
+    <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
+        <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
+            <div class="flex items-center gap-base">
+                <button id="adminMenuBtn" class="p-xs rounded-lg text-primary hover:bg-surface-container-low" type="button" aria-label="Open admin menu" aria-expanded="false"><span class="material-symbols-outlined">menu</span></button>
+                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">Admin</span>
+            </div>
+            <div class="flex items-center gap-sm">
+                <button id="backHomeBtn" class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="home">Back to Home</button>
+                <button id="signOutBtn" class="text-error hover:bg-error-container transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer">Sign out</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Drawer -->
+    <div id="adminDrawerBackdrop" class="hidden fixed inset-0 z-[60] bg-on-background/30"></div>
+    <aside id="adminDrawer" class="fixed left-0 top-0 z-[70] h-full w-80 max-w-[88vw] -translate-x-full overflow-y-auto bg-white p-lg shadow-2xl transition-transform duration-300" aria-hidden="true">
+        <div class="flex items-center justify-between border-b border-outline-variant pb-md">
+            <span class="text-headline-md font-bold text-primary">Admin Console</span>
+            <button id="closeAdminDrawer" class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded-lg" type="button" aria-label="Close admin menu"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <nav id="adminNav" class="mt-lg flex flex-col gap-xs" aria-label="Admin menu">
+            <a class="drawer-link" data-nav="admin-dashboard" href="#"><span class="material-symbols-outlined">dashboard</span>Overview</a>
+            <a class="drawer-link" data-nav="admin-providers" href="#"><span class="material-symbols-outlined">shield</span>Provider Verification</a>
+            <a class="drawer-link" data-nav="admin-requests" href="#"><span class="material-symbols-outlined">assignment</span>Requests</a>
+            <a class="drawer-link" data-nav="admin-offers" href="#"><span class="material-symbols-outlined">handshake</span>Offers</a>
+            <a class="drawer-link" data-nav="admin-bookings" href="#"><span class="material-symbols-outlined">calendar_month</span>Bookings</a>
+            <a class="drawer-link" data-nav="admin-reviews" href="#"><span class="material-symbols-outlined">star</span>Reviews</a>
+            <div class="my-md border-t border-outline-variant"></div>
+            <a class="drawer-link" data-nav="home" href="#"><span class="material-symbols-outlined">home</span>Back to Home</a>
+        </nav>
+        <div class="absolute bottom-0 left-0 w-full p-lg border-t border-outline-variant">
+            <button id="drawerSignOutBtn" class="drawer-link w-full text-left text-error hover:bg-error-container" type="button"><span class="material-symbols-outlined">logout</span>Sign Out</button>
+        </div>
+    </aside>
+
+    <main class="min-h-screen pt-xl pb-xl px-margin-mobile md:px-margin-desktop">
+        <div class="max-w-7xl mx-auto">
+            <!-- Toast -->
+            <div id="toastBox" class="hidden fixed bottom-4 right-4 z-50 bg-error-container text-on-error-container px-md py-sm rounded-xl font-body-md shadow-lg"></div>
+
+            <!-- Loading -->
+            <div id="loadingState" class="flex flex-col items-center justify-center py-xl">
+                <div class="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                <p class="mt-md text-on-surface-variant font-body-md">Loading the admin console...</p>
+            </div>
+
+            <div id="dashboardContent" class="hidden">
+                <!-- Header + tabs -->
+                <div class="flex items-center justify-between mb-lg flex-wrap gap-sm">
+                    <div class="flex items-center gap-md flex-wrap">
+                        <h1 class="font-headline-md text-headline-md text-on-background">Admin Dashboard</h1>
+                        <span id="adminRoleChip" class="badge bg-[#dae2ff] text-[#0040a2] hidden">Admin</span>
+                    </div>
+                    <div class="flex gap-xs bg-surface-container-low rounded-xl p-xs">
+                        <button class="tab-btn tab-active" data-tab="overview">Overview</button>
+                        <button class="tab-btn" data-tab="providers">Provider Verification</button>
+                        <button class="tab-btn" data-tab="requests">Requests</button>
+                        <button class="tab-btn" data-tab="offers">Offers</button>
+                        <button class="tab-btn" data-tab="bookings">Bookings</button>
+                        <button class="tab-btn" data-tab="reviews">Reviews</button>
+                    </div>
+                </div>
+
+                <!-- Overview -->
+                <section id="overview-panel">
+                    <div id="overviewContent" class="space-y-lg"></div>
+                </section>
+
+                <!-- Provider Verification -->
+                <section id="providers-panel" class="hidden">
+                    <div id="providersToolbar" class="flex justify-between items-center mb-md flex-wrap gap-sm">
+                        <h2 class="font-headline-md text-headline-md text-on-background">Provider Verification</h2>
+                        <div class="relative">
+                            <input id="providerSearch" type="text" placeholder="Search by business name..." class="pl-md pr-sm py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md w-64"/>
+                            <span class="material-symbols-outlined text-sm text-outline absolute left-sm top-1/2 -translate-y-1/2">search</span>
+                        </div>
+                    </div>
+                    <div class="bg-surface-container-low rounded-xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-surface-container-lowest border-b border-outline-variant">
+                                    <th class="px-md py-sm text-label-sm text-on-background font-label-sm">Provider</th>
+                                    <th class="px-md py-sm text-label-sm text-on-background font-label-sm">Location</th>
+                                    <th class="px-md py-sm text-label-sm text-on-background font-label-sm">Owner</th>
+                                    <th class="px-md py-sm text-label-sm text-on-background font-label-sm">Phone</th>
+                                    <th class="px-md py-sm text-label-sm text-on-background font-label-sm">Rating</th>
+                                    <th class="px-md py-sm text-label-sm text-on-background font-label-sm">Created</th>
+                                    <th class="px-md py-sm text-label-sm text-on-background font-label-sm text-center">Status</th>
+                                    <th class="px-md py-sm text-label-sm text-on-background font-label-sm text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="providersTableBody"></tbody>
+                        </table>
+                        <div id="providersEmpty" class="hidden px-md py-lg text-on-surface-variant font-body-md">No providers found.</div>
+                    </div>
+                </section>
+
+                <!-- Requests -->
+                <section id="requests-panel" class="hidden">
+                    <div class="flex justify-between items-center mb-md flex-wrap gap-sm">
+                        <h2 class="font-headline-md text-headline-md text-on-background">All Requests</h2>
+                    </div>
+                    <div id="requestsList" class="space-y-sm"></div>
+                </section>
+
+                <!-- Offers -->
+                <section id="offers-panel" class="hidden">
+                    <div class="flex justify-between items-center mb-md flex-wrap gap-sm">
+                        <h2 class="font-headline-md text-headline-md text-on-background">All Offers</h2>
+                    </div>
+                    <div id="offersList" class="space-y-sm"></div>
+                </section>
+
+                <!-- Bookings -->
+                <section id="bookings-panel" class="hidden">
+                    <div class="flex justify-between items-center mb-md flex-wrap gap-sm">
+                        <h2 class="font-headline-md text-headline-md text-on-background">All Bookings</h2>
+                    </div>
+                    <div id="bookingsList" class="space-y-sm"></div>
+                </section>
+
+                <!-- Reviews -->
+                <section id="reviews-panel" class="hidden">
+                    <div class="flex justify-between items-center mb-md flex-wrap gap-sm">
+                        <h2 class="font-headline-md text-headline-md text-on-background">All Reviews</h2>
+                    </div>
+                    <div id="reviewsList" class="space-y-sm"></div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-low mt-xl py-lg border-t border-outline-variant">
+        <div class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop">
+            <p class="text-center text-caption font-caption text-on-surface-variant">© 2024 ExpertHub Admin Console. Authorized personnel only.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Navigation mapping for data-nav links -> routes
+        const navMap = {
+            'home': '/',
+            'admin-dashboard': '/admin/dashboard',
+            'admin-providers': '/admin/dashboard',
+            'admin-requests': '/admin/dashboard',
+            'admin-offers': '/admin/dashboard',
+            'admin-bookings': '/admin/dashboard',
+            'admin-reviews': '/admin/dashboard',
+            'inbox': '/inbox',
+        };
+
+        function navigate(route) {
+            window.parent.postMessage({ type: 'navigate', route }, '*');
+        }
+
+        const $ = (sel) => document.querySelector(sel);
+
+        let data = null;
+        let activeTab = 'overview';
+
+        function postToParent(type, payload) {
+            window.parent.postMessage({ type, payload }, '*');
+        }
+
+        // DOM-based HTML escaping: bulletproof and free of entity literals.
+        function escapeHtml(value) {
+            if (value == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(value);
+            return div.innerHTML;
+        }
+
+        function formatPrice(n) {
+            const value = Number(n);
+            if (isNaN(value)) return '—';
+            return new Intl.NumberFormat('en-UG', {
+                style: 'currency', currency: 'UGX', minimumFractionDigits: 0,
+            }).format(value);
+        }
+
+        function formatDate(d) {
+            if (!d) return '—';
+            const parsed = new Date(String(d).length >= 10 ? d : (String(d) + 'T00:00:00'));
+            if (isNaN(parsed.getTime())) return String(d);
+            return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function statusBadge(status) {
+            const map = {
+                pending: ['bg-[#fef3c7] text-[#92400e]', 'Pending'],
+                confirmed: ['bg-[#dbeafe] text-[#1e40af]', 'Confirmed'],
+                completed: ['bg-[#dcfce7] text-[#166534]', 'Completed'],
+                cancelled: ['bg-[#fee2e2] text-[#991b1b]', 'Cancelled'],
+            };
+            const [cls, label] = map[status] || ['bg-[#e5e7eb] text-[#374151]', status];
+            return '<span class="badge ' + cls + '">' + escapeHtml(label) + '</span>';
+        }
+
+        function offerStatusBadge(status) {
+            const map = {
+                pending: ['bg-[#fef3c7] text-[#92400e]', 'Pending'],
+                accepted: ['bg-[#dcfce7] text-[#166534]', 'Accepted'],
+                declined: ['bg-[#fee2e2] text-[#991b1b]', 'Declined'],
+            };
+            const [cls, label] = map[status] || ['bg-[#e5e7eb] text-[#374151]', status || 'pending'];
+            return '<span class="badge ' + cls + '">' + escapeHtml(label) + '</span>';
+        }
+
+        function verifiedBadgeStr(verified) {
+            return verified
+                ? '<span class="badge bg-[#dcfce7] text-[#166534]">Verified</span>'
+                : '<span class="badge bg-[#fef3c7] text-[#92400e]">Pending</span>';
+        }
+
+        function ratingBadgeStr(rating) {
+            const r = Number(rating) || 0;
+            return r
+                ? '<span class="badge bg-[#fef3c7] text-[#92400e]">' + r.toFixed(1) + ' ★</span>'
+                : '<span class="badge bg-[#e5e7eb] text-[#374151]">— ★</span>';
+        }
+
+        function showToast(message) {
+            const box = $('#toastBox');
+            if (!box) return;
+            box.textContent = message;
+            box.classList.remove('hidden');
+            clearTimeout(box._timer);
+            box._timer = setTimeout(() => box.classList.add('hidden'), 4000);
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab-btn').forEach((b) => {
+                b.classList.toggle('tab-active', b.dataset.tab === tab);
+            });
+            ['overview', 'providers', 'requests', 'offers', 'bookings', 'reviews'].forEach((t) => {
+                const panel = document.getElementById(t + '-panel');
+                if (panel) panel.classList.toggle('hidden', t !== tab);
+            });
+            if (tab === 'overview' && data) renderOverview();
+            if (tab === 'providers' && data) renderProviders(data.providers || []);
+            if (tab === 'requests' && !data.__requests) {
+                postToParent('admin:loadRequests');
+            }
+            if (tab === 'offers' && !data.__offers) {
+                postToParent('admin:loadOffers');
+            }
+            if (tab === 'bookings' && !data.__bookings) {
+                postToParent('admin:loadBookings');
+            }
+            if (tab === 'reviews' && !data.__reviews) {
+                postToParent('admin:loadReviews');
+            }
+        }
+
+        // ---------- Overview ----------
+        function renderOverview() {
+            const container = $('#overviewContent');
+            if (!container || !data) return;
+            const { stats, providers } = data;
+
+            const statCards = [
+                { label: 'Providers', value: stats.totalProviders, icon: 'groups_2' },
+                { label: 'Pending verification', value: stats.pendingVerification, icon: 'shield' },
+                { label: 'Verified providers', value: stats.verifiedProviders, icon: 'verified_user' },
+                { label: 'Requests', value: stats.totalRequests, icon: 'assignment' },
+                { label: 'Offers', value: stats.totalOffers, icon: 'handshake' },
+                { label: 'Bookings', value: stats.totalBookings, icon: 'calendar_month' },
+                { label: 'Reviews', value: stats.totalReviews, icon: 'star' },
+                { label: 'Pending bookings', value: stats.pendingBookings, icon: 'schedule' },
+                { label: 'Total revenue', value: formatPrice(stats.totalRevenue), icon: 'payments' },
+            ];
+
+            let statsHtml = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-sm">';
+            statCards.forEach((s) => {
+                statsHtml += '<div class="stat-card flex items-center gap-md">' +
+                    '<div class="w-10 h-10 rounded-xl bg-primary-container/10 flex items-center justify-center shrink-0">' +
+                    '<span class="material-symbols-outlined text-primary">' + s.icon + '</span></div>' +
+                    '<div><p class="text-caption font-caption text-on-surface-variant">' + s.label + '</p>' +
+                    '<p class="font-headline-md text-headline-md text-on-background">' + s.value + '</p></div></div>';
+            });
+            statsHtml += '</div>';
+
+            const pending = (providers || []).filter((p) => !p.verified);
+            let pendingHtml = '';
+            if (pending.length) {
+                pendingHtml = '<div class="glass-card rounded-xl shadow-sm p-md">' +
+                    '<h2 class="font-label-sm text-label-sm text-on-background uppercase tracking-wide mb-sm">Pending verification (' + pending.length + ')</h2>' +
+                    '<div class="space-y-sm">' +
+                    pending.slice(0, 6).map((p) => {
+                        return '<div class="flex items-center justify-between gap-md p-sm rounded-lg border border-outline-variant bg-surface-container-lowest">' +
+                            '<div>' +
+                            '<p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(p.business_name) + '</p>' +
+                            '<p class="text-caption text-on-surface-variant">' + escapeHtml(p.full_name || '') + (p.location ? ' · ' + escapeHtml(p.location) : '') + '</p>' +
+                            '</div>' +
+                            '<div class="flex items-center gap-xs">' +
+                            '<button type="button" class="verifyBtn bg-[#dcfce7] text-[#166534] hover:bg-[#c8e6c9] px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + p.id + '" data-verified="true">Verify</button>' +
+                            '</div>' +
+                            '</div>';
+                    }).join('') +
+                    '</div></div>';
+            }
+
+            container.innerHTML = statsHtml + pendingHtml;
+
+            // Wire verify buttons rendered above
+            if (pending.length) {
+                document.querySelectorAll('#overview-panel .verifyBtn').forEach((b) => {
+                    b.addEventListener('click', () => {
+                        const id = b.getAttribute('data-id');
+                        const verified = b.getAttribute('data-verified') === 'true';
+                        postToParent('admin:verifyProvider', { providerId: id, verified });
+                    });
+                });
+            }
+        }
+
+        // ---------- Providers ----------
+        function renderProviders(list) {
+            const tbody = $('#providersTableBody');
+            const empty = $('#providersEmpty');
+            const search = $('#providerSearch');
+            if (!tbody) return;
+
+            const applyFilter = () => {
+                const q = (search ? search.value.trim().toLowerCase() : '');
+                const rows = Array.from(tbody.querySelectorAll('tr[data-id]'));
+                rows.forEach((r) => {
+                    r.style.display = (!q || (r.getAttribute('data-search') || '').includes(q)) ? '' : 'none';
+                });
+            };
+
+            if (!list.length) {
+                if (empty) empty.classList.remove('hidden');
+                tbody.innerHTML = '';
+                return;
+            }
+            if (empty) empty.classList.add('hidden');
+
+            tbody.innerHTML = list.map((p) => {
+                return '<tr class="border-b border-outline-variant table-row-link" data-id="' + p.id + '" data-search="' + (p.business_name || '').toLowerCase() + ' ' + (p.full_name || '').toLowerCase() + '">' +
+                    '<td class="px-md py-sm"><div class="flex items-center gap-sm"><img src="' + (p.profile_picture_url || '/images/dashboard-default-avatar.png') + '" alt="' + escapeHtml(p.business_name) + '" class="w-10 h-10 rounded-lg object-cover border border-outline-variant"/>' +
+                    '<div><p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(p.business_name) + '</p>' + verifiedBadgeStr(p.verified) + '</div></div></td>' +
+                    '<td class="px-md py-sm text-on-surface-variant">' + escapeHtml(p.location || '') + '</td>' +
+                    '<td class="px-md py-sm text-on-background">' + escapeHtml(p.full_name || '') + '</td>' +
+                    '<td class="px-md py-sm text-on-surface-variant">' + escapeHtml(p.phone || '') + '</td>' +
+                    '<td class="px-md py-sm text-on-background">' + ratingBadgeStr(p.rating) + '</td>' +
+                    '<td class="px-md py-sm text-caption text-on-surface-variant">' + formatDate(p.created_at) + '</td>' +
+                    '<td class="px-md py-sm text-center">' + verifiedBadgeStr(p.verified) + '</td>' +
+                    '<td class="px-md py-sm text-center"><button type="button" class="verifyBtn border border-outline-variant text-on-background hover:bg-surface-container px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + p.id + '" data-verified="' + !p.verified + '">' + (p.verified ? 'Unverify' : 'Verify') + '</button></td>' +
+                    '</tr>';
+            }).join('');
+
+            tbody.querySelectorAll('.verifyBtn').forEach((b) => {
+                b.addEventListener('click', () => {
+                    const id = b.getAttribute('data-id');
+                    const verified = b.getAttribute('data-verified') === 'true';
+                    postToParent('admin:verifyProvider', { providerId: id, verified });
+                });
+            });
+
+            if (search) {
+                search.oninput = applyFilter;
+            }
+        }
+
+        // Generic moderation list renderer
+        function renderList(containerId, items, rowFn) {
+            const container = $(containerId);
+            if (!container) return;
+            if (!items.length) {
+                container.innerHTML = '<div class="text-center text-on-surface-variant font-body-md py-lg bg-surface-container-low rounded-xl">No records found.</div>';
+                return;
+            }
+            container.innerHTML = items.map((it, i) => {
+                const row = rowFn(it, i);
+                return '<div class="bg-surface-container-low rounded-xl p-md flex items-center justify-between gap-md flex-wrap table-row-link">' +
+                    row.info +
+                    '<div class="flex items-center gap-sm shrink-0">' + row.actions + '</div></div>';
+            }).join('');
+            bindDeleteButtons();
+        }
+
+        function renderRequests(requests) {
+            renderList('#requestsList', requests, (it) => ({
+                info:
+                    '<div class="flex-1 min-w-0"><p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(it.request.title) + '</p>' +
+                    '<p class="text-caption text-on-surface-variant mb-xs">' + escapeHtml(it.request.description || '') + '</p>' +
+                    '<div class="flex flex-wrap gap-xs text-caption text-on-surface-variant">' +
+                    '<span class="material-symbols-outlined text-xs">person</span><span>' + escapeHtml(it.customer_name) + '</span>' +
+                    (it.request.location ? '<span class="material-symbols-outlined text-xs">location_on</span><span>' + escapeHtml(it.request.location) + '</span>' : '') +
+                    '<span class="material-symbols-outlined text-xs">schedule</span><span>' + formatDate(it.request.created_at) + '</span></div></div>',
+                actions:
+                    '<button type="button" class="deleteBtn text-error hover:bg-error-container px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + it.request.id + '" data-kind="request">Remove</button>',
+            }));
+        }
+
+        function renderOffers(offers) {
+            renderList('#offersList', offers, (it) => ({
+                info:
+                    '<div class="flex-1 min-w-0"><p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(it.offer.message || 'No message') + '</p>' +
+                    '<p class="text-caption text-on-surface-variant">' + escapeHtml(it.request_title) + ' · ' + escapeHtml(it.provider_business_name) + '</p>' +
+                    '<div class="flex flex-wrap gap-xs text-caption text-on-surface-variant">' +
+                    offerStatusBadge(it.offer.status) +
+                    (it.offer.price != null ? '<span class="material-symbols-outlined text-xs">payments</span><span>' + formatPrice(it.offer.price) + '</span>' : '') +
+                    '<span class="material-symbols-outlined text-xs">schedule</span><span>' + formatDate(it.offer.created_at) + '</span></div></div>',
+                actions:
+                    '<button type="button" class="deleteBtn text-error hover:bg-error-container px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + it.offer.id + '" data-kind="offer">Remove</button>',
+            }));
+        }
+
+        function renderBookings(bookings) {
+            renderList('#bookingsList', bookings, (it) => ({
+                info:
+                    '<div class="flex-1 min-w-0"><p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(it.provider_business_name) + ' ← ' + escapeHtml(it.customer_name) + '</p>' +
+                    '<p class="text-caption text-on-surface-variant">' + formatDate(it.booking.booking_date) + ' · ' + formatPrice(it.booking.total_amount) + '</p>' +
+                    '<div class="flex flex-wrap gap-xs text-caption text-on-surface-variant">' +
+                    statusBadge(it.booking.status) +
+                    '<span class="material-symbols-outlined text-xs">schedule</span><span>' + formatDate(it.booking.created_at) + '</span></div></div>',
+                actions:
+                    '<button type="button" class="deleteBtn text-error hover:bg-error-container px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + it.booking.id + '" data-kind="booking">Remove</button>',
+            }));
+        }
+
+        function renderReviews(reviews) {
+            renderList('#reviewsList', reviews, (it) => ({
+                info:
+                    '<div class="flex-1 min-w-0"><p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(it.review.comment || 'No comment') + '</p>' +
+                    '<p class="text-caption text-on-surface-variant">' + escapeHtml(it.customer_name) + ' → ' + escapeHtml(it.provider_business_name) + '</p>' +
+                    '<div class="flex flex-wrap gap-xs text-caption text-on-surface-variant">' +
+                    ratingBadgeStr(it.review.rating) +
+                    '<span class="material-symbols-outlined text-xs">schedule</span><span>' + formatDate(it.review.created_at) + '</span></div></div>',
+                actions:
+                    '<button type="button" class="deleteBtn text-error hover:bg-error-container px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + it.review.id + '" data-kind="review">Remove</button>',
+            }));
+        }
+
+        function bindDeleteButtons() {
+            document.querySelectorAll('.deleteBtn').forEach((b) => {
+                if (b._bound) return;
+                b._bound = true;
+                b.addEventListener('click', () => {
+                    const id = b.getAttribute('data-id');
+                    const kind = b.getAttribute('data-kind');
+                    if (!confirm('Remove this ' + kind + '? This cannot be undone.')) return;
+                    let msgType, msgPayload;
+                    if (kind === 'request') {
+                        msgType = 'admin:deleteRequest';
+                        msgPayload = { requestId: id };
+                    } else if (kind === 'offer') {
+                        msgType = 'admin:deleteOffer';
+                        msgPayload = { offerId: id };
+                    } else if (kind === 'booking') {
+                        msgType = 'admin:deleteBooking';
+                        msgPayload = { bookingId: id };
+                    } else {
+                        msgType = 'admin:deleteReview';
+                        msgPayload = { reviewId: id };
+                    }
+                    postToParent(msgType, msgPayload);
+                });
+            });
+        }
+
+        // ---------- Message protocol with the React shell ----------
+        window.addEventListener('message', (event) => {
+            const msg = event.data || {};
+
+            if (msg.type === 'admin:data') {
+                data = msg.payload;
+                data.__requests = null;
+                data.__offers = null;
+                data.__bookings = null;
+                data.__reviews = null;
+                $('#loadingState').classList.add('hidden');
+                $('#dashboardContent').classList.remove('hidden');
+                const chip = $('#adminRoleChip');
+                if (chip) chip.classList.remove('hidden');
+                if (activeTab === 'overview') renderOverview();
+                return;
+            }
+
+            if (msg.type === 'admin:requests') {
+                data.__requests = msg.payload.requests;
+                if (activeTab === 'requests') renderRequests(data.__requests);
+                return;
+            }
+            if (msg.type === 'admin:offers') {
+                data.__offers = msg.payload.offers;
+                if (activeTab === 'offers') renderOffers(data.__offers);
+                return;
+            }
+            if (msg.type === 'admin:bookings') {
+                data.__bookings = msg.payload.bookings;
+                if (activeTab === 'bookings') renderBookings(data.__bookings);
+                return;
+            }
+            if (msg.type === 'admin:reviews') {
+                data.__reviews = msg.payload.reviews;
+                if (activeTab === 'reviews') renderReviews(data.__reviews);
+                return;
+            }
+
+            if (msg.type === 'admin:verifyProvider:result') {
+                if (msg.payload && msg.payload.ok && msg.payload.provider) {
+                    const updated = msg.payload.provider;
+                    const row = document.querySelector('tr[data-id="' + updated.id + '"]');
+                    if (row) {
+                        const btn = row.querySelector('.verifyBtn');
+                        if (btn) {
+                            btn.textContent = updated.verified ? 'Unverify' : 'Verify';
+                            btn.setAttribute('data-verified', String(!updated.verified));
+                        }
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 7) cells[6].innerHTML = verifiedBadgeStr(updated.verified);
+                    }
+                }
+                if (activeTab === 'overview') renderOverview();
+                showToast(msg.payload && msg.payload.ok ? 'Provider updated.' : 'Could not update provider.');
+                return;
+            }
+
+            if (msg.type === 'admin:deleteResult') {
+                showToast((msg.payload && msg.payload.message) || 'Done.');
+                // Refresh the current moderation list so the deleted row disappears.
+                if (activeTab === 'requests') postToParent('admin:loadRequests');
+                if (activeTab === 'offers') postToParent('admin:loadOffers');
+                if (activeTab === 'bookings') postToParent('admin:loadBookings');
+                if (activeTab === 'reviews') postToParent('admin:loadReviews');
+                return;
+            }
+
+            if (msg.type === 'admin:error') {
+                showToast((msg.payload && msg.payload.message) || 'Something went wrong. Please try again.');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const drawer = $('#adminDrawer');
+            const backdrop = $('#adminDrawerBackdrop');
+            const menuButton = $('#adminMenuBtn');
+            const closeButton = $('#closeAdminDrawer');
+
+            const openNavDrawer = () => {
+                drawer?.classList.remove('-translate-x-full');
+                backdrop?.classList.remove('hidden');
+                menuButton?.setAttribute('aria-expanded', 'true');
+                drawer?.setAttribute('aria-hidden', 'false');
+            };
+            const closeNavDrawer = () => {
+                drawer?.classList.add('-translate-x-full');
+                backdrop?.classList.add('hidden');
+                menuButton?.setAttribute('aria-expanded', 'false');
+                drawer?.setAttribute('aria-hidden', 'true');
+            };
+            if (menuButton) menuButton.addEventListener('click', openNavDrawer);
+            if (closeButton) closeButton.addEventListener('click', closeNavDrawer);
+            if (backdrop) backdrop.addEventListener('click', closeNavDrawer);
+
+            // Drawer / header navigation
+            document.querySelectorAll('[data-nav]').forEach((element) => {
+                element.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const key = element.dataset.nav;
+                    // Admin sections switch tabs in the single admin route.
+                    const tabMap = {
+                        'admin-dashboard': 'overview',
+                        'admin-providers': 'providers',
+                        'admin-requests': 'requests',
+                        'admin-offers': 'offers',
+                        'admin-bookings': 'bookings',
+                        'admin-reviews': 'reviews',
+                    };
+                    if (tabMap[key]) {
+                        closeNavDrawer();
+                        switchTab(tabMap[key]);
+                    } else {
+                        const route = navMap[key];
+                        if (route) {
+                            closeNavDrawer();
+                            navigate(route);
+                        }
+                    }
+                });
+            });
+
+            // Sign out
+            const signOutHandler = () => {
+                if (!confirm('Sign out of the admin console?')) return;
+                closeNavDrawer();
+                postToParent('admin:signOut');
+            };
+            const signOutBtn = $('#signOutBtn');
+            const backHomeBtn = $('#backHomeBtn');
+            if (signOutBtn) signOutBtn.addEventListener('click', signOutHandler);
+            if (backHomeBtn) backHomeBtn.addEventListener('click', () => { closeNavDrawer(); navigate('/'); });
+
+            const drawerSignOutBtn = $('#drawerSignOutBtn');
+            if (drawerSignOutBtn) drawerSignOutBtn.addEventListener('click', signOutHandler);
+
+            // Tabs
+            document.querySelectorAll('.tab-btn').forEach((b) => {
+                b.addEventListener('click', () => switchTab(b.dataset.tab));
+            });
+
+            // Handshake: tell the parent we're ready to receive data.
+            window.parent.postMessage({ type: 'admin:ready' }, '*');
+        });
+     </script>
+ </body>
+</html>

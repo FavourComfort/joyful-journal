@@ -359,7 +359,7 @@
         const navMap = {
             home: '/',
             'post-request': '/post-request',
-            'my-requests': '/post-request',
+            'my-requests': '/my-requests',
             'search-experts': '/search',
             bookings: '/booking',
             inbox: '/inbox',
@@ -406,6 +406,7 @@
                 const formattedDate = Number.isNaN(date.getTime()) ? booking.booking_date : date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
                 const canCancel = ['pending', 'confirmed'].includes(booking.status);
                 const statusLabel = booking.status.charAt(0).toUpperCase() + booking.status.slice(1);
+                const canReview = booking.status === 'completed';
                 return `<article class="rounded-xl border border-outline-variant bg-white p-md shadow-soft">
                     <div class="mb-md flex items-start justify-between gap-md">
                         <div><p class="text-label-sm font-bold text-primary">Service booking</p><p class="text-caption text-on-surface-variant">Provider ID: ${booking.provider_id}</p></div>
@@ -415,7 +416,10 @@
                         <p><span class="material-symbols-outlined mr-xs align-middle text-primary" style="font-size: 18px;">event</span>${formattedDate}</p>
                         <p><span class="material-symbols-outlined mr-xs align-middle text-primary" style="font-size: 18px;">payments</span>UGX ${Number(booking.total_amount || 0).toLocaleString()}</p>
                     </div>
-                    ${canCancel ? `<button class="cancel-booking mt-md rounded-lg border border-red-300 px-md py-sm text-label-sm font-bold text-red-700 hover:bg-red-50" data-booking-id="${booking.id}" type="button">Cancel booking</button>` : ''}
+                    <div class="mt-md flex flex-wrap gap-sm">
+                        ${canCancel ? `<button class="cancel-booking rounded-lg border border-red-300 px-md py-sm text-label-sm font-bold text-red-700 hover:bg-red-50" data-booking-id="${booking.id}" type="button">Cancel booking</button>` : ''}
+                        ${canReview ? `<button class="review-booking rounded-lg bg-primary text-on-primary px-md py-sm text-label-sm font-bold hover:bg-primary/90" data-booking-id="${booking.id}" data-provider-id="${booking.provider_id}" type="button">Leave a Review</button>` : ''}
+                    </div>
                 </article>`;
             }).join('');
 
@@ -425,6 +429,68 @@
                     button.textContent = 'Cancelling...';
                     window.parent.postMessage({ type: 'bookings:cancel', payload: { bookingId: button.dataset.bookingId } }, '*');
                 });
+            });
+
+            list.querySelectorAll('.review-booking').forEach(button => {
+                button.addEventListener('click', () => {
+                    const bookingId = button.dataset.bookingId;
+                    const providerId = button.dataset.providerId;
+                    openReviewModal(bookingId, providerId);
+                });
+            });
+        }
+
+        function openReviewModal(bookingId, providerId) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4';
+            modal.innerHTML = `
+                <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+                    <h3 class="mb-4 text-xl font-bold text-on-surface">Leave a Review</h3>
+                    <div class="mb-4">
+                        <label class="mb-2 block text-sm font-semibold text-on-surface-variant">Rating</label>
+                        <div class="flex gap-2" id="reviewStars">
+                            ${[1,2,3,4,5].map(i => `<button type="button" class="review-star text-3xl text-outline-variant hover:text-tertiary transition-colors" data-rating="${i}">★</button>`).join('')}
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="mb-2 block text-sm font-semibold text-on-surface-variant" for="reviewComment">Comment (optional)</label>
+                        <textarea id="reviewComment" rows="4" class="w-full rounded-lg border border-outline-variant px-4 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15" placeholder="Share your experience..."></textarea>
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="button" id="submitReviewBtn" class="flex-1 rounded-xl bg-primary text-on-primary py-3 text-sm font-bold hover:bg-primary/90">Submit Review</button>
+                        <button type="button" id="closeReviewBtn" class="rounded-xl border border-outline-variant px-4 py-3 text-sm font-bold text-on-surface-variant hover:bg-surface-container">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            let selectedRating = 0;
+            const stars = modal.querySelectorAll('.review-star');
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    selectedRating = Number(star.dataset.rating);
+                    stars.forEach(s => {
+                        const r = Number(s.dataset.rating);
+                        s.classList.toggle('text-tertiary', r <= selectedRating);
+                        s.classList.toggle('text-outline-variant', r > selectedRating);
+                    });
+                });
+            });
+
+            modal.querySelector('#closeReviewBtn').addEventListener('click', () => modal.remove());
+            modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+            modal.querySelector('#submitReviewBtn').addEventListener('click', () => {
+                if (!selectedRating) {
+                    alert('Please select a rating.');
+                    return;
+                }
+                const comment = modal.querySelector('#reviewComment').value.trim();
+                window.parent.postMessage({
+                    type: 'bookings:review',
+                    payload: { bookingId, providerId, rating: selectedRating, comment }
+                }, '*');
+                modal.remove();
             });
         }
 
@@ -466,6 +532,13 @@
                 renderBookings();
                 $('#bookingsStatus').textContent = 'We could not cancel that booking. Please try again.';
                 $('#bookingsStatus').classList.remove('hidden');
+            }
+            if (event.data?.type === 'bookings:reviewResult') {
+                if (event.data.payload?.success) {
+                    alert('Thank you! Your review has been submitted.');
+                } else {
+                    alert('We could not submit your review. Please try again.');
+                }
             }
         });
     </script>

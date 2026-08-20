@@ -17,7 +17,7 @@ export const Route = createFileRoute("/")({
     const router = useRouter();
     const iframeRef = useRef<HTMLIFrameElement | null>(null);
     const [isProvider, setIsProvider] = useState(false);
-    const [accountRole, setAccountRole] = useState<"customer" | "provider" | null>(null);
+    const [accountRole, setAccountRole] = useState<"customer" | "provider" | "admin" | null>(null);
     const [isOnboarded, setIsOnboarded] = useState(false);
     const [providerAvatarUrl, setProviderAvatarUrl] = useState<string | null>(null);
 
@@ -42,22 +42,26 @@ export const Route = createFileRoute("/")({
           return;
         }
 
-        setAccountRole(profile.role === "provider" ? "provider" : "customer");
-        if (profile.role !== "provider") return;
-
-        setIsProvider(true);
-        const { data, error } = await supabase
-          .from("providers")
-          .select("id, profile_picture_url")
-          .eq("user_id", profile.id)
-          .maybeSingle();
-        if (!error && data) {
-          setIsOnboarded(!!data.id);
-          setProviderAvatarUrl(data.profile_picture_url || null);
+        // Preserve the admin role so the home shell can surface admin navigation.
+        if (profile.role === "provider") {
+          setIsProvider(true);
+          const { data, error } = await supabase
+            .from("providers")
+            .select("id, profile_picture_url")
+            .eq("user_id", profile.id)
+            .maybeSingle();
+          if (!error && data) {
+            setIsOnboarded(!!data.id);
+            setProviderAvatarUrl(data.profile_picture_url || null);
+          } else {
+            setIsOnboarded(false);
+            setProviderAvatarUrl(null);
+          }
         } else {
-          setIsOnboarded(false);
-          setProviderAvatarUrl(null);
+          setIsProvider(false);
         }
+
+        setAccountRole(profile.role);
       };
 
       checkProvider();

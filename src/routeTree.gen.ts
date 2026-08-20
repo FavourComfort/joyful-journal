@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as PostRequestRouteImport } from './routes/post-request'
+import { Route as MyRequestsRouteImport } from './routes/my-requests'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -25,6 +26,7 @@ import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProviderDashboardRouteImport } from './routes/provider.dashboard'
 import { Route as ProviderIdRouteImport } from './routes/provider.$id'
 import { Route as ProfileDesignRouteImport } from './routes/profile.design'
+import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -39,6 +41,11 @@ const SearchRoute = SearchRouteImport.update({
 const PostRequestRoute = PostRequestRouteImport.update({
   id: '/post-request',
   path: '/post-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyRequestsRoute = MyRequestsRouteImport.update({
+  id: '/my-requests',
+  path: '/my-requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -106,6 +113,11 @@ const ProfileDesignRoute = ProfileDesignRouteImport.update({
   path: '/profile/design',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -114,9 +126,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/my-requests': typeof MyRequestsRoute
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
@@ -132,9 +146,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/my-requests': typeof MyRequestsRoute
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
@@ -151,9 +167,11 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
+  '/my-requests': typeof MyRequestsRoute
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
   '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
@@ -171,9 +189,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inbox'
     | '/login'
+    | '/my-requests'
     | '/post-request'
     | '/search'
     | '/signup'
+    | '/admin/dashboard'
     | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
@@ -189,9 +209,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inbox'
     | '/login'
+    | '/my-requests'
     | '/post-request'
     | '/search'
     | '/signup'
+    | '/admin/dashboard'
     | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
@@ -207,9 +229,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/inbox'
     | '/login'
+    | '/my-requests'
     | '/post-request'
     | '/search'
     | '/signup'
+    | '/admin/dashboard'
     | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
@@ -226,9 +250,11 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   InboxRoute: typeof InboxRoute
   LoginRoute: typeof LoginRoute
+  MyRequestsRoute: typeof MyRequestsRoute
   PostRequestRoute: typeof PostRequestRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
   ProfileDesignRoute: typeof ProfileDesignRoute
   ProviderIdRoute: typeof ProviderIdRoute
   ProviderDashboardRoute: typeof ProviderDashboardRoute
@@ -259,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/post-request'
       fullPath: '/post-request'
       preLoaderRoute: typeof PostRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-requests': {
+      id: '/my-requests'
+      path: '/my-requests'
+      fullPath: '/my-requests'
+      preLoaderRoute: typeof MyRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -352,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileDesignRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -362,9 +402,11 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   InboxRoute: InboxRoute,
   LoginRoute: LoginRoute,
+  MyRequestsRoute: MyRequestsRoute,
   PostRequestRoute: PostRequestRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
   ProfileDesignRoute: ProfileDesignRoute,
   ProviderIdRoute: ProviderIdRoute,
   ProviderDashboardRoute: ProviderDashboardRoute,

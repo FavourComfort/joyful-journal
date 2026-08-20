@@ -4,6 +4,7 @@ import { getCurrentProfile } from "@/lib/services/auth.service";
 import { getProviderById, type Provider } from "@/lib/services/providers.service";
 import { getServiceById, type Service } from "@/lib/services/services.service";
 import { createBooking } from "@/lib/services/bookings.service";
+import { createPayment, markPaymentAsPaid } from "@/lib/services/payments.service";
 
 function BookComponent() {
   const router = useRouter();
@@ -99,6 +100,28 @@ function BookComponent() {
         setSubmitting(false);
         return;
       }
+
+      // Create a payment record for the booking
+      const transactionRef = `EXP-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)
+        .toUpperCase()}`;
+      const payment = await createPayment(
+        booking.id,
+        service?.price || 0,
+        "mock_checkout",
+        transactionRef
+      );
+
+      if (!payment) {
+        setError("We could not process the payment. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+
+      // In production, this would call a real payment gateway (Stripe, etc.)
+      // Here we simulate a successful payment.
+      await markPaymentAsPaid(payment.id, transactionRef);
 
       setSuccess(true);
     } catch (err) {

@@ -346,7 +346,7 @@
                         bio: formData.get('bio'),
                         password: formData.get('password'),
                         confirmPassword: formData.get('confirmPassword'),
-                        terms: formData.get('terms') === 'on',
+                        terms: document.getElementById('terms').checked,
                     };
                     window.parent.postMessage({ type: 'auth:signup', payload: data }, '*');
                 });
