@@ -161,7 +161,7 @@
                     </div>
                 </div>
 
-                <!-- Interactions list -->
+                <!-- Conversations list -->
                 <div id="interactionsList" class="space-y-sm"></div>
 
                 <!-- Empty state -->
@@ -170,7 +170,7 @@
                         <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-md">
                             <span class="material-symbols-outlined text-primary" style="font-size:32px" id="emptyIcon">forum</span>
                         </div>
-                        <h2 id="emptyTitle" class="font-headline-md text-headline-md text-on-background mb-sm">No interactions yet</h2>
+                        <h2 id="emptyTitle" class="font-headline-md text-headline-md text-on-background mb-sm">No conversations yet</h2>
                         <p id="emptyText" class="text-on-surface-variant font-body-md mb-lg max-w-sm mx-auto"></p>
                         <button id="emptyCta" class="bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
                             Explore providers
@@ -292,8 +292,8 @@
 
             if (payload.role === 'customer') {
                 if (icon) icon.textContent = 'forum';
-                if (title) title.textContent = 'No interactions yet';
-                if (text) text.textContent = 'Talk to your providers — when you book a service, your conversations will show up here.';
+                if (title) title.textContent = 'No conversations yet';
+                if (text) text.textContent = 'Messages between you and your providers will show up here.';
                 if (cta) { cta.textContent = 'Explore providers'; cta.dataset.route = '/search'; }
             } else if (!payload.onboarded) {
                 if (icon) icon.textContent = 'badge';
@@ -301,9 +301,9 @@
                 if (text) text.textContent = 'Complete your provider profile so clients can find you and start interacting.';
                 if (cta) { cta.textContent = 'Continue onboarding'; cta.dataset.route = '/provider/onboarding'; }
             } else {
-                if (icon) icon.textContent = 'handshake';
-                if (title) title.textContent = 'No interactions yet';
-                if (text) text.textContent = 'Talk to your clients — when customers book your services, they will appear here.';
+                if (icon) icon.textContent = 'forum';
+                if (title) title.textContent = 'No conversations yet';
+                if (text) text.textContent = 'Messages between you and your customers will show up here.';
                 if (cta) { cta.textContent = 'View dashboard'; cta.dataset.route = '/provider/dashboard'; }
             }
             empty.classList.remove('hidden');

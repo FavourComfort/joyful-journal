@@ -140,20 +140,14 @@ function MyRequestsComponent() {
             </button>
             <span className="text-2xl font-bold text-[#003d9b]">ExpertHub</span>
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.navigate({ to: "/post-request" })}
-              className="rounded-xl bg-[#003d9b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0052cc]"
-            >
-              + Post a Request
-            </button>
-            <button
-              onClick={() => router.navigate({ to: "/booking" })}
-              className="text-sm font-semibold text-[#434654] hover:text-[#003d9b]"
-            >
-              Bookings
-            </button>
-          </div>
+            <div className="flex items-center gap-4">
+             <button
+               onClick={() => router.navigate({ to: "/post-request" })}
+               className="rounded-xl bg-[#003d9b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0052cc]"
+             >
+               + Post a Request
+             </button>
+           </div>
         </nav>
       </header>
 
@@ -233,6 +227,17 @@ function MyRequestsComponent() {
                                 )}
                               </div>
                               <div className="flex shrink-0 flex-col items-end gap-2">
+                                <button
+                                  onClick={() =>
+                                    router.navigate({
+                                      to: "/provider/$id",
+                                      params: { id: offer.provider_id },
+                                    })
+                                  }
+                                  className="rounded-lg border border-[#c3c6d6] px-4 py-1.5 text-sm font-semibold text-[#003d9b] hover:bg-[#f1f3ff]"
+                                >
+                                  View Profile
+                                </button>
                                 {offer.status === "pending" ? (
                                   <>
                                     <button

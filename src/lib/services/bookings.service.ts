@@ -13,13 +13,15 @@ export interface Booking {
   created_at: string;
 }
 
-// Get all bookings for a customer
-export async function getCustomerBookings(customerId: string): Promise<Booking[]> {
+type BookingParty = 'customer_id' | 'provider_id';
+
+// Shared fetch for bookings of a given party (customer or provider), newest first.
+async function getBookingsByParty(party: BookingParty, partyId: string): Promise<Booking[]> {
   try {
     const { data, error } = await supabase
       .from('bookings')
       .select('*')
-      .eq('customer_id', customerId)
+      .eq(party, partyId)
       .order('booking_date', { ascending: false });
 
     if (error) {
@@ -29,30 +31,19 @@ export async function getCustomerBookings(customerId: string): Promise<Booking[]
 
     return (data || []) as Booking[];
   } catch (error) {
-    console.error('Error getting customer bookings:', error);
+    console.error(`Error getting ${party} bookings:`, error);
     return [];
   }
 }
 
+// Get all bookings for a customer
+export async function getCustomerBookings(customerId: string): Promise<Booking[]> {
+  return getBookingsByParty('customer_id', customerId);
+}
+
 // Get all bookings for a provider
 export async function getProviderBookings(providerId: string): Promise<Booking[]> {
-  try {
-    const { data, error } = await supabase
-      .from('bookings')
-      .select('*')
-      .eq('provider_id', providerId)
-      .order('booking_date', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching bookings:', error);
-      return [];
-    }
-
-    return (data || []) as Booking[];
-  } catch (error) {
-    console.error('Error getting provider bookings:', error);
-    return [];
-  }
+  return getBookingsByParty('provider_id', providerId);
 }
 
 // Get booking by ID

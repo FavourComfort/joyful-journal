@@ -166,19 +166,13 @@ function BookComponent() {
             Your booking with {provider?.business_name} has been created. The provider will confirm shortly.
           </p>
           <div className="flex flex-col gap-2">
-            <button
-              onClick={() => router.navigate({ to: "/booking" })}
-              className="w-full rounded-xl bg-[#003d9b] px-6 py-3 text-sm font-semibold text-white hover:bg-[#0052cc]"
-            >
-              View My Bookings
-            </button>
-            <button
-              onClick={() => router.navigate({ to: "/" })}
-              className="w-full rounded-xl border border-[#c3c6d6] px-6 py-3 text-sm font-semibold text-[#434654] hover:bg-[#f1f3ff]"
-            >
-              Back to Home
-            </button>
-          </div>
+             <button
+               onClick={() => router.navigate({ to: "/" })}
+               className="w-full rounded-xl border border-[#c3c6d6] px-6 py-3 text-sm font-semibold text-[#434654] hover:bg-[#f1f3ff]"
+             >
+               Back to Home
+             </button>
+           </div>
         </div>
       </div>
     );

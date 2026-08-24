@@ -183,9 +183,3 @@ export async function getProviderRevenue(providerId: string): Promise<number> {
   }
 }
 
-// Get payment status for a booking (enriched with provider info)
-export async function getPaymentForBooking(
-  bookingId: string
-): Promise<Payment | null> {
-  return getPaymentByBookingId(bookingId);
-}

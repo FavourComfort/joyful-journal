@@ -2,12 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { PageFrame } from "@/components/PageFrame";
 import { getCurrentProfile } from "@/lib/services/auth.service";
-import { getProviderByUserId } from "@/lib/services/providers.service";
-import {
-  getCustomerBookings,
-  getProviderBookings,
-} from "@/lib/services/bookings.service";
-import { supabase } from "@/lib/supabase";
+import { getInboxMessages } from "@/lib/services/messages.service";
 
 export interface InboxInteraction {
   id: string;
@@ -70,80 +65,19 @@ function InboxComponent() {
 
     const profile = await getCurrentProfile();
     const myName = profile?.full_name || "";
-
-    if (roleRef.current === "provider") {
-      const provider = await getProviderByUserId(userId);
-      if (!provider) {
-        // Signed in as provider but onboarding incomplete.
-        return { role: "provider", name: myName, onboarded: false, interactions: [] };
-      }
-
-      const bookings = await getProviderBookings(provider.id);
-      const customerIds = [...new Set(bookings.map((b) => b.customer_id))];
-      const serviceIds = [...new Set(bookings.map((b) => b.service_id))];
-
-      const [profilesRes, servicesRes] = await Promise.all([
-        customerIds.length
-          ? supabase.from("profiles").select("id, full_name, avatar_url").in("id", customerIds)
-          : Promise.resolve({ data: [] }),
-        serviceIds.length
-          ? supabase.from("services").select("id, title").in("id", serviceIds)
-          : Promise.resolve({ data: [] }),
-      ]);
-
-      const names = Object.fromEntries((profilesRes.data || []).map((p) => [p.id, p.full_name]));
-      const avatars = Object.fromEntries((profilesRes.data || []).map((p) => [p.id, p.avatar_url]));
-      const titles = Object.fromEntries((servicesRes.data || []).map((s) => [s.id, s.title]));
-
-      return {
-        role: "provider",
-        name: myName,
-        onboarded: true,
-        interactions: bookings.map((b) => ({
-          id: b.id,
-          name: names[b.customer_id] || "Customer",
-          subtitle: titles[b.service_id] || "Service booking",
-          date: b.booking_date,
-          status: b.status,
-          avatarUrl: avatars[b.customer_id] || null,
-        })),
-      };
-    }
-
-    // Customer inbox
-    const bookings = await getCustomerBookings(userId);
-    const providerIds = [...new Set(bookings.map((b) => b.provider_id))];
-    const serviceIds = [...new Set(bookings.map((b) => b.service_id))];
-
-    const [providersRes, servicesRes] = await Promise.all([
-      providerIds.length
-        ? supabase
-            .from("providers")
-            .select("id, business_name, profile_picture_url")
-            .in("id", providerIds)
-        : Promise.resolve({ data: [] }),
-      serviceIds.length
-        ? supabase.from("services").select("id, title").in("id", serviceIds)
-        : Promise.resolve({ data: [] }),
-    ]);
-
-    const names = Object.fromEntries((providersRes.data || []).map((p) => [p.id, p.business_name]));
-    const avatars = Object.fromEntries(
-      (providersRes.data || []).map((p) => [p.id, p.profile_picture_url])
-    );
-    const titles = Object.fromEntries((servicesRes.data || []).map((s) => [s.id, s.title]));
+      const messages = await getInboxMessages(userId);
 
     return {
-      role: "customer",
+      role: roleRef.current === "provider" ? "provider" : "customer",
       name: myName,
       onboarded: true,
-      interactions: bookings.map((b) => ({
-        id: b.id,
-        name: names[b.provider_id] || "Provider",
-        subtitle: titles[b.service_id] || "Service booking",
-        date: b.booking_date,
-        status: b.status,
-        avatarUrl: avatars[b.provider_id] || null,
+      interactions: messages.map((message) => ({
+        id: message.provider_id,
+        name: message.counterparty_name,
+        subtitle: message.body,
+        date: message.created_at,
+        status: "Message",
+        avatarUrl: message.counterparty_avatar_url,
       })),
     };
   };

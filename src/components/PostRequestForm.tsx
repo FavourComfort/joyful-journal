@@ -42,14 +42,19 @@ export default function PostRequestForm() {
       }
 
       const providers = await findMatchingProvidersForRequest(location);
-      await createRequestNotificationsForProviders(
+      const notifications = await createRequestNotificationsForProviders(
         createdRequest.id,
         providers.map((provider) => provider.id),
         createdRequest.title,
         "/provider/requests"
       );
+
       event.currentTarget.reset();
-      setResult("Your request was posted successfully.");
+      setResult(
+        notifications.length > 0
+          ? `Your request was posted successfully. ${notifications.length} matching provider${notifications.length === 1 ? "" : "s"} in your area ${notifications.length === 1 ? "has" : "have"} been notified.`
+          : "Your request was posted successfully. We'll notify providers in your area as they become available."
+      );
     } catch (error) {
       setResult(error instanceof Error ? error.message : "Failed to post your request.");
     } finally {

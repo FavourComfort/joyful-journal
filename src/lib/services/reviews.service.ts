@@ -10,13 +10,15 @@ export interface Review {
   created_at: string;
 }
 
-// Get reviews for a provider
-export async function getProviderReviews(providerId: string): Promise<Review[]> {
+type ReviewParty = 'provider_id' | 'customer_id';
+
+// Shared fetch for reviews associated with a given party, newest first.
+async function getReviewsByParty(party: ReviewParty, partyId: string): Promise<Review[]> {
   try {
     const { data, error } = await supabase
       .from('reviews')
       .select('*')
-      .eq('provider_id', providerId)
+      .eq(party, partyId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -26,30 +28,19 @@ export async function getProviderReviews(providerId: string): Promise<Review[]> 
 
     return (data || []) as Review[];
   } catch (error) {
-    console.error('Error getting provider reviews:', error);
+    console.error(`Error getting ${party} reviews:`, error);
     return [];
   }
 }
 
+// Get reviews for a provider
+export async function getProviderReviews(providerId: string): Promise<Review[]> {
+  return getReviewsByParty('provider_id', providerId);
+}
+
 // Get reviews by a customer
 export async function getCustomerReviews(customerId: string): Promise<Review[]> {
-  try {
-    const { data, error } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('customer_id', customerId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching reviews:', error);
-      return [];
-    }
-
-    return (data || []) as Review[];
-  } catch (error) {
-    console.error('Error getting customer reviews:', error);
-    return [];
-  }
+  return getReviewsByParty('customer_id', customerId);
 }
 
 // Get review by booking ID

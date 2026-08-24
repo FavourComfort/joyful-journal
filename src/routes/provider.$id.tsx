@@ -4,6 +4,7 @@ import { getProviderById, type Provider } from "@/lib/services/providers.service
 import { getServicesByProviderId, type Service } from "@/lib/services/services.service";
 import { getProviderReviews, getProviderAverageRating, type Review } from "@/lib/services/reviews.service";
 import { getCurrentProfile } from "@/lib/services/auth.service";
+import { sendMessage } from "@/lib/services/messages.service";
 
 function ProviderProfileComponent() {
   const { id } = Route.useParams();
@@ -16,6 +17,11 @@ function ProviderProfileComponent() {
   const [error, setError] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [messageOpen, setMessageOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageError, setMessageError] = useState<string | null>(null);
+  const [messageSent, setMessageSent] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,6 +84,36 @@ function ProviderProfileComponent() {
     });
   };
 
+  const handleMessageProvider = () => {
+    if (!isLoggedIn) {
+      sessionStorage.setItem("authRedirect", `/provider/${id}`);
+      router.navigate({ to: "/login" });
+      return;
+    }
+    setMessageError(null);
+    setMessageSent(false);
+    setMessageOpen(true);
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim()) {
+      setMessageError("Write a message before sending.");
+      return;
+    }
+
+    setSendingMessage(true);
+    setMessageError(null);
+    try {
+      await sendMessage(id, message);
+      setMessage("");
+      setMessageSent(true);
+    } catch (err) {
+      setMessageError(err instanceof Error ? err.message : "Failed to send your message.");
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff]">
@@ -125,12 +161,6 @@ function ProviderProfileComponent() {
               className="text-sm font-semibold text-[#003d9b]"
             >
               Explore
-            </button>
-            <button
-              onClick={() => router.navigate({ to: "/booking" })}
-              className="text-sm font-semibold text-[#434654] hover:text-[#003d9b]"
-            >
-              Bookings
             </button>
             <button
               onClick={() => router.navigate({ to: "/inbox" })}
@@ -228,6 +258,59 @@ function ProviderProfileComponent() {
               </div>
             </div>
 
+            <div className="rounded-xl border border-[#e8edff] bg-white p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold">Have a question?</h3>
+                  <p className="mt-1 text-sm text-[#434654]">
+                    Talk to {provider.business_name} before booking a service.
+                  </p>
+                </div>
+                <span className="material-symbols-outlined text-[#003d9b]">chat</span>
+              </div>
+              {!messageOpen ? (
+                <button
+                  onClick={handleMessageProvider}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-[#003d9b] py-3 font-semibold text-[#003d9b] transition-colors hover:bg-[#dae2ff]"
+                >
+                  <span className="material-symbols-outlined">mail</span>
+                  Message Provider
+                </button>
+              ) : (
+                <div className="mt-4">
+                  <textarea
+                    value={message}
+                    onChange={(event) => setMessage(event.target.value)}
+                    rows={4}
+                    maxLength={1000}
+                    placeholder={`Ask ${provider.business_name} a question...`}
+                    className="w-full resize-y rounded-lg border border-[#c3c6d6] p-3 text-sm outline-none focus:border-[#003d9b] focus:ring-2 focus:ring-[#dae2ff]"
+                  />
+                  {messageSent && (
+                    <p className="mt-2 text-sm font-semibold text-green-700">
+                      Message sent. You can continue the conversation in your inbox.
+                    </p>
+                  )}
+                  {messageError && <p className="mt-2 text-sm text-red-600">{messageError}</p>}
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={sendingMessage || messageSent}
+                      className="flex-1 rounded-lg bg-[#003d9b] py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {sendingMessage ? "Sending..." : messageSent ? "Sent" : "Send Message"}
+                    </button>
+                    <button
+                      onClick={() => setMessageOpen(false)}
+                      className="rounded-lg border border-[#c3c6d6] px-4 py-2.5 text-sm font-semibold text-[#434654]"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Reviews */}
             <div>
               <div className="mb-3 flex items-center justify-between">
@@ -275,6 +358,8 @@ function ProviderProfileComponent() {
             </div>
           </div>
 
+          
+
           {/* Services & Booking */}
           <div className="md:col-span-4">
             <div className="sticky top-20 space-y-4">
@@ -311,9 +396,11 @@ function ProviderProfileComponent() {
                         )}
                         <button
                           onClick={() =>
-                            setSelectedService(
-                              selectedService?.id === service.id ? null : service
-                            )
+                            selectedService?.id === service.id
+                              ? setSelectedService(null)
+                              : window.confirm(
+                                  `Are you sure you want to select ${service.title}?`
+                                ) && setSelectedService(service)
                           }
                           className={`mt-1 w-full rounded-lg border py-1.5 text-sm font-semibold transition-colors ${
                             selectedService?.id === service.id
@@ -355,6 +442,8 @@ function ProviderProfileComponent() {
     </div>
   );
 }
+
+
 
 export const Route = createFileRoute("/provider/$id")({
   head: () => ({ meta: [{ title: "Provider Profile | ExpertHub" }] }),

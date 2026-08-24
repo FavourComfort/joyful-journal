@@ -169,7 +169,7 @@
 <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="provider-login" href="#"><span class="material-symbols-outlined text-primary">storefront</span>Log in as a provider</a>
 </div>
 </div>
-<div class="hidden md:block">
+<!-- <div class="hidden md:block">
 <button id="becomeProviderBtn" class="flex items-center gap-sm bg-primary text-on-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all" data-nav="become-provider">
 <span id="providerIcon" class="hidden h-8 w-8 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border border-white/60">
 <img id="providerAvatar" class="hidden w-full h-full object-cover" alt="Provider avatar" />
@@ -177,7 +177,7 @@
  </span>
 <span id="providerButtonLabel">Become a Provider</span>
 </button>
-</div>
+</div> -->
 </nav>
 </header>
 <div id="customerDrawerBackdrop" class="hidden fixed inset-0 z-[60] bg-on-background/30"></div>
@@ -245,7 +245,7 @@
                     Connect with vetted industry leaders and local specialists for your business or home needs. Trust, transparency, and high-fidelity service execution.
                 </p>
 <!-- Search Bar -->
-<div class="glass-card p-sm rounded-full shadow-lg max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-sm">
+<!-- <div class="glass-card p-sm rounded-full shadow-lg max-w-3xl mx-auto flex flex-col md:flex-row items-center gap-sm">
 <div class="flex-1 flex items-center gap-sm px-md w-full border-b md:border-b-0 md:border-r border-outline-variant py-sm md:py-0">
 <span class="material-symbols-outlined text-outline" data-icon="search">search</span>
 <input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-outline-variant" placeholder="What service do you need?" type="text"/>
@@ -253,10 +253,12 @@
 <div class="flex-1 flex items-center gap-sm px-md w-full py-sm md:py-0">
 <span class="material-symbols-outlined text-outline" data-icon="location_on">location_on</span>
 <input class="bg-transparent border-none focus:ring-0 text-body-md w-full placeholder:text-outline-variant" placeholder="London, UK" type="text"/>
-</div>
+</div> -->
+<div class="relative z-10 max-w-4xl w-full text-center flex flex-col items-center">
+
 <button class="w-full md:w-auto bg-primary text-on-primary px-lg py-md rounded-full font-label-sm text-label-sm active:scale-95 transition-transform cursor-pointer" data-nav="search-experts">
                         Search Experts
-                    </button>
+                    </button><br class="hidden md:block my-lg"/>
 <button class="w-full md:w-auto bg-secondary text-on-secondary px-lg py-md rounded-full font-label-sm text-label-sm active:scale-95 transition-transform cursor-pointer" data-nav="post-request">
                         Post a Request
                     </button>
@@ -274,6 +276,7 @@
 <div class="flex items-center gap-xs">
 <span class="material-symbols-outlined text-tertiary" data-icon="star" data-weight="fill">star</span>
 <span class="font-label-sm text-label-sm">4.9/5 Service Rating</span>
+</div>
 </div>
 </div>
 </div>
@@ -395,9 +398,9 @@
 <div class="relative z-10 max-w-2xl mx-auto">
 <h2 class="font-display-lg text-display-lg-mobile md:text-display-lg mb-md">Ready to start your next project?</h2>
 <p class="font-body-lg text-body-lg text-white/80 mb-lg">Join thousands of professionals and homeowners who rely on ExpertHub for excellence.</p>
-<div class="flex flex-col md:flex-row justify-center gap-md">
-<button class="bg-white text-primary px-xl py-md rounded-full font-label-sm text-label-sm shadow-md hover:scale-105 transition-transform">Get Started Now</button>
-<button class="bg-primary text-white border border-white/30 px-xl py-md rounded-full font-label-sm text-label-sm hover:bg-white/10 transition-colors">Become a Partner</button>
+<!-- <div class="flex flex-col md:flex-row justify-center gap-md"> -->
+<!-- <button class="bg-white text-primary px-xl py-md rounded-full font-label-sm text-label-sm shadow-md hover:scale-105 transition-transform">Get Started Now</button>
+<button class="bg-primary text-white border border-white/30 px-xl py-md rounded-full font-label-sm text-label-sm hover:bg-white/10 transition-colors">Become a Partner</button> -->
 </div>
 </div>
 </div>
@@ -422,7 +425,7 @@
 <div>
 <h5 class="font-label-sm text-label-sm text-on-background mb-md">Company</h5>
 <ul class="space-y-sm text-on-surface-variant font-caption text-caption">
-<li><a class="hover:text-primary transition-colors" href="#">Become a Provider</a></li>
+<!-- <li><a class="hover:text-primary transition-colors" href="#">Become a Provider</a></li> -->
 <li><a class="hover:text-primary transition-colors" href="#">Help Center</a></li>
 <li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
 <li><a class="hover:text-primary transition-colors" href="#">Safety Protocols</a></li>
@@ -471,7 +474,6 @@
             'search-experts': '/search',
             'post-request': '/post-request',
             'my-requests': '/my-requests',
-            'become-provider': '/provider/signup',
             'customer-signup': '/signup',
             'provider-signup': '/provider/signup',
             'customer-login': '/login',
@@ -482,7 +484,7 @@
             'profile': '/profile/design',
             'help': '/inbox',
             'provider-services': '/provider/dashboard',
-            'provider-bookings': '/provider/dashboard',
+            'provider-bookings': '/booking',
             'provider-earnings': '/provider/dashboard',
             'provider-settings': '/provider/dashboard',
             'provider-profile': '/provider/dashboard',
@@ -547,20 +549,20 @@
 
                 setProviderIconVisible(isProvider, avatarUrl);
 
-                const becomeBtn = $('#becomeProviderBtn');
-                if (becomeBtn) {
-                    if (isProvider) {
-                        // Providers always get routed to their dashboard via this button
-                        becomeBtn.dataset.nav = 'provider-dashboard';
-                        // If they've completed setup, show a friendlier label
-                        $('#providerButtonLabel').textContent = onboarded ? 'My Dashboard' : 'Complete Provider Profile';
-                        $('#providerIcon').classList.remove('hidden');
-                    } else {
-                        becomeBtn.dataset.nav = 'become-provider';
-                        $('#providerButtonLabel').textContent = 'Become a Provider';
-                        $('#providerIcon').classList.add('hidden');
-                    }
-                }
+                // const becomeBtn = $('#becomeProviderBtn');
+                // if (becomeBtn) {
+                //     if (isProvider) {
+                //         // Providers always get routed to their dashboard via this button
+                //         becomeBtn.dataset.nav = 'provider-dashboard';
+                //         // If they've completed setup, show a friendlier label
+                //         $('#providerButtonLabel').textContent = onboarded ? 'My Dashboard' : 'Complete Provider Profile';
+                //         $('#providerIcon').classList.remove('hidden');
+                //     } else {
+                //         becomeBtn.dataset.nav = 'become-provider';
+                //         $('#providerButtonLabel').textContent = 'Become a Provider';
+                //         $('#providerIcon').classList.add('hidden');
+                //     }
+                //}
             }
         });
 
