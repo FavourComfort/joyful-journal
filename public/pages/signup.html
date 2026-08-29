@@ -181,33 +181,47 @@
                         <input type="text" name="location" required placeholder="City, Country" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
-                    <!-- Password -->
-                    <div>
-                        <label class="block font-label-sm text-label-sm text-on-background mb-sm">Password</label>
-                        <input type="password" name="password" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
-                    </div>
+                   <!-- Password --> <div> <label class="block font-label-sm text-label-sm text-on-background mb-sm"> Password </label> <div class="relative"> <input type="password" name="password" id="password" required placeholder="••••••••" class="w-full px-md py-sm pr-12 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md" /> <!-- Show/Hide Password --> <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Show password" > <span class="material-symbols-outlined" id="passwordEyeIcon"> visibility </span> </button> </div> <!-- Password Requirements --> <div id="passwordRequirements" class="mt-sm space-y-xs text-caption"> <p id="lengthRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least 8 characters </p> <p id="numberRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least one number </p> <p id="specialRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least one special character </p> </div> </div>
+                  
+<!-- Terms Checkbox -->
+<div class="flex items-start gap-sm">
+    <label class="flex items-start gap-sm cursor-pointer select-none">
+        <input
+            type="checkbox"
+            id="terms"
+            name="terms"
+            required
+            class="peer sr-only"
+        />
 
-                    <!-- Confirm Password -->
-                    <div>
-                        <label class="block font-label-sm text-label-sm text-on-background mb-sm">Confirm Password</label>
-                        <input type="password" name="confirmPassword" required placeholder="••••••••" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
-                    </div>
+        <!-- Custom Checkbox -->
+        <span
+            class="mt-xs w-5 h-5 shrink-0 rounded border-2 border-outline-variant
+                   bg-white flex items-center justify-center
+                   transition-all duration-200
+                   peer-checked:bg-primary
+                   peer-checked:border-primary"
+        >
+            <span
+                class="material-symbols-outlined text-white text-sm
+                       opacity-0 scale-75
+                       transition-all duration-200
+                       peer-checked:opacity-100
+                       peer-checked:scale-100"
+            >
+                check
+            </span>
+        </span>
 
-                    Newsletter Checkbox
-                    <!-- <div class="flex items-center gap-sm">
-                        <input type="checkbox" id="newsletter" name="newsletter" class="w-4 h-4 rounded border-outline-variant cursor-pointer"/>
-                        <label for="newsletter" class="font-body-md text-on-surface-variant cursor-pointer">
-                            Subscribe to our newsletter for exclusive offers
-                        </label>
-                    </div> -->
+        <span class="font-body-md text-on-surface-variant">
+            I agree to the
+            <span class="text-primary font-semibold">Terms of Service</span>
+            and
+            <span class="text-primary font-semibold">Privacy Policy</span>
+        </span>
+    </label>
+</div>
 
-                    <!-- Terms Checkbox -->
-                    <div class="flex items-start gap-sm">
-                        <input type="checkbox" id="terms" name="terms" required class="mt-xs w-4 h-4 rounded border-outline-variant cursor-pointer"/>
-                        <label for="terms" class="font-body-md text-on-surface-variant cursor-pointer">
-                            I agree to the <span class="text-primary font-semibold">Terms of Service</span> and <span class="text-primary font-semibold">Privacy Policy</span>
-                        </label>
-                    </div>
 
                     <!-- Submit Button -->
                     <button type="submit" class="w-full bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer mt-lg">
@@ -273,6 +287,8 @@
                 terms: document.getElementById('terms').checked,
             };
         }
+
+        // Password visibility toggle const passwordInput = document.getElementById('password'); const togglePassword = document.getElementById('togglePassword'); const passwordEyeIcon = document.getElementById('passwordEyeIcon'); if (passwordInput && togglePassword && passwordEyeIcon) { togglePassword.addEventListener('click', () => { const isPassword = passwordInput.type === 'password'; passwordInput.type = isPassword ? 'text' : 'password'; passwordEyeIcon.textContent = isPassword ? 'visibility_off' : 'visibility'; togglePassword.setAttribute( 'aria-label', isPassword ? 'Hide password' : 'Show password' ); }); } // Live password requirements if (passwordInput) { passwordInput.addEventListener('input', () => { const password = passwordInput.value; const requirements = { lengthRequirement: password.length >= 8, uppercaseRequirement: /[A-Z]/.test(password), lowercaseRequirement: /[a-z]/.test(password), numberRequirement: /[0-9]/.test(password), specialRequirement: /[^A-Za-z0-9]/.test(password) }; Object.entries(requirements).forEach(([id, isValid]) => { const requirement = document.getElementById(id); if (!requirement) return; const icon = requirement.querySelector('.requirement-icon'); if (isValid) { requirement.classList.remove('text-on-surface-variant'); requirement.classList.add('text-green-600', 'font-semibold'); if (icon) { icon.textContent = '✓'; } } else { requirement.classList.remove('text-green-600', 'font-semibold'); requirement.classList.add('text-on-surface-variant'); if (icon) { icon.textContent = '○'; } } }); }); }
 
         document.addEventListener('DOMContentLoaded', () => {
             // Setup navigation
