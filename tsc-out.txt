@@ -1,0 +1,4 @@
+src/components/ui/sidebar.tsx(6,29): error TS2307: Cannot find module '@/hooks/use-mobile' or its corresponding type declarations.
+src/lib/services/admin.service.ts(184,23): error TS2352: Conversion of type '{ id: any; status: any; }[]' to type 'ProviderOffer[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: any; status: any; }' is missing the following properties from type 'ProviderOffer': request_id, provider_id, created_at
+src/lib/services/admin.service.ts(186,54): error TS2339: Property 'status' does not exist on type 'ProviderOffer'.

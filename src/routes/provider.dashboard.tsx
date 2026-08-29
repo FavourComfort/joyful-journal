@@ -126,7 +126,7 @@ function ProviderDashboardComponent() {
   const sendData = async () => {
     try {
       const data = await fetchDashboardData();
-      postToIframe({ type: "dashboard:data", payload: data });
+      postToIframe({ type: "dashboard:init", payload: data });
     } catch (err) {
       postToIframe({
         type: "dashboard:error",

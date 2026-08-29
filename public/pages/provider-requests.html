@@ -150,15 +150,28 @@
         requestCount.textContent = `${requests.length} request${requests.length === 1 ? '' : 's'}`;
         requests.forEach((request) => {
           const clone = template.content.cloneNode(true);
+          const card = clone.querySelector('.border.border-slate-200');
+          if (card) card.dataset.requestId = request.id;
           clone.querySelector('#requestLocation').textContent = request.location || 'Any location';
           clone.querySelector('#requestTitle').textContent = request.title;
           clone.querySelector('#requestDescription').textContent = request.description;
           clone.querySelector('#budgetLabel').textContent = request.budget_min || request.budget_max ? `Budget: ${request.budget_min || '-'} - ${request.budget_max || '-'}` : 'Budget: Not specified';
           const postedAt = new Date(request.created_at).toLocaleString();
           clone.querySelector('#postedAt').textContent = `Posted ${postedAt}`;
-          clone.querySelector('[data-action="interested"]').addEventListener('click', () => {
-            postToParent('provider-requests:interested', { requestId: request.id });
-          });
+          const interestedButton = clone.querySelector(
+  '[data-action="interested"]'
+);
+interestedButton.dataset.requestId = request.id;
+
+interestedButton.addEventListener('click', () => {
+  interestedButton.disabled = true;
+  interestedButton.textContent = 'Sending...';
+  interestedButton.classList.add('opacity-60', 'cursor-not-allowed');
+
+  postToParent('provider-requests:interested', {
+    requestId: request.id,
+  });
+});
           clone.querySelector('[data-action="viewDetails"]').addEventListener('click', () => {
             postToParent('provider-requests:viewDetails', { requestId: request.id });
           });
@@ -178,21 +191,40 @@
       });
 
       window.addEventListener('message', (event) => {
+        if (event.data?.type === 'provider-requests:ping') {
+          window.parent.postMessage({ type: 'provider-requests:ready' }, '*');
+          return;
+        }
         if (event.data?.type === 'provider-requests:init') {
           renderNotifications(event.data.payload.notifications || []);
           renderRequests(event.data.payload.requests || []);
           const status = document.getElementById('requestStatus');
           if (status) status.textContent = '';
         }
+if (event.data?.type === 'provider-requests:offerCreated') {
+  const requestId = event.data.payload?.requestId;
+  const success = event.data.payload?.success;
 
-        if (event.data?.type === 'provider-requests:offerCreated') {
-          const status = document.getElementById('requestStatus');
-          if (status) {
-            status.textContent = event.data.payload?.message || 'Offer response received.';
-          }
-        }
+  if (!requestId) return;
+
+  const card = document.querySelector(
+    `[data-request-id="${CSS.escape(requestId)}"]`
+  );
+  const button = card?.querySelector('[data-action="interested"]');
+
+  if (!button) return;
+
+  if (success) {
+    button.textContent = 'Offer Sent';
+    button.disabled = true;
+    button.classList.add('opacity-60', 'cursor-not-allowed');
+  } else {
+    button.disabled = false;
+    button.textContent = "I'm Interested";
+    button.classList.remove('opacity-60', 'cursor-not-allowed');
+  }
+}
       });
-
       window.parent.postMessage({ type: 'provider-requests:ready' }, '*');
     </script>
   </body>

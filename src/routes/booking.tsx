@@ -238,7 +238,7 @@ function BookingCard({
               </h2>
 
               <p className="mt-1 truncate text-sm text-slate-500">
-                {isProvider ? "Customer" : "Provider"} ·{" "}
+                {isProvider ? "Customer" : "Provider"} | 
                 <span className="font-medium text-slate-700">
                   {booking.counterparty_name}
                 </span>
@@ -289,8 +289,7 @@ function BookingCard({
                 </p>
 
                 <p className="mt-0.5 text-sm font-semibold text-slate-800">
-                  {formatTime(booking.start_time)} –{" "}
-                  {formatTime(booking.end_time)}
+                  {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
                 </p>
               </div>
             </div>

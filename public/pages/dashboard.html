@@ -1,662 +1,2720 @@
+```html
 <!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>ExpertHub | Client Dashboard</title>
-<!-- Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
-<!-- Material Symbols -->
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            "colors": {
-                    "on-primary": "#ffffff",
-                    "background": "#f9f9ff",
-                    "outline": "#737685",
-                    "primary-fixed": "#dae2ff",
-                    "on-secondary-fixed": "#191c1e",
-                    "surface": "#f9f9ff",
-                    "secondary-container": "#dee0e2",
-                    "on-tertiary-fixed-variant": "#624000",
-                    "on-secondary": "#ffffff",
-                    "on-error": "#ffffff",
-                    "primary-container": "#0052cc",
-                    "on-background": "#041b3c",
-                    "secondary-fixed-dim": "#c5c6c8",
-                    "on-error-container": "#93000a",
-                    "surface-container": "#e8edff",
-                    "tertiary": "#5e3c00",
-                    "outline-variant": "#c3c6d6",
-                    "tertiary-fixed": "#ffddb3",
-                    "on-primary-container": "#c4d2ff",
-                    "surface-container-highest": "#d7e2ff",
-                    "on-tertiary-fixed": "#291800",
-                    "secondary": "#5c5f60",
-                    "inverse-primary": "#b2c5ff",
-                    "secondary-fixed": "#e1e2e4",
-                    "surface-container-low": "#f1f3ff",
-                    "inverse-on-surface": "#edf0ff",
-                    "primary-fixed-dim": "#b2c5ff",
-                    "primary": "#003d9b",
-                    "surface-container-high": "#e0e8ff",
-                    "surface-bright": "#f9f9ff",
-                    "error-container": "#ffdad6",
-                    "inverse-surface": "#1d3052",
-                    "on-secondary-fixed-variant": "#444749",
-                    "tertiary-fixed-dim": "#ffb950",
-                    "tertiary-container": "#7d5200",
-                    "error": "#ba1a1a",
-                    "surface-variant": "#d7e2ff",
-                    "surface-dim": "#cadaff",
-                    "surface-container-lowest": "#ffffff",
-                    "on-surface-variant": "#434654",
-                    "on-tertiary-container": "#ffca81",
-                    "on-primary-fixed-variant": "#0040a2",
-                    "on-tertiary": "#ffffff",
-                    "on-secondary-container": "#606365",
-                    "surface-tint": "#0c56d0",
-                    "on-primary-fixed": "#001848",
-                    "on-surface": "#041b3c"
-            },
-            "borderRadius": {
-                    "DEFAULT": "0.125rem",
-                    "lg": "0.25rem",
-                    "xl": "0.5rem",
-                    "full": "0.75rem"
-            },
-            "spacing": {
-                    "base": "8px",
-                    "margin-desktop": "64px",
-                    "margin-mobile": "16px",
-                    "md": "24px",
-                    "xl": "80px",
-                    "lg": "48px",
-                    "xs": "4px",
-                    "gutter": "24px",
-                    "sm": "12px"
-            },
-            "fontFamily": {
-                    "display-lg-mobile": ["Hanken Grotesk"],
-                    "headline-md": ["Hanken Grotesk"],
-                    "body-md": ["Inter"],
-                    "label-sm": ["Inter"],
-                    "display-lg": ["Hanken Grotesk"],
-                    "body-lg": ["Inter"],
-                    "caption": ["Inter"]
-            },
-            "fontSize": {
-                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                    "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
-                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+    <title>NinjaWo | Customer Dashboard</title>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1&display=swap"
+        rel="stylesheet"
+    />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "background": "#f9f9ff",
+                        "outline": "#737685",
+                        "primary-fixed": "#dae2ff",
+                        "on-secondary-fixed": "#191c1e",
+                        "surface": "#f9f9ff",
+                        "secondary-container": "#dee0e2",
+                        "on-tertiary-fixed-variant": "#624000",
+                        "on-secondary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-container": "#0052cc",
+                        "on-background": "#041b3c",
+                        "secondary-fixed-dim": "#c5c6c8",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#e8edff",
+                        "tertiary": "#5e3c00",
+                        "outline-variant": "#c3c6d6",
+                        "tertiary-fixed": "#ffddb3",
+                        "on-primary-container": "#c4d2ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-tertiary-fixed": "#291800",
+                        "secondary": "#5c5f60",
+                        "inverse-primary": "#b2c5ff",
+                        "secondary-fixed": "#e1e2e4",
+                        "surface-container-low": "#f1f3ff",
+                        "inverse-on-surface": "#edf0ff",
+                        "primary-fixed-dim": "#b2c5ff",
+                        "primary": "#003d9b",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#1d3052",
+                        "on-secondary-fixed-variant": "#444749",
+                        "tertiary-fixed-dim": "#ffb950",
+                        "tertiary-container": "#7d5200",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "surface-dim": "#cadaff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "on-tertiary-container": "#ffca81",
+                        "on-primary-fixed-variant": "#0040a2",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#606365",
+                        "surface-tint": "#0c56d0",
+                        "on-primary-fixed": "#001848",
+                        "on-surface": "#041b3c"
+                    },
+
+                    borderRadius: {
+                        DEFAULT: "0.375rem",
+                        lg: "0.75rem",
+                        xl: "1rem",
+                        full: "9999px"
+                    },
+
+                    spacing: {
+                        base: "8px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "16px",
+                        md: "24px",
+                        xl: "80px",
+                        lg: "48px",
+                        xs: "4px",
+                        gutter: "24px",
+                        sm: "12px"
+                    },
+
+                    fontFamily: {
+                        display: ["Hanken Grotesk"],
+                        body: ["Inter"]
+                    }
+                }
             }
-          },
-        },
-      }
+        };
     </script>
-<style>
-        body {i
-            font-family: 'Inter', sans-serif;
-            background-color: #f9f9ff;
+
+    <style>
+        * {
+            box-sizing: border-box;
         }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: "Inter", sans-serif;
+            background: #f9f9ff;
+            color: #041b3c;
+        }
+
         .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-variation-settings:
+                "FILL" 0,
+                "wght" 400,
+                "GRAD" 0,
+                "opsz" 24;
+
+            line-height: 1;
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #c3c6d6;
-            border-radius: 10px;
-        }
+
         .active-tab {
-            border-bottom: 2px solid #003d9b;
             color: #003d9b;
+            background: white;
+            box-shadow: 0 1px 4px rgba(0, 61, 155, 0.10);
+        }
+
+        .booking-card {
+            transition:
+                border-color .2s ease,
+                box-shadow .2s ease,
+                transform .2s ease;
+        }
+
+        .booking-card:hover {
+            border-color: #8da9e8;
+            box-shadow: 0 8px 24px rgba(4, 27, 60, .07);
+            transform: translateY(-1px);
+        }
+
+        .stat-card {
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(4, 27, 60, .06);
+        }
+
+        @media (max-width: 767px) {
+            body {
+                padding-bottom: 72px;
+            }
         }
     </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
-  </head>
+</head>
+
 <body class="bg-background text-on-surface">
-<!-- TopAppBar -->
-<header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
-<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
-<div class="flex items-center gap-sm">
-<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim cursor-pointer active:scale-95 transition-transform">menu</span>
-<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</h1>
-</div>
-<div class="flex items-center gap-md">
-<nav class="hidden md:flex gap-lg">
-<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-xs py-xs rounded-lg font-label-sm text-label-sm" href="#">Dashboard</a>
-<a class="text-primary dark:text-primary-fixed-dim font-bold font-label-sm text-label-sm" href="#">Bookings</a>
-<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-xs py-xs rounded-lg font-label-sm text-label-sm" href="#">Providers</a>
-</nav>
-<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant active:scale-95 transition-transform cursor-pointer">
-<img id="navAvatar" class="w-full h-full object-cover" data-alt="Top navigation avatar" src="/images/dashboard-default-avatar.png"/>
-</div>
-</div>
-</div>
-</header>
-<main class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop py-lg pb-xl">
-<!-- Bento Grid Layout -->
-<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
-<!-- Profile Summary Section (Col 1-4) -->
-<aside class="md:col-span-4 space-y-gutter">
-<div class="bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-sm">
-<div class="flex flex-col items-center text-center">
-<div class="relative mb-md">
-<div class="w-24 h-24 rounded-full overflow-hidden ring-4 ring-primary-fixed">
-<img id="profileAvatar" class="w-full h-full object-cover" data-alt="Customer avatar" src="/images/dashboard-default-avatar.png"/>
-</div>
-<input id="avatarInput" type="file" accept="image/*" class="hidden" />
-<button id="profileAvatarButton" class="absolute bottom-0 right-0 bg-primary text-on-primary p-xs rounded-full shadow-md active:scale-90 transition-transform">
-<span class="material-symbols-outlined text-sm" style="font-size: 16px;">edit</span>
-</button>
-</div>
-<h2 id="profileName" class="text-headline-md font-headline-md text-on-surface">Welcome</h2>
-<p id="profileRole" class="text-on-surface-variant font-body-md text-body-md mb-md">Your ExpertHub account</p>
-<button id="profileNameButton" class="inline-flex items-center gap-xs text-primary font-label-sm text-label-sm hover:underline" type="button">
-                            Edit name
-                            <span class="material-symbols-outlined text-sm">edit</span>
-</button>
-</div>
-<hr class="my-lg border-outline-variant"/>
-<div class="space-y-sm">
-<h3 class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider">Quick Settings</h3>
-<div class="space-y-xs">
-<button class="w-full flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-low transition-colors group">
-<div class="flex items-center gap-sm">
-<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">notifications</span>
-<span class="text-body-md font-body-md">Notifications</span>
-</div>
-<span class="material-symbols-outlined text-outline">chevron_right</span>
-</button>
-<button class="w-full flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-low transition-colors group">
-<div class="flex items-center gap-sm">
-<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">payments</span>
-<span class="text-body-md font-body-md">Payment Methods</span>
-</div>
-<span class="material-symbols-outlined text-outline">chevron_right</span>
-</button>
-<button class="w-full flex items-center justify-between p-sm rounded-lg hover:bg-surface-container-low transition-colors group">
-<div class="flex items-center gap-sm">
-<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary">security</span>
-<span class="text-body-md font-body-md">Security</span>
-</div>
-<span class="material-symbols-outlined text-outline">chevron_right</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Trust / Status Card -->
-<div class="bg-primary text-on-primary p-md rounded-xl shadow-elevated relative overflow-hidden">
-<div class="relative z-10">
-<h3 class="font-headline-md text-label-sm mb-xs opacity-90">Membership Status</h3>
-<p class="text-headline-md font-headline-md mb-md">Gold Tier Professional</p>
-<div class="bg-on-primary/10 rounded-lg p-sm border border-on-primary/20">
-<div class="flex justify-between items-center mb-xs">
-<span class="text-caption font-caption">Next Review</span>
-<span class="text-caption font-caption">Oct 12, 2024</span>
-</div>
-<div class="w-full bg-on-primary/20 h-1.5 rounded-full">
-<div class="bg-tertiary-fixed h-full w-[75%] rounded-full"></div>
-</div>
-</div>
-</div>
-<!-- Ambient Light Pattern -->
-<div class="absolute -right-4 -bottom-4 w-32 h-32 bg-on-primary/10 rounded-full blur-3xl"></div>
-</div>
-</aside>
-<!-- Bookings Section (Col 5-12) -->
-<section class="md:col-span-8">
-    <!-- Dashboard Overview: welcome, search, stats, recommended -->
-    <div class="mb-lg">
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md md:p-lg shadow-sm mb-md">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-md">
-                <div>
-                    <h1 id="welcomeHeading" class="text-headline-md font-headline-md text-on-surface">Welcome</h1>
-                    <p class="text-on-surface-variant">Quickly find services, view bookings, and manage your account.</p>
-                </div>
-                <div class="w-full md:w-1/2">
-                    <div class="relative">
-                        <input class="w-full bg-white border border-outline-variant rounded-full py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary transition-all" placeholder="Search services, providers, or locations..." type="search">
-                        <span class="material-symbols-outlined absolute right-4 top-3 text-outline">search</span>
-                    </div>
-                </div>
-            </div>
 
-            <div class="grid grid-cols-3 gap-md mt-md">
-                <div class="p-md bg-white rounded-lg border border-outline-variant text-center">
-                    <div class="text-caption text-on-surface-variant">Total Bookings</div>
-                    <div id="countTotal" class="text-headline-md font-bold">0</div>
-                </div>
-                <div class="p-md bg-white rounded-lg border border-outline-variant text-center">
-                    <div class="text-caption text-on-surface-variant">Upcoming</div>
-                    <div id="countUpcoming" class="text-headline-md font-bold">0</div>
-                </div>
-                <div class="p-md bg-white rounded-lg border border-outline-variant text-center">
-                    <div class="text-caption text-on-surface-variant">Completed</div>
-                    <div id="countCompleted" class="text-headline-md font-bold">0</div>
-                </div>
-            </div>
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
-            <div class="mt-md">
-                <h3 class="text-label-sm font-label-sm text-on-surface-variant mb-xs">Recommended Services</h3>
-                <div class="flex gap-sm overflow-x-auto py-sm">
-                    <div class="min-w-[220px] bg-white rounded-lg p-md border border-outline-variant shadow-sm">
-                        <div class="font-semibold">Business Consulting</div>
-                        <div class="text-caption text-on-surface-variant">Marcus Sterling · UGX 450,000/hr</div>
-                    </div>
-                    <div class="min-w-[220px] bg-white rounded-lg p-md border border-outline-variant shadow-sm">
-                        <div class="font-semibold">Tax Strategy Session</div>
-                        <div class="text-caption text-on-surface-variant">Marcus Thorne · UGX 356,250/hr</div>
-                    </div>
-                    <div class="min-w-[220px] bg-white rounded-lg p-md border border-outline-variant shadow-sm">
-                        <div class="font-semibold">Design Consultation</div>
-                        <div class="text-caption text-on-surface-variant">Julian Thorne · UGX 787,500/hr</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<header class="sticky top-0 z-50 w-full border-b border-outline-variant bg-white/95 backdrop-blur">
 
-        <!-- Recent Bookings -->
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
-            <div class="flex items-center justify-between mb-sm">
-              <h3 class="text-label-sm font-label-sm text-on-surface-variant">Recent Bookings</h3>
-              <button id="addBookingButton" class="text-primary font-label-sm text-label-sm hover:underline" type="button">Add booking</button>
-            </div>
-            <ul id="recentBookings" class="space-y-sm"></ul>
-            <p id="noBookingsMessage" class="text-center text-on-surface-variant hidden">No bookings yet. Book a service to see it here.</p>
-        </div>
-    </div>
+    <div class="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
 
-    <div class="flex flex-col h-full bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
-        <div class="p-md md:p-lg border-b border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-md">
-            <div>
-                <h2 class="text-headline-md font-headline-md text-on-surface">My Bookings</h2>
-                <p class="text-on-surface-variant font-body-md text-body-md">Manage your professional consultations and history.</p>
-            </div>
-            <div class="flex bg-surface-container-low p-xs rounded-lg">
-                <button class="px-md py-xs rounded-md text-label-sm font-label-sm transition-all duration-200 bg-surface shadow-sm text-primary" id="tab-upcoming" onclick="switchTab('upcoming')">Upcoming</button>
-                <button class="px-md py-xs rounded-md text-label-sm font-label-sm transition-all duration-200 text-on-surface-variant hover:text-on-surface" id="tab-history" onclick="switchTab('history')">History</button>
-            </div>
-        </div>
-        <div class="p-md md:p-lg space-y-md flex-1">
-            <div class="space-y-md" id="content-upcoming"></div>
-            <div class="hidden space-y-md" id="content-history"></div>
-            <p id="bookingEmptyMessage" class="text-center text-on-surface-variant hidden">No bookings yet. Once you book a service, your upcoming and history counts will update automatically.</p>
-        </div>
-        <div class="p-md bg-surface-container-low/30 text-center">
-            <button class="text-primary font-label-sm text-label-sm hover:underline inline-flex items-center gap-xs" id="viewAllBookingsButton" type="button">
-                View All Bookings
-                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        <!-- Logo -->
+        <button
+            id="homeButton"
+            type="button"
+            class="flex items-center gap-2"
+        >
+            <span class="material-symbols-outlined text-primary">
+                home
+            </span>
+
+            <span class="font-display text-xl font-extrabold tracking-tight text-primary">
+                NinjaWo
+            </span>
+        </button>
+
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden items-center gap-2 md:flex">
+
+            <button
+                id="dashboardNavButton"
+                type="button"
+                class="rounded-lg bg-primary/5 px-3 py-2 text-sm font-semibold text-primary"
+            >
+                Dashboard
             </button>
+
+            <button
+                id="bookingNavButton"
+                type="button"
+                class="rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container-low hover:text-primary"
+            >
+                Bookings
+            </button>
+
+            <button
+                id="providersNavButton"
+                type="button"
+                class="rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container-low hover:text-primary"
+            >
+                Providers
+            </button>
+
+        </nav>
+
+
+        <!-- Right Controls -->
+        <div class="flex items-center gap-2">
+
+            <button
+                id="refreshDashboardButton"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container-low hover:text-primary"
+                aria-label="Refresh dashboard"
+            >
+                <span class="material-symbols-outlined text-[18px]">
+                    refresh
+                </span>
+
+                <span class="hidden sm:inline">
+                    Refresh
+                </span>
+            </button>
+
+
+            <button
+                id="signOutButton"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-on-surface-variant transition hover:bg-surface-container-low hover:text-primary"
+            >
+                <span class="material-symbols-outlined text-[18px]">
+                    logout
+                </span>
+
+                <span class="hidden sm:inline">
+                    Sign out
+                </span>
+            </button>
+
         </div>
+
     </div>
-</section>
-</div>
-</main>
-<!-- BottomNavBar -->
-<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-xl px-margin-mobile bg-surface dark:bg-surface-dim md:hidden border-t border-outline-variant dark:border-outline shadow-lg">
-<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-all active:scale-90 duration-150" href="#">
-<span class="material-symbols-outlined">search</span>
-<span class="text-label-sm font-label-sm">Explore</span>
-</a>
-<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold active:scale-90 duration-150" href="#">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
-<span class="text-label-sm font-label-sm">Bookings</span>
-</a>
-<a id="bottomNavInbox" class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-all active:scale-90 duration-150" href="#">
-<span class="material-symbols-outlined">chat</span>
-<span class="text-label-sm font-label-sm">Inbox</span>
-</a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-low transition-all active:scale-90 duration-150" href="#">
-<span class="material-symbols-outlined">person</span>
-<span class="text-label-sm font-label-sm">Profile</span>
-</a>
-</nav>
-<!-- Footer (Web Only) -->
-<footer class="hidden md:block w-full py-xl px-margin-desktop bg-surface-container dark:bg-surface-container-lowest border-t border-outline-variant">
-<div class="max-w-1440 mx-auto grid grid-cols-1 md:grid-cols-4 gap-xl">
-<div class="col-span-1">
-<h2 class="text-headline-md font-headline-md text-primary dark:text-primary-fixed-dim mb-md">ExpertHub</h2>
-<p class="text-on-surface-variant text-caption font-caption">Connecting elites with expertise. Professional reliability in every interaction.</p>
-</div>
-<div class="col-span-1">
-<h4 class="text-label-sm font-label-sm text-on-surface mb-md">Company</h4>
-<ul class="space-y-sm">
-<li><a class="text-on-surface-variant text-caption font-caption hover:text-primary transition-colors" href="#">Become a Provider</a></li>
-<li><a class="text-on-surface-variant text-caption font-caption hover:text-primary transition-colors" href="#">Help Center</a></li>
-</ul>
-</div>
-<div class="col-span-1">
-<h4 class="text-label-sm font-label-sm text-on-surface mb-md">Legal</h4>
-<ul class="space-y-sm">
-<li><a class="text-on-surface-variant text-caption font-caption hover:text-primary transition-colors" href="#">Terms of Service</a></li>
-<li><a class="text-on-surface-variant text-caption font-caption hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
-</ul>
-</div>
-<div class="col-span-1">
-<h4 class="text-label-sm font-label-sm text-on-surface mb-md">Newsletter</h4>
-<div class="flex gap-xs">
-<input class="bg-surface border border-outline-variant px-sm py-xs text-label-sm rounded focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all w-full" placeholder="Email" type="email"/>
-<button class="bg-primary text-on-primary px-sm py-xs rounded hover:bg-primary-container transition-colors">
-<span class="material-symbols-outlined">send</span>
-</button>
-</div>
-</div>
-</div>
-<div class="max-w-1440 mx-auto mt-xl pt-lg border-t border-outline-variant flex justify-between items-center">
-<p class="text-on-surface-variant text-caption font-caption">© 2024 ExpertHub Professional Services. All rights reserved.</p>
-<div class="flex gap-md">
-<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">language</span></a>
-<a class="text-on-surface-variant hover:text-primary" href="#"><span class="material-symbols-outlined">share</span></a>
-</div>
-</div>
-</footer>
-<div id="toastBox" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-error-container text-on-error-container px-md py-sm rounded-xl font-body-md shadow-lg max-w-sm text-center"></div>
-<script>
-        const STORAGE_KEYS = {
-            profileName: 'dashboardProfileName',
-            profileRole: 'dashboardProfileRole',
-            avatar: 'dashboardAvatarUrl',
-            bookings: 'dashboardBookings'
-        };
 
-        const DEFAULT_AVATAR = '/images/dashboard-default-avatar.png'; // replace this file with the attached default avatar image
+</header>
 
-        function postToParent(type, payload) {
-            window.parent.postMessage({ type, payload }, '*');
-        }
 
-        function showToast(message) {
-            const box = document.getElementById('toastBox');
-            if (!box) return;
-            box.textContent = message;
-            box.classList.remove('hidden');
-            clearTimeout(box._timer);
-            box._timer = setTimeout(() => box.classList.add('hidden'), 4000);
-        }
+<!-- =========================================================
+     MAIN
+========================================================= -->
 
-        function switchTab(tab) {
-            const upcomingBtn = document.getElementById('tab-upcoming');
-            const historyBtn = document.getElementById('tab-history');
-            const upcomingContent = document.getElementById('content-upcoming');
-            const historyContent = document.getElementById('content-history');
+<main class="mx-auto max-w-[1440px] px-4 py-6 pb-16 sm:px-6 lg:px-8">
 
-            if (tab === 'upcoming') {
-                upcomingBtn.classList.add('bg-surface', 'shadow-sm', 'text-primary');
-                upcomingBtn.classList.remove('text-on-surface-variant');
-                historyBtn.classList.remove('bg-surface', 'shadow-sm', 'text-primary');
-                historyBtn.classList.add('text-on-surface-variant');
+    <!-- Toast -->
 
-                upcomingContent.classList.remove('hidden');
-                historyContent.classList.add('hidden');
-            } else {
-                historyBtn.classList.add('bg-surface', 'shadow-sm', 'text-primary');
-                historyBtn.classList.remove('text-on-surface-variant');
-                upcomingBtn.classList.remove('bg-surface', 'shadow-sm', 'text-primary');
-                upcomingBtn.classList.add('text-on-surface-variant');
+    <div
+        id="toastBox"
+        class="fixed bottom-6 left-1/2 z-[100] hidden max-w-sm -translate-x-1/2 rounded-xl bg-error-container px-5 py-3 text-center text-sm font-semibold text-on-error-container shadow-xl"
+    ></div>
 
-                historyContent.classList.remove('hidden');
-                upcomingContent.classList.add('hidden');
-            }
-        }
 
-        function getStoredBookings() {
-            try {
-                const stored = localStorage.getItem(STORAGE_KEYS.bookings);
-                return stored ? JSON.parse(stored) : [];
-            } catch (error) {
-                return [];
-            }
-        }
+    <!-- =====================================================
+         DASHBOARD GRID
+    ====================================================== -->
 
-        function saveStoredBookings(bookings) {
-            localStorage.setItem(STORAGE_KEYS.bookings, JSON.stringify(bookings));
-        }
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
 
-        function loadProfile() {
-            const profileName = localStorage.getItem(STORAGE_KEYS.profileName) || '';
-            const profileRole = localStorage.getItem(STORAGE_KEYS.profileRole) || '';
-            const profileAvatar = localStorage.getItem(STORAGE_KEYS.avatar) || DEFAULT_AVATAR;
 
-            document.getElementById('profileName').textContent = profileName || 'Welcome';
-            document.getElementById('profileRole').textContent = profileRole || 'Your ExpertHub account';
-            document.getElementById('profileAvatar').src = profileAvatar;
-            document.getElementById('navAvatar').src = profileAvatar;
+        <!-- =================================================
+             LEFT SIDEBAR
+        ================================================== -->
 
-            const welcomeText = profileName ? `Welcome, ${profileName.split(' ')[0]}` : 'Welcome';
-            document.getElementById('welcomeHeading').textContent = welcomeText;
-        }
+        <aside class="space-y-6 lg:col-span-4">
 
-        function renderBookingCard(item, container, isHistory) {
-            const card = document.createElement('div');
-            card.className = 'group flex flex-col sm:flex-row gap-md p-md bg-surface border border-outline-variant rounded-lg hover:border-primary/50 transition-all hover:shadow-md cursor-pointer';
-            const statusLabel = isHistory ? 'Completed' : 'Confirmed';
-            const statusClass = isHistory ? 'bg-secondary-container text-on-secondary-container' : 'bg-primary-fixed text-on-primary-fixed-variant';
-            const badgeColor = isHistory ? 'bg-secondary' : 'bg-primary';
-            const providerAvatar = item.providerAvatar || DEFAULT_AVATAR;
 
-            card.innerHTML = `
-                <div class="w-16 h-16 rounded-full overflow-hidden shrink-0 border border-outline-variant">
-                    <img class="w-full h-full object-cover" src="${providerAvatar}" alt="${item.provider || 'Provider'}" />
-                </div>
-                <div class="flex-1">
-                    <div class="flex flex-wrap justify-between items-start mb-xs">
-                        <div>
-                            <h4 class="text-body-lg font-body-lg text-on-surface font-semibold group-hover:text-primary transition-colors">${item.provider || 'Provider'}</h4>
-                            <p class="text-caption font-caption text-on-surface-variant">${item.service || 'Service'}</p>
+            <!-- Profile Card -->
+
+            <section class="rounded-2xl border border-outline-variant bg-white p-6 shadow-sm">
+
+                <div class="flex flex-col items-center text-center">
+
+                    <div class="relative">
+
+                        <div class="h-24 w-24 overflow-hidden rounded-full ring-4 ring-primary-fixed">
+
+                            <img
+                                id="profileAvatar"
+                                class="h-full w-full object-cover"
+                                src="/images/dashboard-default-avatar.png"
+                                alt="Your profile picture"
+                            />
+
                         </div>
-                        <span class="inline-flex items-center px-sm py-xs rounded-full ${statusClass} text-caption font-label-sm">
-                            <span class="w-2 h-2 rounded-full ${badgeColor} mr-xs"></span>${statusLabel}
+
+
+                        <input
+                            id="avatarInput"
+                            type="file"
+                            accept="image/*"
+                            class="hidden"
+                        />
+
+
+                        <button
+                            id="profileAvatarButton"
+                            type="button"
+                            class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white shadow-md transition hover:bg-primary-container active:scale-90"
+                            aria-label="Change profile picture"
+                        >
+                            <span class="material-symbols-outlined text-[18px]">
+                                edit
+                            </span>
+                        </button>
+
+                    </div>
+
+
+                    <h2
+                        id="profileName"
+                        class="mt-5 font-display text-2xl font-bold text-on-surface"
+                    >
+                        Welcome
+                    </h2>
+
+
+                    <p
+                        id="profileRole"
+                        class="mt-1 text-sm text-on-surface-variant"
+                    >
+                        Customer account
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- Helpful Card -->
+
+            <section class="relative overflow-hidden rounded-2xl bg-primary p-6 text-white shadow-lg">
+
+                <div class="relative z-10">
+
+                    <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+
+                        <span class="material-symbols-outlined">
+                            verified
                         </span>
+
                     </div>
-                    <div class="flex flex-wrap gap-md mt-sm">
-                        <div class="flex items-center gap-xs text-on-surface-variant">
-                            <span class="material-symbols-outlined text-sm">calendar_today</span>
-                            <span class="text-label-sm font-label-sm">${item.date || 'TBD'}</span>
-                        </div>
-                        <div class="flex items-center gap-xs text-on-surface-variant">
-                            <span class="material-symbols-outlined text-sm">schedule</span>
-                            <span class="text-label-sm font-label-sm">${item.time || 'TBD'}</span>
-                        </div>
-                    </div>
+
+
+                    <h3 class="font-display text-xl font-bold">
+                        Your trusted marketplace
+                    </h3>
+
+
+                    <p class="mt-2 text-sm leading-6 text-white/75">
+                        Discover professionals, book services, and keep all your appointments in one place.
+                    </p>
+
                 </div>
+
+
+                <div class="absolute -bottom-16 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl"></div>
+
+                <div class="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-white/5 blur-2xl"></div>
+
+            </section>
+
+        </aside>
+
+
+        <!-- =================================================
+             RIGHT CONTENT
+        ================================================== -->
+
+        <section class="space-y-6 lg:col-span-8">
+
+
+            <!-- =================================================
+                 WELCOME
+            ================================================== -->
+
+            <section class="rounded-2xl border border-outline-variant bg-white p-6 shadow-sm md:p-7">
+
+                <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+
+                    <div>
+
+                        <p class="mb-1 text-xs font-bold uppercase tracking-wider text-primary">
+                            Your dashboard
+                        </p>
+
+
+                        <h1
+                            id="welcomeHeading"
+                            class="font-display text-3xl font-bold tracking-tight text-on-surface"
+                        >
+                            Welcome
+                        </h1>
+
+
+                        <p class="mt-2 max-w-xl text-sm leading-6 text-on-surface-variant">
+                            Keep track of your appointments, discover professionals, and manage your NinjaWo account.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="welcomeExploreButton"
+                        type="button"
+                        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:bg-primary-container"
+                    >
+                        <span class="material-symbols-outlined text-[18px]">
+                            search
+                        </span>
+
+                        Find a professional
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 OFFERS FROM PROVIDERS
+            ================================================== -->
+
+            <section class="overflow-hidden rounded-2xl border border-outline-variant bg-white shadow-sm">
+
+                <div class="border-b border-outline-variant p-5 md:p-6">
+
+                    <div>
+
+                        <h2 class="font-display text-xl font-bold text-on-surface">
+                            Offers from providers
+                        </h2>
+
+                        <p class="mt-1 text-sm text-on-surface-variant">
+                            Review offers from professionals who responded to your requests.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="p-5 md:p-6">
+
+                    <div
+                        id="offersContainer"
+                        class="space-y-4"
+                    ></div>
+
+
+                    <div
+                        id="offersEmptyMessage"
+                        class="hidden rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-8 text-center"
+                    >
+
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+
+                            <span class="material-symbols-outlined">
+                                local_offer
+                            </span>
+
+                        </div>
+
+
+                        <h3 class="mt-3 text-sm font-bold text-on-surface">
+                            No offers yet
+                        </h3>
+
+
+                        <p class="mx-auto mt-1 max-w-sm text-xs leading-5 text-on-surface-variant">
+                            When providers respond to your requests, their offers will appear here.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 STATS
+            ================================================== -->
+
+            <section class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+
+
+                <!-- Total -->
+
+                <div class="stat-card rounded-2xl border border-outline-variant bg-white p-5 shadow-sm">
+
+                    <div class="flex items-center justify-between">
+
+                        <div>
+
+                            <p class="text-xs font-semibold text-on-surface-variant">
+                                Total bookings
+                            </p>
+
+                            <p
+                                id="countTotal"
+                                class="mt-2 font-display text-3xl font-bold text-on-surface"
+                            >
+                                0
+                            </p>
+
+                        </div>
+
+
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+
+                            <span class="material-symbols-outlined">
+                                calendar_month
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Upcoming -->
+
+                <div class="stat-card rounded-2xl border border-outline-variant bg-white p-5 shadow-sm">
+
+                    <div class="flex items-center justify-between">
+
+                        <div>
+
+                            <p class="text-xs font-semibold text-on-surface-variant">
+                                Upcoming
+                            </p>
+
+                            <p
+                                id="countUpcoming"
+                                class="mt-2 font-display text-3xl font-bold text-on-surface"
+                            >
+                                0
+                            </p>
+
+                        </div>
+
+
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+
+                            <span class="material-symbols-outlined">
+                                event
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Completed -->
+
+                <div class="stat-card rounded-2xl border border-outline-variant bg-white p-5 shadow-sm">
+
+                    <div class="flex items-center justify-between">
+
+                        <div>
+
+                            <p class="text-xs font-semibold text-on-surface-variant">
+                                Completed
+                            </p>
+
+                            <p
+                                id="countCompleted"
+                                class="mt-2 font-display text-3xl font-bold text-on-surface"
+                            >
+                                0
+                            </p>
+
+                        </div>
+
+
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+
+                            <span class="material-symbols-outlined">
+                                task_alt
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 RECENT BOOKINGS
+            ================================================== -->
+
+            <section class="rounded-2xl border border-outline-variant bg-white shadow-sm">
+
+                <div class="flex items-center justify-between border-b border-outline-variant px-5 py-4 md:px-6">
+
+                    <div>
+
+                        <h2 class="font-display text-lg font-bold text-on-surface">
+                            Recent bookings
+                        </h2>
+
+                        <p class="mt-1 text-xs text-on-surface-variant">
+                            Your latest appointments
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="viewAllBookingsButton"
+                        type="button"
+                        class="inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline"
+                    >
+                        View all
+
+                        <span class="material-symbols-outlined text-[17px]">
+                            arrow_forward
+                        </span>
+                    </button>
+
+                </div>
+
+
+                <div class="p-5 md:p-6">
+
+                    <ul
+                        id="recentBookings"
+                        class="space-y-3"
+                    ></ul>
+
+
+                    <div
+                        id="noBookingsMessage"
+                        class="hidden py-8 text-center"
+                    >
+
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+
+                            <span class="material-symbols-outlined">
+                                calendar_month
+                            </span>
+
+                        </div>
+
+
+                        <h3 class="mt-3 text-sm font-bold text-on-surface">
+                            No bookings yet
+                        </h3>
+
+
+                        <p class="mx-auto mt-1 max-w-sm text-xs leading-5 text-on-surface-variant">
+                            Once you book a professional service, your appointments will appear here.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 MY BOOKINGS
+            ================================================== -->
+
+            <section class="overflow-hidden rounded-2xl border border-outline-variant bg-white shadow-sm">
+
+                <div class="flex flex-col gap-4 border-b border-outline-variant p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
+
+                    <div>
+
+                        <h2 class="font-display text-xl font-bold text-on-surface">
+                            My bookings
+                        </h2>
+
+                        <p class="mt-1 text-sm text-on-surface-variant">
+                            Manage your appointments and booking history.
+                        </p>
+
+                    </div>
+
+
+                    <div class="flex w-full rounded-xl bg-surface-container-low p-1 sm:w-auto">
+
+                        <button
+                            id="tab-upcoming"
+                            type="button"
+                            class="active-tab flex-1 rounded-lg px-4 py-2 text-sm font-bold transition sm:flex-none"
+                        >
+                            Upcoming
+                        </button>
+
+
+                        <button
+                            id="tab-history"
+                            type="button"
+                            class="flex-1 rounded-lg px-4 py-2 text-sm font-semibold text-on-surface-variant transition hover:text-on-surface sm:flex-none"
+                        >
+                            History
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="p-5 md:p-6">
+
+
+                    <!-- Upcoming -->
+
+                    <div
+                        id="content-upcoming"
+                        class="space-y-3"
+                    ></div>
+
+
+                    <!-- History -->
+
+                    <div
+                        id="content-history"
+                        class="hidden space-y-3"
+                    ></div>
+
+
+                    <p
+                        id="bookingEmptyMessage"
+                        class="hidden py-8 text-center text-sm text-on-surface-variant"
+                    >
+                        Your bookings will appear here once you make a booking.
+                    </p>
+
+                </div>
+
+
+                <div class="border-t border-outline-variant bg-surface-container-low/50 p-4 text-center">
+
+                    <button
+                        id="viewAllBookingsButtonBottom"
+                        type="button"
+                        class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
+                    >
+                        View all bookings
+
+                        <span class="material-symbols-outlined text-[18px]">
+                            arrow_forward
+                        </span>
+                    </button>
+
+                </div>
+
+            </section>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<!-- =========================================================
+     MOBILE NAVIGATION
+========================================================= -->
+
+<nav class="fixed bottom-0 left-0 z-50 flex h-[68px] w-full items-center justify-around border-t border-outline-variant bg-white shadow-lg md:hidden">
+
+    <button
+        id="mobileExploreButton"
+        type="button"
+        class="flex flex-col items-center gap-1 text-on-surface-variant"
+    >
+        <span class="material-symbols-outlined">
+            search
+        </span>
+
+        <span class="text-[11px] font-semibold">
+            Explore
+        </span>
+    </button>
+
+
+    <button
+        id="mobileBookingsButton"
+        type="button"
+        class="flex flex-col items-center gap-1 text-primary"
+    >
+        <span class="material-symbols-outlined">
+            calendar_month
+        </span>
+
+        <span class="text-[11px] font-bold">
+            Bookings
+        </span>
+    </button>
+
+
+    <button
+        id="bottomNavInbox"
+        type="button"
+        class="flex flex-col items-center gap-1 text-on-surface-variant"
+    >
+        <span class="material-symbols-outlined">
+            chat
+        </span>
+
+        <span class="text-[11px] font-semibold">
+            Inbox
+        </span>
+    </button>
+
+
+    <button
+        id="mobileProfileButton"
+        type="button"
+        class="flex flex-col items-center gap-1 text-on-surface-variant"
+    >
+        <span class="material-symbols-outlined">
+            person
+        </span>
+
+        <span class="text-[11px] font-semibold">
+            Profile
+        </span>
+    </button>
+
+</nav>
+
+
+<!-- =========================================================
+     SCRIPT
+========================================================= -->
+
+<script>
+
+    const DEFAULT_AVATAR =
+        "/images/dashboard-default-avatar.png";
+
+
+    let currentPayload = {
+        name: "",
+        avatarUrl: null,
+        role: "customer",
+        bookings: [],
+        requests: [],
+        offers: []
+    };
+
+
+    let currentBookings = [];
+
+
+    /* ========================================================
+       PARENT COMMUNICATION
+    ======================================================== */
+
+    function postToParent(type, payload) {
+
+        window.parent.postMessage(
+            {
+                type,
+                payload
+            },
+            "*"
+        );
+
+    }
+
+
+    /* ========================================================
+       TOAST
+    ======================================================== */
+
+    function showToast(message) {
+
+        const box =
+            document.getElementById("toastBox");
+
+        if (!box) return;
+
+        box.textContent = message;
+
+        box.classList.remove("hidden");
+
+        clearTimeout(box._timer);
+
+        box._timer = setTimeout(
+            () => {
+                box.classList.add("hidden");
+            },
+            4000
+        );
+
+    }
+
+
+    /* ========================================================
+       PROFILE
+    ======================================================== */
+
+    function renderProfile() {
+
+        const name =
+            currentPayload.name ||
+            "Welcome";
+
+
+        const avatar =
+            currentPayload.avatarUrl ||
+            DEFAULT_AVATAR;
+
+
+        const role =
+            currentPayload.role === "provider"
+                ? "Provider account"
+                : "Customer account";
+
+
+        const profileName =
+            document.getElementById("profileName");
+
+
+        const profileRole =
+            document.getElementById("profileRole");
+
+
+        const profileAvatar =
+            document.getElementById("profileAvatar");
+
+
+        const welcomeHeading =
+            document.getElementById("welcomeHeading");
+
+
+        if (profileName) {
+            profileName.textContent = name;
+        }
+
+
+        if (profileRole) {
+            profileRole.textContent = role;
+        }
+
+
+        if (profileAvatar) {
+            profileAvatar.src = avatar;
+        }
+
+
+        if (welcomeHeading) {
+
+            const firstName =
+                currentPayload.name
+                    ? currentPayload.name
+                        .trim()
+                        .split(/\s+/)[0]
+                    : "";
+
+
+            welcomeHeading.textContent =
+                firstName
+                    ? `Welcome, ${firstName}`
+                    : "Welcome";
+
+        }
+
+    }
+
+
+    /* ========================================================
+       STATUS
+    ======================================================== */
+
+    function getStatusInfo(status) {
+
+        switch (status) {
+
+            case "confirmed":
+
+                return {
+                    label: "Confirmed",
+                    className: "bg-blue-50 text-blue-700",
+                    dot: "bg-blue-600"
+                };
+
+
+            case "completed":
+
+                return {
+                    label: "Completed",
+                    className: "bg-emerald-50 text-emerald-700",
+                    dot: "bg-emerald-600"
+                };
+
+
+            case "cancelled":
+
+                return {
+                    label: "Cancelled",
+                    className: "bg-red-50 text-red-700",
+                    dot: "bg-red-600"
+                };
+
+
+            case "pending":
+
+                return {
+                    label: "Pending",
+                    className: "bg-amber-50 text-amber-700",
+                    dot: "bg-amber-500"
+                };
+
+
+            default:
+
+                return {
+                    label: status || "Pending",
+                    className: "bg-slate-100 text-slate-600",
+                    dot: "bg-slate-500"
+                };
+
+        }
+
+    }
+
+
+    /* ========================================================
+       DATE
+    ======================================================== */
+
+    function formatDate(value) {
+
+        if (!value) {
+            return "Date not set";
+        }
+
+
+        const date =
+            new Date(`${value}T00:00:00`);
+
+
+        if (Number.isNaN(date.getTime())) {
+            return String(value);
+        }
+
+
+        return date.toLocaleDateString(
+            undefined,
+            {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       TIME
+    ======================================================== */
+
+    function formatTime(value) {
+
+        if (!value) {
+            return "";
+        }
+
+
+        const parts =
+            String(value)
+                .split(":")
+                .map(Number);
+
+
+        const hours = parts[0];
+        const minutes = parts[1];
+
+
+        if (
+            Number.isNaN(hours) ||
+            Number.isNaN(minutes)
+        ) {
+            return String(value);
+        }
+
+
+        const date =
+            new Date(
+                2000,
+                0,
+                1,
+                hours,
+                minutes
+            );
+
+
+        return date.toLocaleTimeString(
+            undefined,
+            {
+                hour: "numeric",
+                minute: "2-digit"
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       SAFE HTML
+    ======================================================== */
+
+    function escapeHtml(value) {
+
+        return String(value ?? "").replace(
+            /[&<>"']/g,
+            character => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;"
+            })[character]
+        );
+
+    }
+
+
+    /* ========================================================
+       BOOKING HELPERS
+    ======================================================== */
+
+    function getServiceName(booking) {
+
+        return (
+            booking.service_title ||
+            booking.service ||
+            "Service booking"
+        );
+
+    }
+
+
+    function getProviderName(booking) {
+
+        return (
+            booking.provider_name ||
+            booking.provider_business_name ||
+            booking.provider ||
+            "Provider"
+        );
+
+    }
+
+
+    function getProviderAvatar(booking) {
+
+        return (
+            booking.provider_avatar ||
+            booking.providerAvatar ||
+            booking.profile_picture_url ||
+            DEFAULT_AVATAR
+        );
+
+    }
+
+
+    /* ========================================================
+       BOOKING CARD
+    ======================================================== */
+
+    function renderBookingCard(
+        booking,
+        container
+    ) {
+
+        const card =
+            document.createElement("button");
+
+
+        card.type = "button";
+
+
+        card.className =
+            "booking-card group flex w-full flex-col gap-4 rounded-xl border border-outline-variant bg-white p-4 text-left sm:flex-row sm:items-center";
+
+
+        const provider =
+            getProviderName(booking);
+
+
+        const service =
+            getServiceName(booking);
+
+
+        const avatar =
+            getProviderAvatar(booking);
+
+
+        const status =
+            getStatusInfo(booking.status);
+
+
+        const date =
+            formatDate(
+                booking.booking_date ||
+                booking.date
+            );
+
+
+        const startTime =
+            formatTime(
+                booking.start_time ||
+                booking.time
+            );
+
+
+        const endTime =
+            formatTime(booking.end_time);
+
+
+        card.innerHTML = `
+
+            <div class="relative shrink-0">
+
+                <img
+                    src="${escapeHtml(avatar)}"
+                    alt="${escapeHtml(provider)}"
+                    class="h-14 w-14 rounded-full border border-outline-variant object-cover"
+                />
+
+            </div>
+
+
+            <div class="min-w-0 flex-1">
+
+                <div class="flex flex-wrap items-start justify-between gap-3">
+
+                    <div class="min-w-0">
+
+                        <p class="truncate font-display text-base font-bold text-on-surface group-hover:text-primary">
+                            ${escapeHtml(provider)}
+                        </p>
+
+
+                        <p class="mt-1 truncate text-sm text-on-surface-variant">
+                            ${escapeHtml(service)}
+                        </p>
+
+                    </div>
+
+
+                    <span class="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${status.className}">
+
+                        <span class="h-1.5 w-1.5 rounded-full ${status.dot}"></span>
+
+                        ${escapeHtml(status.label)}
+
+                    </span>
+
+                </div>
+
+
+                <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-on-surface-variant">
+
+                    <span class="inline-flex items-center gap-1.5">
+
+                        <span class="material-symbols-outlined text-[17px]">
+                            calendar_today
+                        </span>
+
+                        ${escapeHtml(date)}
+
+                    </span>
+
+
+                    ${
+                        startTime
+                            ? `
+                                <span class="inline-flex items-center gap-1.5">
+
+                                    <span class="material-symbols-outlined text-[17px]">
+                                        schedule
+                                    </span>
+
+                                    ${escapeHtml(startTime)}
+
+                                    ${
+                                        endTime
+                                            ? ` - ${escapeHtml(endTime)}`
+                                            : ""
+                                    }
+
+                                </span>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+            </div>
+
+
+            <span class="material-symbols-outlined hidden text-outline transition group-hover:translate-x-1 group-hover:text-primary sm:block">
+                chevron_right
+            </span>
+
+        `;
+
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                if (!booking.id) {
+
+                    showToast(
+                        "This booking does not have a valid ID."
+                    );
+
+                    return;
+
+                }
+
+
+                postToParent(
+                    "navigate",
+                    {
+                        route: `/booking/${booking.id}`
+                    }
+                );
+
+            }
+        );
+
+
+        container.appendChild(card);
+
+    }
+
+
+    /* ========================================================
+       RECENT BOOKING
+    ======================================================== */
+
+    function renderRecentBooking(booking) {
+
+        const item =
+            document.createElement("button");
+
+
+        item.type = "button";
+
+
+        item.className =
+            "flex w-full items-center gap-3 rounded-xl border border-outline-variant bg-white p-3 text-left transition hover:border-primary/40 hover:bg-primary/[0.02]";
+
+
+        const provider =
+            getProviderName(booking);
+
+
+        const service =
+            getServiceName(booking);
+
+
+        const status =
+            getStatusInfo(booking.status);
+
+
+        const date =
+            formatDate(
+                booking.booking_date ||
+                booking.date
+            );
+
+
+        item.innerHTML = `
+
+            <img
+                src="${escapeHtml(getProviderAvatar(booking))}"
+                alt="${escapeHtml(provider)}"
+                class="h-11 w-11 shrink-0 rounded-full border border-outline-variant object-cover"
+            />
+
+
+            <div class="min-w-0 flex-1">
+
+                <p class="truncate text-sm font-bold text-on-surface">
+                    ${escapeHtml(service)}
+                </p>
+
+
+                <p class="mt-0.5 truncate text-xs text-on-surface-variant">
+
+                    ${escapeHtml(provider)}
+                    ·
+                    ${escapeHtml(date)}
+
+                </p>
+
+            </div>
+
+
+            <span class="shrink-0 rounded-full px-2 py-1 text-[10px] font-bold ${status.className}">
+                ${escapeHtml(status.label)}
+            </span>
+
+        `;
+
+
+        item.addEventListener(
+            "click",
+            () => {
+
+                if (!booking.id) return;
+
+
+                postToParent(
+                    "navigate",
+                    {
+                        route: `/booking/${booking.id}`
+                    }
+                );
+
+            }
+        );
+
+
+        return item;
+
+    }
+
+
+    /* ========================================================
+       OFFER STATUS
+    ======================================================== */
+
+    function getOfferStatusInfo(status) {
+
+        switch (status) {
+
+            case "accepted":
+
+                return {
+                    label: "Accepted",
+                    className: "bg-emerald-50 text-emerald-700"
+                };
+
+
+            case "declined":
+
+                return {
+                    label: "Declined",
+                    className: "bg-red-50 text-red-700"
+                };
+
+
+            default:
+
+                return {
+                    label: "Pending",
+                    className: "bg-amber-50 text-amber-700"
+                };
+
+        }
+
+    }
+
+
+    /* ========================================================
+       OFFER PRICE
+    ======================================================== */
+
+    function formatOfferPrice(price) {
+
+        if (
+            price === null ||
+            price === undefined ||
+            price === ""
+        ) {
+            return "Price not specified";
+        }
+
+
+        const numericPrice =
+            Number(price);
+
+
+        if (Number.isNaN(numericPrice)) {
+            return String(price);
+        }
+
+
+        return `UGX ${numericPrice.toLocaleString()}`;
+
+    }
+
+
+    /* ========================================================
+       REQUEST FOR OFFER
+    ======================================================== */
+
+    function getRequestForOffer(offer) {
+
+        const requests =
+            Array.isArray(currentPayload.requests)
+                ? currentPayload.requests
+                : [];
+
+
+        return requests.find(
+            request =>
+                request.id === offer.request_id
+        );
+
+    }
+
+
+    /* ========================================================
+       OFFER CARD
+    ======================================================== */
+
+    function renderOfferCard(offer) {
+
+        const request =
+            getRequestForOffer(offer);
+
+
+        const providerName =
+            offer.provider_business_name ||
+            offer.provider_name ||
+            "Provider";
+
+
+        const requestTitle =
+            request?.title ||
+            "Service request";
+
+
+        const status =
+            getOfferStatusInfo(offer.status);
+
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            "rounded-2xl border border-outline-variant bg-white p-5 shadow-sm";
+
+
+        card.innerHTML = `
+
+            <div class="flex flex-col gap-4">
+
+
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+
+                    <div class="min-w-0">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+
+                                <span class="material-symbols-outlined">
+                                    business
+                                </span>
+
+                            </div>
+
+
+                            <div class="min-w-0">
+
+                                <p class="truncate font-display text-base font-bold text-on-surface">
+                                    ${escapeHtml(providerName)}
+                                </p>
+
+
+                                <p class="mt-0.5 truncate text-xs text-on-surface-variant">
+                                    Responding to: ${escapeHtml(requestTitle)}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <span class="inline-flex w-fit shrink-0 rounded-full px-3 py-1 text-xs font-bold ${status.className}">
+                        ${escapeHtml(status.label)}
+                    </span>
+
+                </div>
+
+
+                <div class="rounded-xl bg-surface-container-low p-4">
+
+                    <p class="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+                        Provider's offer
+                    </p>
+
+
+                    <p class="mt-2 font-display text-2xl font-bold text-primary">
+
+                        ${escapeHtml(
+                            formatOfferPrice(offer.price)
+                        )}
+
+                    </p>
+
+
+                    ${
+                        offer.message
+                            ? `
+                                <p class="mt-3 text-sm leading-6 text-on-surface-variant">
+                                    ${escapeHtml(offer.message)}
+                                </p>
+                            `
+                            : `
+                                <p class="mt-3 text-sm text-on-surface-variant">
+                                    No message was included with this offer.
+                                </p>
+                            `
+                    }
+
+                </div>
+
+
+                <div class="flex flex-wrap gap-x-6 gap-y-2 text-xs text-on-surface-variant">
+
+                    ${
+                        offer.estimated_start
+                            ? `
+                                <span class="inline-flex items-center gap-1.5">
+
+                                    <span class="material-symbols-outlined text-[17px]">
+                                        schedule
+                                    </span>
+
+                                    Estimated start:
+
+                                    ${escapeHtml(
+                                        formatDate(
+                                            offer.estimated_start
+                                        )
+                                    )}
+
+                                </span>
+                            `
+                            : ""
+                    }
+
+
+                    ${
+                        offer.created_at
+                            ? `
+                                <span class="inline-flex items-center gap-1.5">
+
+                                    <span class="material-symbols-outlined text-[17px]">
+                                        calendar_today
+                                    </span>
+
+                                    Offer received:
+
+                                    ${escapeHtml(
+                                        new Date(
+                                            offer.created_at
+                                        ).toLocaleDateString(
+                                            undefined,
+                                            {
+                                                month: "short",
+                                                day: "numeric",
+                                                year: "numeric"
+                                            }
+                                        )
+                                    )}
+
+                                </span>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+
+                ${
+                    offer.status !== "accepted" &&
+                    offer.status !== "declined"
+                        ? `
+                            <div class="flex flex-col gap-2 border-t border-outline-variant pt-4 sm:flex-row sm:justify-end">
+
+                                <button
+                                    type="button"
+                                    data-offer-decline="${escapeHtml(offer.id)}"
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-outline-variant px-4 py-2.5 text-sm font-bold text-on-surface-variant transition hover:border-red-200 hover:bg-red-50 hover:text-red-700"
+                                >
+
+                                    <span class="material-symbols-outlined text-[18px]">
+                                        close
+                                    </span>
+
+                                    Decline
+
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    data-offer-accept="${escapeHtml(offer.id)}"
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-container"
+                                >
+
+                                    <span class="material-symbols-outlined text-[18px]">
+                                        check
+                                    </span>
+
+                                    Accept offer
+
+                                </button>
+
+                            </div>
+                        `
+                        : ""
+                }
+
+            </div>
+
+        `;
+
+
+        const acceptButton =
+            card.querySelector(
+                "[data-offer-accept]"
+            );
+
+
+        const declineButton =
+            card.querySelector(
+                "[data-offer-decline]"
+            );
+
+
+        acceptButton?.addEventListener(
+            "click",
+            () => {
+
+                if (!offer.id) return;
+
+
+                postToParent(
+                    "dashboard:acceptOffer",
+                    {
+                        offerId: offer.id
+                    }
+                );
+
+            }
+        );
+
+
+        declineButton?.addEventListener(
+            "click",
+            () => {
+
+                if (!offer.id) return;
+
+
+                postToParent(
+                    "dashboard:declineOffer",
+                    {
+                        offerId: offer.id
+                    }
+                );
+
+            }
+        );
+
+
+        return card;
+
+    }
+
+
+    /* ========================================================
+       RENDER OFFERS
+    ======================================================== */
+
+    function renderOffers() {
+
+        const container =
+            document.getElementById(
+                "offersContainer"
+            );
+
+
+        const emptyMessage =
+            document.getElementById(
+                "offersEmptyMessage"
+            );
+
+
+        if (!container || !emptyMessage) {
+            return;
+        }
+
+
+        const offers =
+            Array.isArray(currentPayload.offers)
+                ? currentPayload.offers
+                : [];
+
+
+        container.innerHTML = "";
+
+
+        if (!offers.length) {
+
+            emptyMessage.classList.remove("hidden");
+
+            return;
+
+        }
+
+
+        emptyMessage.classList.add("hidden");
+
+
+        offers.forEach(
+            offer => {
+
+                container.appendChild(
+                    renderOfferCard(offer)
+                );
+
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       RENDER BOOKINGS
+    ======================================================== */
+
+    function renderBookings() {
+
+        const bookings =
+            Array.isArray(currentBookings)
+                ? currentBookings
+                : [];
+
+
+        const total =
+            bookings.length;
+
+
+        const upcomingBookings =
+            bookings.filter(
+                booking =>
+                    booking.status === "pending" ||
+                    booking.status === "confirmed"
+            );
+
+
+        const completedBookings =
+            bookings.filter(
+                booking =>
+                    booking.status === "completed"
+            );
+
+
+        document.getElementById(
+            "countTotal"
+        ).textContent =
+            String(total);
+
+
+        document.getElementById(
+            "countUpcoming"
+        ).textContent =
+            String(upcomingBookings.length);
+
+
+        document.getElementById(
+            "countCompleted"
+        ).textContent =
+            String(completedBookings.length);
+
+
+        const recentList =
+            document.getElementById(
+                "recentBookings"
+            );
+
+
+        const upcomingContent =
+            document.getElementById(
+                "content-upcoming"
+            );
+
+
+        const historyContent =
+            document.getElementById(
+                "content-history"
+            );
+
+
+        const noBookings =
+            document.getElementById(
+                "noBookingsMessage"
+            );
+
+
+        const emptyMessage =
+            document.getElementById(
+                "bookingEmptyMessage"
+            );
+
+
+        recentList.innerHTML = "";
+
+        upcomingContent.innerHTML = "";
+
+        historyContent.innerHTML = "";
+
+
+        /* No bookings */
+
+        if (!total) {
+
+            noBookings.classList.remove("hidden");
+
+            emptyMessage.classList.remove("hidden");
+
+
+            upcomingContent.innerHTML = `
+
+                <div class="rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-8 text-center">
+
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+
+                        <span class="material-symbols-outlined">
+                            event_available
+                        </span>
+
+                    </div>
+
+
+                    <h3 class="mt-3 text-sm font-bold text-on-surface">
+                        Nothing scheduled yet
+                    </h3>
+
+
+                    <p class="mx-auto mt-1 max-w-sm text-xs leading-5 text-on-surface-variant">
+                        Find a professional and book a service to see your appointment here.
+                    </p>
+
+
+                    <button
+                        id="emptyExploreButton"
+                        type="button"
+                        class="mt-4 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white hover:bg-primary-container"
+                    >
+                        Explore services
+                    </button>
+
+                </div>
+
             `;
 
-            container.appendChild(card);
+
+            historyContent.innerHTML = `
+
+                <div class="rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-8 text-center">
+
+                    <span class="material-symbols-outlined text-3xl text-outline">
+                        history
+                    </span>
+
+
+                    <p class="mt-2 text-sm font-semibold text-on-surface">
+                        No booking history yet
+                    </p>
+
+
+                    <p class="mt-1 text-xs text-on-surface-variant">
+                        Completed appointments will appear here.
+                    </p>
+
+                </div>
+
+            `;
+
+
+            document
+                .getElementById("emptyExploreButton")
+                ?.addEventListener(
+                    "click",
+                    () => {
+
+                        postToParent(
+                            "navigate",
+                            {
+                                route: "/search"
+                            }
+                        );
+
+                    }
+                );
+
+
+            return;
+
         }
 
-        function renderBookings() {
-            const bookings = getStoredBookings();
-            const total = bookings.length;
-            const upcomingCount = bookings.filter((booking) => booking.status === 'upcoming').length;
-            const completedCount = bookings.filter((booking) => booking.status === 'completed').length;
-            const recentList = document.getElementById('recentBookings');
-            const upcomingContent = document.getElementById('content-upcoming');
-            const historyContent = document.getElementById('content-history');
-            const noRecentMessage = document.getElementById('noBookingsMessage');
-            const bookingEmptyMessage = document.getElementById('bookingEmptyMessage');
 
-            document.getElementById('countTotal').textContent = total;
-            document.getElementById('countUpcoming').textContent = upcomingCount;
-            document.getElementById('countCompleted').textContent = completedCount;
+        noBookings.classList.add("hidden");
 
-            recentList.innerHTML = '';
-            upcomingContent.innerHTML = '';
-            historyContent.innerHTML = '';
+        emptyMessage.classList.add("hidden");
 
-            if (!total) {
-                noRecentMessage.classList.remove('hidden');
-                bookingEmptyMessage.classList.remove('hidden');
-                recentList.innerHTML = '<li class="p-sm rounded-lg bg-surface text-on-surface-variant">No bookings yet. Add your first booking to get started.</li>';
-                upcomingContent.innerHTML = '<div class="p-md rounded-lg bg-surface text-on-surface-variant">No upcoming bookings yet.</div>';
-                historyContent.innerHTML = '<div class="p-md rounded-lg bg-surface text-on-surface-variant">No booking history yet.</div>';
-                return;
+
+        /* Recent */
+
+        const recent =
+            bookings
+                .slice()
+                .sort(
+                    (a, b) => {
+
+                        const aDate =
+                            new Date(
+                                a.created_at || 0
+                            ).getTime();
+
+
+                        const bDate =
+                            new Date(
+                                b.created_at || 0
+                            ).getTime();
+
+
+                        return bDate - aDate;
+
+                    }
+                )
+                .slice(0, 3);
+
+
+        recent.forEach(
+            booking => {
+
+                recentList.appendChild(
+                    renderRecentBooking(booking)
+                );
+
             }
+        );
 
-            noRecentMessage.classList.add('hidden');
-            bookingEmptyMessage.classList.add('hidden');
 
-            const recentItems = bookings.slice(-3).reverse();
-            recentItems.forEach((booking) => {
-                const listItem = document.createElement('li');
-                listItem.className = 'p-sm bg-white rounded-lg border border-outline-variant flex justify-between items-center';
-                const statusLabel = booking.status === 'completed' ? 'Completed' : booking.status === 'pending' ? 'Pending' : 'Confirmed';
-                const statusClass = booking.status === 'completed' ? 'text-secondary-container' : booking.status === 'pending' ? 'text-tertiary-fixed' : 'text-primary';
-                listItem.innerHTML = `
-                    <div>
-                        <div class="font-semibold">${booking.customer || 'You'} — ${booking.service}</div>
-                        <div class="text-caption text-on-surface-variant">${booking.date || 'TBD'} · ${booking.time || 'TBD'}</div>
-                    </div>
-                    <div class="text-caption ${statusClass}">${statusLabel}</div>
-                `;
-                recentList.appendChild(listItem);
-            });
+        /* Upcoming */
 
-            const upcomingBookings = bookings.filter((booking) => booking.status === 'upcoming');
-            const completedBookings = bookings.filter((booking) => booking.status === 'completed');
+        if (!upcomingBookings.length) {
 
-            if (!upcomingBookings.length) {
-                upcomingContent.innerHTML = '<div class="p-md rounded-lg bg-surface text-on-surface-variant">No upcoming bookings yet.</div>';
-            } else {
-                upcomingBookings.forEach((booking) => renderBookingCard(booking, upcomingContent, false));
-            }
+            upcomingContent.innerHTML = `
 
-            if (!completedBookings.length) {
-                historyContent.innerHTML = '<div class="p-md rounded-lg bg-surface text-on-surface-variant">No booking history yet.</div>';
-            } else {
-                completedBookings.forEach((booking) => renderBookingCard(booking, historyContent, true));
-            }
-        }
+                <div class="rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-7 text-center">
 
-        function updateProfileName() {
-            const currentName = localStorage.getItem(STORAGE_KEYS.profileName) || '';
-            const name = prompt('Enter your display name', currentName);
-            if (name === null) {
-                return;
-            }
-            const trimmed = name.trim();
-            if (trimmed) {
-                localStorage.setItem(STORAGE_KEYS.profileName, trimmed);
-                loadProfile();
-            }
-        }
+                    <span class="material-symbols-outlined text-3xl text-outline">
+                        event_busy
+                    </span>
 
-        function handleAvatarInput(event) {
-            const file = event.target.files && event.target.files[0];
-            if (!file) return;
-            if (!file.type.startsWith('image/')) {
-                showToast('Please choose an image file (JPG, PNG, WebP or GIF).');
-                event.target.value = '';
-                return;
-            }
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('Image must be 5 MB or smaller.');
-                event.target.value = '';
-                return;
-            }
-            // Show the new picture instantly; upload to Supabase in the background.
-            const previewUrl = URL.createObjectURL(file);
-            document.getElementById('profileAvatar').src = previewUrl;
-            document.getElementById('navAvatar').src = previewUrl;
-            postToParent('dashboard:updateAvatar', { avatarFile: file });
-        }
 
-        // Protocol with the React shell: init carries the profile from the DB,
-        // avatarSaved confirms the upload, error surfaces failures.
-        window.addEventListener('message', (event) => {
-            const msg = event.data || {};
-            if (msg.type === 'dashboard:init') {
-                const payload = msg.payload || {};
-                if (payload.name) {
-                    localStorage.setItem(STORAGE_KEYS.profileName, payload.name);
+                    <p class="mt-2 text-sm font-semibold text-on-surface">
+                        No upcoming bookings
+                    </p>
+
+
+                    <p class="mt-1 text-xs text-on-surface-variant">
+                        Your next appointment will appear here.
+                    </p>
+
+                </div>
+
+            `;
+
+        } else {
+
+            upcomingBookings.forEach(
+                booking => {
+
+                    renderBookingCard(
+                        booking,
+                        upcomingContent
+                    );
+
                 }
-                if (payload.avatarUrl) {
-                    localStorage.setItem(STORAGE_KEYS.avatar, payload.avatarUrl);
+            );
+
+        }
+
+
+        /* History */
+
+        if (!completedBookings.length) {
+
+            historyContent.innerHTML = `
+
+                <div class="rounded-xl border border-dashed border-outline-variant bg-surface-container-low p-7 text-center">
+
+                    <span class="material-symbols-outlined text-3xl text-outline">
+                        history
+                    </span>
+
+
+                    <p class="mt-2 text-sm font-semibold text-on-surface">
+                        No completed bookings yet
+                    </p>
+
+
+                    <p class="mt-1 text-xs text-on-surface-variant">
+                        Your completed appointments will appear here.
+                    </p>
+
+                </div>
+
+            `;
+
+        } else {
+
+            completedBookings.forEach(
+                booking => {
+
+                    renderBookingCard(
+                        booking,
+                        historyContent
+                    );
+
                 }
-                loadProfile();
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       TABS
+    ======================================================== */
+
+    function switchTab(tab) {
+
+        const upcomingButton =
+            document.getElementById(
+                "tab-upcoming"
+            );
+
+
+        const historyButton =
+            document.getElementById(
+                "tab-history"
+            );
+
+
+        const upcoming =
+            document.getElementById(
+                "content-upcoming"
+            );
+
+
+        const history =
+            document.getElementById(
+                "content-history"
+            );
+
+
+        if (tab === "upcoming") {
+
+            upcomingButton.classList.add(
+                "active-tab"
+            );
+
+
+            upcomingButton.classList.remove(
+                "text-on-surface-variant"
+            );
+
+
+            historyButton.classList.remove(
+                "active-tab"
+            );
+
+
+            historyButton.classList.add(
+                "text-on-surface-variant"
+            );
+
+
+            upcoming.classList.remove(
+                "hidden"
+            );
+
+
+            history.classList.add(
+                "hidden"
+            );
+
+        } else {
+
+            historyButton.classList.add(
+                "active-tab"
+            );
+
+
+            historyButton.classList.remove(
+                "text-on-surface-variant"
+            );
+
+
+            upcomingButton.classList.remove(
+                "active-tab"
+            );
+
+
+            upcomingButton.classList.add(
+                "text-on-surface-variant"
+            );
+
+
+            history.classList.remove(
+                "hidden"
+            );
+
+
+            upcoming.classList.add(
+                "hidden"
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       AVATAR
+    ======================================================== */
+
+    function handleAvatarInput(event) {
+
+        const file =
+            event.target.files &&
+            event.target.files[0];
+
+
+        if (!file) return;
+
+
+        if (!file.type.startsWith("image/")) {
+
+            showToast(
+                "Please choose an image file."
+            );
+
+
+            event.target.value = "";
+
+            return;
+
+        }
+
+
+        if (file.size > 5 * 1024 * 1024) {
+
+            showToast(
+                "Image must be 5 MB or smaller."
+            );
+
+
+            event.target.value = "";
+
+            return;
+
+        }
+
+
+        const previewUrl =
+            URL.createObjectURL(file);
+
+
+        document.getElementById(
+            "profileAvatar"
+        ).src = previewUrl;
+
+
+        postToParent(
+            "dashboard:updateAvatar",
+            {
+                avatarFile: file
             }
-            if (msg.type === 'dashboard:avatarSaved') {
-                const avatarUrl = msg.payload && msg.payload.avatarUrl;
+        );
+
+    }
+
+
+    /* ========================================================
+       NAVIGATION
+    ======================================================== */
+
+    function navigate(route) {
+
+        postToParent(
+            "navigate",
+            {
+                route
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       BUTTONS
+    ======================================================== */
+
+    function setupButtons() {
+
+        document
+            .getElementById(
+                "refreshDashboardButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    postToParent(
+                        "dashboard:refresh"
+                    )
+            );
+
+
+        document
+            .getElementById(
+                "signOutButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    postToParent(
+                        "dashboard:signOut"
+                    )
+            );
+
+
+        document
+            .getElementById(
+                "homeButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/")
+            );
+
+
+        document
+            .getElementById(
+                "dashboardNavButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/dashboard")
+            );
+
+
+        document
+            .getElementById(
+                "bookingNavButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/booking")
+            );
+
+
+        document
+            .getElementById(
+                "providersNavButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/search")
+            );
+
+
+        document
+            .getElementById(
+                "welcomeExploreButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/search")
+            );
+
+
+        document
+            .getElementById(
+                "viewAllBookingsButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/booking")
+            );
+
+
+        document
+            .getElementById(
+                "viewAllBookingsButtonBottom"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/booking")
+            );
+
+
+        document
+            .getElementById(
+                "bottomNavInbox"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/inbox")
+            );
+
+
+        document
+            .getElementById(
+                "mobileExploreButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/search")
+            );
+
+
+        document
+            .getElementById(
+                "mobileBookingsButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/booking")
+            );
+
+
+        document
+            .getElementById(
+                "mobileProfileButton"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    navigate("/profile")
+            );
+
+
+        document
+            .getElementById(
+                "profileAvatarButton"
+            )
+            ?.addEventListener(
+                "click",
+                () => {
+
+                    document
+                        .getElementById(
+                            "avatarInput"
+                        )
+                        ?.click();
+
+                }
+            );
+
+
+        document
+            .getElementById(
+                "avatarInput"
+            )
+            ?.addEventListener(
+                "change",
+                handleAvatarInput
+            );
+
+
+        document
+            .getElementById(
+                "tab-upcoming"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    switchTab("upcoming")
+            );
+
+
+        document
+            .getElementById(
+                "tab-history"
+            )
+            ?.addEventListener(
+                "click",
+                () =>
+                    switchTab("history")
+            );
+
+    }
+
+
+    /* ========================================================
+       RECEIVE DATA FROM REACT
+    ======================================================== */
+
+    window.addEventListener(
+        "message",
+        event => {
+
+            const message =
+                event.data || {};
+
+
+            /* Dashboard data */
+
+            if (
+                message.type ===
+                "dashboard:init"
+            ) {
+
+                currentPayload =
+                    message.payload || {
+                        name: "",
+                        avatarUrl: null,
+                        role: "customer",
+                        bookings: [],
+                        requests: [],
+                        offers: []
+                    };
+
+
+                currentBookings =
+                    Array.isArray(
+                        currentPayload.bookings
+                    )
+                        ? currentPayload.bookings
+                        : [];
+
+
+                renderProfile();
+
+                renderBookings();
+
+                renderOffers();
+
+                switchTab("upcoming");
+
+
+                return;
+
+            }
+
+
+            /* Offers updated */
+
+            if (
+                message.type ===
+                "dashboard:offersUpdated"
+            ) {
+
+                currentPayload.requests =
+                    Array.isArray(
+                        message.payload?.requests
+                    )
+                        ? message.payload.requests
+                        : [];
+
+
+                currentPayload.offers =
+                    Array.isArray(
+                        message.payload?.offers
+                    )
+                        ? message.payload.offers
+                        : [];
+
+
+                renderOffers();
+
+                return;
+
+            }
+
+
+            /* Avatar saved */
+
+            if (
+                message.type ===
+                "dashboard:avatarSaved"
+            ) {
+
+                const avatarUrl =
+                    message.payload?.avatarUrl;
+
+
                 if (avatarUrl) {
-                    localStorage.setItem(STORAGE_KEYS.avatar, avatarUrl);
+
+                    currentPayload.avatarUrl =
+                        avatarUrl;
+
+
+                    renderProfile();
+
                 }
-                loadProfile();
-            }
-            if (msg.type === 'dashboard:error') {
-                showToast((msg.payload && msg.payload.message) || 'Something went wrong. Please try again.');
-                loadProfile(); // restore the previous avatar
-            }
-        });
 
-        function addBooking() {
-            const provider = prompt('Provider name', 'Provider');
-            if (provider === null) return;
-            const service = prompt('Service title', 'Consultation');
-            if (service === null) return;
-            const date = prompt('Booking date', '2025-01-15');
-            if (date === null) return;
-            const time = prompt('Booking time', '10:00 AM');
-            if (time === null) return;
-            const statusPrompt = prompt('Status (upcoming, completed, pending)', 'upcoming');
-            if (statusPrompt === null) return;
 
-            const status = ['upcoming', 'completed', 'pending'].includes(statusPrompt.toLowerCase().trim()) ? statusPrompt.toLowerCase().trim() : 'upcoming';
-            const bookings = getStoredBookings();
-            bookings.push({
-                customer: 'You',
-                provider: provider.trim() || 'Provider',
-                service: service.trim() || 'Consultation',
-                date: date.trim() || 'TBD',
-                time: time.trim() || 'TBD',
-                status,
-                providerAvatar: DEFAULT_AVATAR
-            });
-            saveStoredBookings(bookings);
-            renderBookings();
+                return;
+
+            }
+
+
+            /* Error */
+
+            if (
+                message.type ===
+                "dashboard:error"
+            ) {
+
+                showToast(
+                    message.payload?.message ||
+                    "Something went wrong. Please try again."
+                );
+
+
+                return;
+
+            }
+
         }
+    );
 
-        function initDashboard() {
-            if (!localStorage.getItem(STORAGE_KEYS.bookings)) {
-                saveStoredBookings([]);
-            }
-            loadProfile();
-            renderBookings();
-            document.getElementById('profileNameButton').addEventListener('click', updateProfileName);
-            document.getElementById('profileAvatarButton').addEventListener('click', () => document.getElementById('avatarInput').click());
-            document.getElementById('avatarInput').addEventListener('change', handleAvatarInput);
-            document.getElementById('addBookingButton').addEventListener('click', addBooking);
-            document.getElementById('viewAllBookingsButton').addEventListener('click', () => switchTab('upcoming'));
-            const bottomNavInbox = document.getElementById('bottomNavInbox');
-            if (bottomNavInbox) {
-                bottomNavInbox.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    postToParent('navigate', { route: '/inbox' });
-                });
-            }
-            switchTab('upcoming');
-            // Tell the React shell the page is ready to receive the DB profile.
-            postToParent('dashboard:ready');
-        }
 
-        document.addEventListener('DOMContentLoaded', initDashboard);
-    </script>
-</body></html>
+    /* ========================================================
+       INITIALIZATION
+    ======================================================== */
+
+    function initDashboard() {
+
+        setupButtons();
+
+        switchTab("upcoming");
+
+
+        /*
+         * Tell React that the HTML dashboard
+         * has finished loading.
+         */
+
+        postToParent(
+            "dashboard:ready"
+        );
+
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initDashboard
+    );
+
+</script>
+
+</body>
+</html>
+```

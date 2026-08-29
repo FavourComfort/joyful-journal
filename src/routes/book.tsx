@@ -1,22 +1,38 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getCurrentProfile } from "@/lib/services/auth.service";
-import { getProviderById, type Provider } from "@/lib/services/providers.service";
-import { getServiceById, type Service } from "@/lib/services/services.service";
-import { createBooking } from "@/lib/services/bookings.service";
-import { createPayment, markPaymentAsPaid } from "@/lib/services/payments.service";
+import {
+  getProviderById,
+  type Provider,
+} from "@/lib/services/providers.service";
+import {
+  getServiceById,
+  type Service,
+} from "@/lib/services/services.service";
+import {
+  createBooking,
+  updateBookingStatus,
+} from "@/lib/services/bookings.service";
+import {
+  createPayment,
+  markPaymentAsPaid,
+} from "@/lib/services/payments.service";
+import { createPaymentNotifications } from "@/lib/services/notifications.service";
 
 function BookComponent() {
   const router = useRouter();
   const search = Route.useSearch();
+
   const [provider, setProvider] = useState<Provider | null>(null);
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const [bookingDate, setBookingDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [notes, setNotes] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -26,12 +42,15 @@ function BookComponent() {
     const load = async () => {
       try {
         const profile = await getCurrentProfile();
+
         if (cancelled) return;
+
         if (!profile) {
           sessionStorage.setItem(
             "authRedirect",
             `/book?providerId=${search.providerId}&serviceId=${search.serviceId}`
           );
+
           await router.navigate({ to: "/login" });
           return;
         }
@@ -54,23 +73,48 @@ function BookComponent() {
         setLoading(false);
       } catch (err) {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load booking details.");
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load booking details."
+        );
+
         setLoading(false);
       }
     };
 
     load();
+
     return () => {
       cancelled = true;
     };
   }, [router, search.providerId, search.serviceId]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
+
     if (submitting) return;
 
     if (!bookingDate || !startTime || !endTime) {
       setError("Please select a date and time range.");
+      return;
+    }
+
+    if (startTime >= endTime) {
+      setError("End time must be later than start time.");
+      return;
+    }
+
+    if (!provider) {
+      setError("Provider information is missing.");
+      return;
+    }
+
+    if (!service) {
+      setError("Service information is missing.");
       return;
     }
 
@@ -79,12 +123,17 @@ function BookComponent() {
 
     try {
       const profile = await getCurrentProfile();
+
       if (!profile) {
         setError("You must be signed in to book.");
         setSubmitting(false);
         return;
       }
 
+      /*
+       * STEP 1
+       * Create the booking.
+       */
       const booking = await createBooking(
         profile.id,
         search.providerId,
@@ -92,40 +141,129 @@ function BookComponent() {
         bookingDate,
         startTime,
         endTime,
-        service?.price || 0
+        service.price || 0
       );
 
       if (!booking) {
-        setError("We could not create your booking. Please try again.");
+        setError(
+          "We could not create your booking. Please try again."
+        );
         setSubmitting(false);
         return;
       }
 
-      // Create a payment record for the booking
+      /*
+       * STEP 2
+       * Create a payment record.
+       *
+       * This is still our mock checkout for now.
+       */
       const transactionRef = `EXP-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2, 8)
         .toUpperCase()}`;
+
       const payment = await createPayment(
         booking.id,
-        service?.price || 0,
+        profile.id,
+        search.providerId,
+        service.price || 0,
         "mock_checkout",
         transactionRef
       );
 
       if (!payment) {
-        setError("We could not process the payment. Please try again.");
+        setError(
+          "We could not process the payment. Please try again."
+        );
         setSubmitting(false);
         return;
       }
 
-      // In production, this would call a real payment gateway (Stripe, etc.)
-      // Here we simulate a successful payment.
-      await markPaymentAsPaid(payment.id, transactionRef);
+      /*
+       * STEP 3
+       * Simulate successful payment.
+       *
+       * Later this will be replaced by the real payment provider.
+       */
+      const paidPayment = await markPaymentAsPaid(
+        payment.id,
+        transactionRef
+      );
 
+      if (!paidPayment) {
+        setError(
+          "Payment could not be completed. Please try again."
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      /*
+       * STEP 4
+       * Payment succeeded, so confirm the booking.
+       */
+      const confirmedBooking = await updateBookingStatus(
+        booking.id,
+        "confirmed"
+      );
+
+      if (!confirmedBooking) {
+        setError(
+          "Payment succeeded, but we could not confirm your booking. Please contact support."
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      /*
+       * STEP 5
+       * Create notifications for BOTH sides.
+       *
+       * Customer:
+       * "Payment successful"
+       *
+       * Provider:
+       * "New booking confirmed"
+       */
+      const notificationsCreated =
+        await createPaymentNotifications({
+          customerId: profile.id,
+          providerUserId: provider.user_id,
+          bookingId: booking.id,
+          paymentId: payment.id,
+          amount: service.price || 0,
+        });
+
+      if (!notificationsCreated) {
+        /*
+         * The booking and payment are already successful.
+         *
+         * We don't want to tell the customer that their booking
+         * failed just because notification creation failed.
+         *
+         * Log it so we can fix notification permissions/RLS.
+         */
+        console.warn(
+          "Booking/payment succeeded, but one or more notifications could not be created."
+        );
+      }
+
+      /*
+       * STEP 6
+       * Everything important succeeded.
+       */
       setSuccess(true);
+      setSubmitting(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create booking.");
+      console.error("Booking error:", err);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to create booking."
+      );
+
       setSubmitting(false);
     }
   };
@@ -143,6 +281,7 @@ function BookComponent() {
       <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff]">
         <div className="max-w-md px-4 text-center">
           <p className="mb-4 text-red-600">{error}</p>
+
           <button
             onClick={() => router.navigate({ to: "/search" })}
             className="rounded-xl bg-[#003d9b] px-6 py-3 text-sm font-semibold text-white"
@@ -159,26 +298,35 @@ function BookComponent() {
       <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff]">
         <div className="max-w-md rounded-xl border border-[#e8edff] bg-white p-8 text-center shadow-sm">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-            <span className="material-symbols-outlined text-3xl text-green-600">check_circle</span>
+            <span className="material-symbols-outlined text-3xl text-green-600">
+              check_circle
+            </span>
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-[#041b3c]">Booking Confirmed!</h2>
+
+          <h2 className="mb-2 text-2xl font-bold text-[#041b3c]">
+            Booking Confirmed!
+          </h2>
+
           <p className="mb-6 text-[#434654]">
-            Your booking with {provider?.business_name} has been created. The provider will confirm shortly.
+            Your booking with {provider?.business_name} has been
+            confirmed and your payment was successful.
           </p>
+
           <div className="flex flex-col gap-2">
-             <button
-               onClick={() => router.navigate({ to: "/" })}
-               className="w-full rounded-xl border border-[#c3c6d6] px-6 py-3 text-sm font-semibold text-[#434654] hover:bg-[#f1f3ff]"
-             >
-               Back to Home
-             </button>
-           </div>
+            <button
+              onClick={() => router.navigate({ to: "/" })}
+              className="w-full rounded-xl border border-[#c3c6d6] px-6 py-3 text-sm font-semibold text-[#434654] hover:bg-[#f1f3ff]"
+            >
+              Back to Home
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  const fallbackImage = "/images/dashboard-default-avatar.png";
+  const fallbackImage =
+    "/images/dashboard-default-avatar.png";
 
   return (
     <div className="min-h-screen bg-[#f9f9ff] text-[#041b3c]">
@@ -191,12 +339,20 @@ function BookComponent() {
               className="rounded-lg p-1 text-[#003d9b] hover:bg-[#f1f3ff]"
               aria-label="Back to home"
             >
-              <span className="material-symbols-outlined">arrow_back</span>
+              <span className="material-symbols-outlined">
+                arrow_back
+              </span>
             </button>
-            <span className="text-2xl font-bold text-[#003d9b]">ExpertHub</span>
+
+            <span className="text-2xl font-bold text-[#003d9b]">
+              ExpertHub
+            </span>
           </div>
+
           <div className="hidden items-center gap-6 md:flex">
-            <span className="text-sm font-semibold text-[#434654]">Step 2 of 3: Schedule</span>
+            <span className="text-sm font-semibold text-[#434654]">
+              Step 2 of 3: Schedule
+            </span>
           </div>
         </nav>
       </header>
@@ -210,24 +366,40 @@ function BookComponent() {
               <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg">
                 <img
                   className="h-full w-full object-cover"
-                  src={provider?.profile_picture_url || fallbackImage}
+                  src={
+                    provider?.profile_picture_url ||
+                    fallbackImage
+                  }
                   alt={provider?.business_name}
                 />
               </div>
+
               <div>
-                <h2 className="text-lg font-bold text-[#003d9b]">{service?.title}</h2>
-                <p className="text-sm text-[#434654]">with {provider?.business_name}</p>
+                <h2 className="text-lg font-bold text-[#003d9b]">
+                  {service?.title}
+                </h2>
+
+                <p className="text-sm text-[#434654]">
+                  with {provider?.business_name}
+                </p>
               </div>
             </div>
 
             {/* Date Selection */}
             <div className="rounded-xl border border-[#e8edff] bg-white p-4 shadow-sm">
-              <h3 className="mb-4 text-lg font-bold">Select a Date</h3>
+              <h3 className="mb-4 text-lg font-bold">
+                Select a Date
+              </h3>
+
               <input
                 type="date"
                 value={bookingDate}
-                onChange={(e) => setBookingDate(e.target.value)}
-                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setBookingDate(e.target.value)
+                }
+                min={new Date()
+                  .toISOString()
+                  .split("T")[0]}
                 className="w-full rounded-lg border border-[#c3c6d6] px-4 py-2 focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
                 required
               />
@@ -235,45 +407,67 @@ function BookComponent() {
 
             {/* Time Selection */}
             <div className="rounded-xl border border-[#e8edff] bg-white p-4 shadow-sm">
-              <h3 className="mb-4 text-lg font-bold">Select Time</h3>
+              <h3 className="mb-4 text-lg font-bold">
+                Select Time
+              </h3>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-[#434654]">Start Time</label>
+                  <label className="mb-1 block text-sm font-semibold text-[#434654]">
+                    Start Time
+                  </label>
+
                   <input
                     type="time"
                     value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
+                    onChange={(e) =>
+                      setStartTime(e.target.value)
+                    }
                     className="w-full rounded-lg border border-[#c3c6d6] px-4 py-2 focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
                     required
                   />
                 </div>
+
                 <div>
-                  <label className="mb-1 block text-sm font-semibold text-[#434654]">End Time</label>
+                  <label className="mb-1 block text-sm font-semibold text-[#434654]">
+                    End Time
+                  </label>
+
                   <input
                     type="time"
                     value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
+                    onChange={(e) =>
+                      setEndTime(e.target.value)
+                    }
                     className="w-full rounded-lg border border-[#c3c6d6] px-4 py-2 focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
                     required
                   />
                 </div>
               </div>
+
               {service?.duration_minutes && (
                 <p className="mt-2 text-sm text-[#434654]">
-                  Suggested duration: {service.duration_minutes} minutes
+                  Suggested duration:{" "}
+                  {service.duration_minutes} minutes
                 </p>
               )}
             </div>
 
             {/* Notes */}
             <div className="rounded-xl border border-[#e8edff] bg-white p-4 shadow-sm">
-              <label className="mb-2 block text-sm font-semibold text-[#434654]" htmlFor="notes">
+              <label
+                className="mb-2 block text-sm font-semibold text-[#434654]"
+                htmlFor="notes"
+              >
                 Special Notes or Requests
               </label>
+
               <textarea
                 id="notes"
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) =>
+                  setNotes(e.target.value)
+                }
                 placeholder="e.g. Please focus on our Q4 scaling roadmap and potential bottlenecks..."
                 rows={4}
                 className="w-full resize-none rounded-lg border border-[#c3c6d6] px-4 py-2 focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
@@ -285,86 +479,162 @@ function BookComponent() {
           <div className="lg:col-span-5">
             <div className="sticky top-20 space-y-4">
               <div className="rounded-xl border border-[#e8edff] bg-[#e8edff] p-4 shadow-sm md:p-6">
-                <h3 className="mb-4 text-xl font-bold text-[#003d9b]">Booking Summary</h3>
+                <h3 className="mb-4 text-xl font-bold text-[#003d9b]">
+                  Booking Summary
+                </h3>
+
                 <div className="mb-4 space-y-3 border-b border-[#c3c6d6] pb-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-bold">{service?.title}</p>
+                      <p className="text-sm font-bold">
+                        {service?.title}
+                      </p>
+
                       <p className="text-xs text-[#434654]">
-                        {service?.duration_minutes ? `${service.duration_minutes}-minute session` : "Service"}
+                        {service?.duration_minutes
+                          ? `${service.duration_minutes}-minute session`
+                          : "Service"}
                       </p>
                     </div>
+
                     <span className="text-sm font-bold">
-                      UGX {Number(service?.price || 0).toLocaleString()}
+                      UGX{" "}
+                      {Number(
+                        service?.price || 0
+                      ).toLocaleString()}
                     </span>
                   </div>
+
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-bold">Platform Fee</p>
-                      <p className="text-xs text-[#434654]">Secure processing & support</p>
+                      <p className="text-sm font-bold">
+                        Platform Fee
+                      </p>
+
+                      <p className="text-xs text-[#434654]">
+                        Secure processing & support
+                      </p>
                     </div>
-                    <span className="text-sm font-bold">UGX 0</span>
+
+                    <span className="text-sm font-bold">
+                      UGX 0
+                    </span>
                   </div>
                 </div>
+
                 <div className="mb-6 flex items-center justify-between">
-                  <p className="text-lg font-extrabold">Total</p>
+                  <p className="text-lg font-extrabold">
+                    Total
+                  </p>
+
                   <span className="text-2xl font-bold text-[#003d9b]">
-                    UGX {Number(service?.price || 0).toLocaleString()}
+                    UGX{" "}
+                    {Number(
+                      service?.price || 0
+                    ).toLocaleString()}
                   </span>
                 </div>
+
                 <div className="mb-6 space-y-2 text-xs text-[#434654]">
                   {bookingDate && (
                     <div className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[#003d9b]" style={{ fontSize: 20 }}>
+                      <span
+                        className="material-symbols-outlined text-[#003d9b]"
+                        style={{ fontSize: 20 }}
+                      >
                         event_available
                       </span>
+
                       <span>
-                        {new Date(bookingDate + "T00:00:00").toLocaleDateString(undefined, {
+                        {new Date(
+                          bookingDate + "T00:00:00"
+                        ).toLocaleDateString(undefined, {
                           weekday: "long",
                           month: "long",
                           day: "numeric",
                           year: "numeric",
                         })}
-                        {startTime && ` at ${startTime}`}
+
+                        {startTime &&
+                          ` at ${startTime}`}
                       </span>
                     </div>
                   )}
+
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#003d9b]" style={{ fontSize: 20 }}>
+                    <span
+                      className="material-symbols-outlined text-[#003d9b]"
+                      style={{ fontSize: 20 }}
+                    >
                       lock
                     </span>
-                    <span>Secure SSL Encrypted Checkout</span>
+
+                    <span>
+                      Secure SSL Encrypted Checkout
+                    </span>
                   </div>
                 </div>
+
                 <form onSubmit={handleSubmit}>
                   <button
                     type="submit"
                     disabled={submitting}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#003d9b] py-3 font-extrabold text-white shadow-lg transition-all hover:bg-[#0052cc] active:scale-[0.98] disabled:opacity-50"
                   >
-                    {submitting ? "Creating Booking..." : "Confirm Booking"}
-                    <span className="material-symbols-outlined">arrow_forward</span>
+                    {submitting
+                      ? "Creating Booking..."
+                      : "Confirm Booking"}
+
+                    <span className="material-symbols-outlined">
+                      arrow_forward
+                    </span>
                   </button>
                 </form>
-                {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
+
+                {error && (
+                  <p className="mt-3 text-center text-sm text-red-600">
+                    {error}
+                  </p>
+                )}
+
                 <p className="mt-3 text-center text-xs text-[#434654]">
-                  By clicking confirm, you agree to the Terms of Service.
+                  By clicking confirm, you agree to the
+                  Terms of Service.
                 </p>
               </div>
 
               {/* Trust Indicators */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex items-center gap-2 rounded-lg border border-[#e8edff] bg-white p-2">
-                  <span className="material-symbols-outlined text-[#5e3c00]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  <span
+                    className="material-symbols-outlined text-[#5e3c00]"
+                    style={{
+                      fontVariationSettings:
+                        "'FILL' 1",
+                    }}
+                  >
                     verified_user
                   </span>
-                  <span className="text-xs font-bold">Guaranteed</span>
+
+                  <span className="text-xs font-bold">
+                    Guaranteed
+                  </span>
                 </div>
+
                 <div className="flex items-center gap-2 rounded-lg border border-[#e8edff] bg-white p-2">
-                  <span className="material-symbols-outlined text-[#5e3c00]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  <span
+                    className="material-symbols-outlined text-[#5e3c00]"
+                    style={{
+                      fontVariationSettings:
+                        "'FILL' 1",
+                    }}
+                  >
                     workspace_premium
                   </span>
-                  <span className="text-xs font-bold">Top Provider</span>
+
+                  <span className="text-xs font-bold">
+                    Top Provider
+                  </span>
                 </div>
               </div>
             </div>
@@ -376,10 +646,20 @@ function BookComponent() {
 }
 
 export const Route = createFileRoute("/book")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (
+    search: Record<string, unknown>
+  ) => ({
     providerId: String(search.providerId || ""),
     serviceId: String(search.serviceId || ""),
   }),
-  head: () => ({ meta: [{ title: "Book Service | ExpertHub" }] }),
+
+  head: () => ({
+    meta: [
+      {
+        title: "Book Service | ExpertHub",
+      },
+    ],
+  }),
+
   component: BookComponent,
 });

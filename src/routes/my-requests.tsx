@@ -27,6 +27,7 @@ function MyRequestsComponent() {
   const [offers, setOffers] = useState<Record<string, OfferWithProvider[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -92,13 +93,33 @@ function MyRequestsComponent() {
   };
 
   const handleAccept = async (offerId: string) => {
-    const ok = await acceptOffer(offerId);
-    if (ok) await refresh();
+    setActionError(null);
+    try {
+      const ok = await acceptOffer(offerId);
+      if (!ok) {
+        setActionError("Could not accept this offer. Please try again.");
+        return;
+      }
+      await refresh();
+    } catch (err) {
+      console.error("Error accepting offer:", err);
+      setActionError("Could not accept this offer. Please try again.");
+    }
   };
 
   const handleDecline = async (offerId: string) => {
-    const ok = await declineOffer(offerId);
-    if (ok) await refresh();
+    setActionError(null);
+    try {
+      const ok = await declineOffer(offerId);
+      if (!ok) {
+        setActionError("Could not decline this offer. Please try again.");
+        return;
+      }
+      await refresh();
+    } catch (err) {
+      console.error("Error declining offer:", err);
+      setActionError("Could not decline this offer. Please try again.");
+    }
   };
 
   if (loading) {
@@ -153,6 +174,15 @@ function MyRequestsComponent() {
 
       <main className="mx-auto w-full max-w-[960px] px-4 py-8 md:px-16">
         <h1 className="mb-6 text-3xl font-bold">My Requests</h1>
+
+        {actionError && (
+          <div
+            role="alert"
+            className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            {actionError}
+          </div>
+        )}
 
         {requests.length === 0 ? (
           <div className="rounded-xl border border-dashed border-[#c3c6d6] bg-white p-10 text-center">

@@ -181,7 +181,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     const pendingVerification = providerRows.filter((p) => !p.verified).length;
     const verifiedProviders = providerRows.filter((p) => p.verified).length;
 
-    const allOffers = (offers.data || []) as ProviderOffer[];
+    const allOffers = (offers.data || []) as Array<Pick<ProviderOffer, 'id' | 'status'>>;
     const allBookings = (bookings.data || []) as Booking[];
     const pendingOffers = allOffers.filter((o) => (o.status || 'pending') === 'pending').length;
     const pendingBookings = allBookings.filter((b) => b.status === 'pending').length;
