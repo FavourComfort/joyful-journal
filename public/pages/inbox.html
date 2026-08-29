@@ -1,353 +1,1783 @@
 <!DOCTYPE html>
-<html class="scroll-smooth" lang="en">
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Inbox | ExpertHub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+
+    <!-- Material Icons -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1,wght@100..700&display=swap"
+        rel="stylesheet"
+    />
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script id="tailwind-config">
+
+    <script>
         tailwind.config = {
-            darkMode: "class",
             theme: {
                 extend: {
-                    "colors": {
-                        "on-primary": "#ffffff",
-                        "background": "#f9f9ff",
-                        "outline": "#737685",
-                        "primary-fixed": "#dae2ff",
-                        "on-secondary-fixed": "#191c1e",
-                        "surface": "#f9f9ff",
-                        "secondary-container": "#dee0e2",
-                        "on-tertiary-fixed-variant": "#624000",
-                        "on-secondary": "#ffffff",
-                        "on-error": "#ffffff",
-                        "primary-container": "#0052cc",
-                        "on-background": "#041b3c",
-                        "secondary-fixed-dim": "#c5c6c8",
-                        "on-error-container": "#93000a",
-                        "surface-container": "#e8edff",
-                        "tertiary": "#5e3c00",
-                        "outline-variant": "#c3c6d6",
-                        "tertiary-fixed": "#ffddb3",
-                        "on-primary-container": "#c4d2ff",
-                        "surface-container-highest": "#d7e2ff",
-                        "on-tertiary-fixed": "#291800",
-                        "secondary": "#5c5f60",
-                        "inverse-primary": "#b2c5ff",
-                        "secondary-fixed": "#e1e2e4",
-                        "surface-container-low": "#f1f3ff",
-                        "inverse-on-surface": "#edf0ff",
-                        "primary-fixed-dim": "#b2c5ff",
-                        "primary": "#003d9b",
-                        "surface-container-high": "#e0e8ff",
-                        "surface-bright": "#f9f9ff",
-                        "error-container": "#ffdad6",
-                        "inverse-surface": "#1d3052",
-                        "on-secondary-fixed-variant": "#444749",
-                        "tertiary-fixed-dim": "#ffb950",
-                        "tertiary-container": "#7d5200",
-                        "error": "#ba1a1a",
-                        "surface-variant": "#d7e2ff",
-                        "surface-dim": "#cadaff",
-                        "surface-container-lowest": "#ffffff",
-                        "on-surface-variant": "#434654",
-                        "on-tertiary-container": "#ffca81",
-                        "on-primary-fixed-variant": "#0040a2",
-                        "on-tertiary": "#ffffff",
-                        "on-secondary-container": "#606365",
-                        "surface-tint": "#0c56d0",
-                        "on-primary-fixed": "#001848",
-                        "on-surface": "#041b3c"
+                    colors: {
+                        primary: "#003d9b",
+                        primaryDark: "#002d73",
+                        primarySoft: "#eef3ff",
+                        page: "#f6f8fc",
+                        ink: "#071a35",
+                        muted: "#667085",
+                        border: "#e6eaf0"
                     },
-                    "borderRadius": {
-                        "DEFAULT": "0.125rem",
-                        "lg": "0.25rem",
-                        "xl": "0.5rem",
-                        "full": "0.75rem"
+
+                    fontFamily: {
+                        display: ["Hanken Grotesk"],
+                        body: ["Inter"]
                     },
-                    "spacing": {
-                        "base": "8px",
-                        "margin-desktop": "64px",
-                        "margin-mobile": "16px",
-                        "md": "24px",
-                        "xl": "80px",
-                        "lg": "48px",
-                        "xs": "4px",
-                        "gutter": "24px",
-                        "sm": "12px"
-                    },
-                    "fontFamily": {
-                        "display-lg-mobile": ["Hanken Grotesk"],
-                        "headline-md": ["Hanken Grotesk"],
-                        "body-md": ["Inter"],
-                        "label-sm": ["Inter"],
-                        "display-lg": ["Hanken Grotesk"],
-                        "body-lg": ["Inter"],
-                        "caption": ["Inter"]
-                    },
-                    "fontSize": {
-                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
-                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
-                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                        "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}]
+
+                    boxShadow: {
+                        soft: "0 4px 20px rgba(15, 23, 42, 0.06)",
+                        card: "0 8px 30px rgba(15, 23, 42, 0.07)"
                     }
-                },
-            },
-        }
+                }
+            }
+        };
     </script>
+
     <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            display: inline-block;
-            line-height: 1;
-            text-transform: none;
-            letter-spacing: normal;
-            word-wrap: normal;
-            white-space: nowrap;
-            direction: ltr;
+        * {
+            box-sizing: border-box;
         }
+
+        html,
         body {
-            background-color: #f9f9ff;
-            color: #041b3c;
+            margin: 0;
+            min-height: 100%;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(223, 225, 230, 0.5);
+
+        body {
+            background: #f6f8fc;
+            color: #071a35;
+            font-family: Inter, sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings:
+                "FILL" 0,
+                "wght" 400,
+                "GRAD" 0,
+                "opsz" 24;
+
+            line-height: 1;
+        }
+
+        .conversation-item {
+            transition:
+                background-color 0.18s ease,
+                border-color 0.18s ease;
+        }
+
+        .conversation-item:hover {
+            background: #f7f9fd;
+        }
+
+        .conversation-item.active {
+            background: #eef3ff;
+            border-left: 3px solid #003d9b;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #d6dce6;
+            border-radius: 999px;
+        }
+
+        .message-bubble {
+            max-width: 72%;
+        }
+
+        @media (max-width: 767px) {
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            #conversationPanel {
+                display: none;
+            }
+
+            #conversationPanel.mobile-open {
+                display: flex;
+                width: 100%;
+            }
+
+            #conversationListPanel.mobile-hidden {
+                display: none;
+            }
         }
     </style>
 </head>
-<body class="font-body-md text-body-md overflow-x-hidden">
-    <!-- Header -->
-    <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
-        <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto">
-            <div class="flex items-center gap-base cursor-pointer" data-nav="home">
-                <span class="material-symbols-outlined text-primary">home</span>
-                <span class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed-dim">ExpertHub</span>
-            </div>
-            <button class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="home">
-                Home
-            </button>
-        </nav>
-    </header>
 
-    <main class="min-h-screen pt-xl pb-xl px-margin-mobile md:px-margin-desktop">
-        <div class="max-w-2xl mx-auto">
-            <!-- Error Box -->
-            <div id="errorBox" class="hidden mb-md bg-error-container text-on-error-container px-md py-sm rounded-xl font-body-md"></div>
+<body>
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="sticky top-0 z-50 h-[72px] border-b border-border bg-white">
+
+    <nav class="mx-auto flex h-full max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-8">
+
+        <button
+            id="homeButton"
+            type="button"
+            class="flex items-center gap-2.5"
+            aria-label="Go home"
+        >
+            <span class="material-symbols-outlined text-primary">
+                home
+            </span>
+
+            <span class="font-display text-xl font-extrabold tracking-tight text-primary">
+                ExpertHub
+            </span>
+        </button>
+
+
+        <div class="flex items-center gap-2">
+
+            <button
+                id="bookingButton"
+                type="button"
+                class="hidden rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-primary sm:inline-flex"
+            >
+                Bookings
+            </button>
+
+
+            <button
+                id="profileButton"
+                type="button"
+                class="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-white text-slate-600 transition hover:bg-primarySoft hover:text-primary"
+                aria-label="Profile"
+            >
+                <span class="material-symbols-outlined">
+                    person
+                </span>
+            </button>
+
+        </div>
+
+    </nav>
+
+</header>
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main class="mx-auto max-w-[1400px] px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
+
+    <!-- Error -->
+    <div
+        id="errorBox"
+        class="mb-4 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+    ></div>
+
+
+    <!-- =====================================================
+         INBOX APPLICATION
+    ====================================================== -->
+
+    <section
+        class="flex h-[calc(100vh-112px)] min-h-[600px] overflow-hidden rounded-2xl border border-border bg-white shadow-card"
+    >
+
+        <!-- =================================================
+             LEFT: CONVERSATIONS
+        ================================================== -->
+
+        <aside
+            id="conversationListPanel"
+            class="flex w-full flex-col border-r border-border md:w-[360px] lg:w-[390px]"
+        >
+
+            <!-- Heading -->
+            <div class="border-b border-border px-5 pb-4 pt-5">
+
+                <div class="flex items-center justify-between">
+
+                    <div>
+                        <h1 class="font-display text-2xl font-extrabold tracking-tight text-ink">
+                            Messages
+                        </h1>
+
+                        <p
+                            id="inboxGreeting"
+                            class="mt-1 text-sm text-muted"
+                        >
+                            Your conversations
+                        </p>
+                    </div>
+
+
+                    <button
+                        id="newMessageButton"
+                        type="button"
+                        class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition hover:bg-primaryDark"
+                        aria-label="New message"
+                    >
+                        <span class="material-symbols-outlined">
+                            edit
+                        </span>
+                    </button>
+
+                </div>
+
+
+                <!-- Search -->
+                <div class="relative mt-5">
+
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-slate-400">
+                        search
+                    </span>
+
+                    <input
+                        id="searchInput"
+                        type="search"
+                        placeholder="Search conversations..."
+                        autocomplete="off"
+                        class="w-full rounded-xl border border-border bg-slate-50 py-3 pl-10 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10"
+                    />
+
+                </div>
+
+
+                <!-- Filters -->
+                <div class="mt-4 flex items-center gap-2">
+
+                    <button
+                        type="button"
+                        class="filter-button active rounded-full bg-primary px-3 py-1.5 text-xs font-bold text-white"
+                        data-filter="all"
+                    >
+                        All
+                    </button>
+
+                    <button
+                        type="button"
+                        class="filter-button rounded-full px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100"
+                        data-filter="unread"
+                    >
+                        Unread
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- Conversation list -->
+            <div
+                id="interactionsList"
+                class="scrollbar-thin flex-1 overflow-y-auto"
+            ></div>
+
 
             <!-- Loading -->
-            <div id="loading" class="flex flex-col items-center justify-center py-xl text-on-surface-variant">
-                <div class="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin mb-md"></div>
-                <p class="font-body-md">Loading your inbox…</p>
+            <div
+                id="loading"
+                class="flex flex-1 flex-col items-center justify-center"
+            >
+
+                <div class="h-8 w-8 animate-spin rounded-full border-4 border-primarySoft border-t-primary"></div>
+
+                <p class="mt-3 text-sm font-medium text-muted">
+                    Loading conversations...
+                </p>
+
             </div>
 
-            <!-- Content -->
-            <div id="inboxContent" class="hidden">
-                <div class="glass-card rounded-xl shadow-sm p-lg mb-lg">
-                    <div class="flex items-center gap-md">
-                        <div class="w-12 h-12 rounded-full bg-primary-container/10 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-primary" style="font-size:26px">forum</span>
-                        </div>
-                        <div>
-                            <h1 class="font-headline-md text-headline-md text-on-background">Inbox</h1>
-                            <p id="inboxGreeting" class="text-on-surface-variant font-body-md"></p>
-                        </div>
-                    </div>
+
+            <!-- Empty -->
+            <div
+                id="emptyState"
+                class="hidden flex flex-1 flex-col items-center justify-center px-8 text-center"
+            >
+
+                <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-primarySoft text-primary">
+
+                    <span
+                        id="emptyIcon"
+                        class="material-symbols-outlined text-[30px]"
+                    >
+                        forum
+                    </span>
+
                 </div>
 
-                <!-- Conversations list -->
-                <div id="interactionsList" class="space-y-sm"></div>
 
-                <!-- Empty state -->
-                <div id="emptyState" class="hidden">
-                    <div class="bg-surface-container-low rounded-xl p-lg text-center shadow-sm">
-                        <div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mx-auto mb-md">
-                            <span class="material-symbols-outlined text-primary" style="font-size:32px" id="emptyIcon">forum</span>
-                        </div>
-                        <h2 id="emptyTitle" class="font-headline-md text-headline-md text-on-background mb-sm">No conversations yet</h2>
-                        <p id="emptyText" class="text-on-surface-variant font-body-md mb-lg max-w-sm mx-auto"></p>
-                        <button id="emptyCta" class="bg-primary text-on-primary px-md py-md rounded-xl font-label-sm text-label-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer">
-                            Explore providers
+                <h2
+                    id="emptyTitle"
+                    class="mt-5 font-display text-xl font-bold text-ink"
+                >
+                    No conversations yet
+                </h2>
+
+
+                <p
+                    id="emptyText"
+                    class="mt-2 max-w-xs text-sm leading-6 text-muted"
+                >
+                    Your conversations will appear here.
+                </p>
+
+
+                <button
+                    id="emptyCta"
+                    type="button"
+                    class="mt-5 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition hover:bg-primaryDark"
+                >
+                    Explore providers
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =================================================
+             RIGHT: CONVERSATION
+        ================================================== -->
+
+        <section
+            id="conversationPanel"
+            class="flex flex-1 flex-col bg-white"
+        >
+
+            <!-- No conversation selected -->
+            <div
+                id="conversationEmpty"
+                class="flex flex-1 flex-col items-center justify-center px-8 text-center"
+            >
+
+                <div class="flex h-20 w-20 items-center justify-center rounded-3xl bg-primarySoft text-primary">
+
+                    <span class="material-symbols-outlined text-[38px]">
+                        forum
+                    </span>
+
+                </div>
+
+
+                <h2 class="mt-6 font-display text-2xl font-bold text-ink">
+                    Your messages live here
+                </h2>
+
+
+                <p class="mt-2 max-w-md text-sm leading-6 text-muted">
+                    Select a conversation to see your messages, discuss a service, or connect with a customer.
+                </p>
+
+
+                <div class="mt-7 flex flex-wrap justify-center gap-3">
+
+                    <div class="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600">
+
+                        <span class="material-symbols-outlined text-[18px] text-primary">
+                            lock
+                        </span>
+
+                        Private conversations
+
+                    </div>
+
+
+                    <div class="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600">
+
+                        <span class="material-symbols-outlined text-[18px] text-primary">
+                            verified
+                        </span>
+
+                        Trusted professionals
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Actual conversation -->
+            <div
+                id="conversationContent"
+                class="hidden h-full flex-col"
+            >
+
+                <!-- Conversation header -->
+                <div class="flex items-center justify-between border-b border-border px-4 py-4 sm:px-6">
+
+                    <div class="flex min-w-0 items-center gap-3">
+
+                        <button
+                            id="backToConversations"
+                            type="button"
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 md:hidden"
+                            aria-label="Back to conversations"
+                        >
+                            <span class="material-symbols-outlined">
+                                arrow_back
+                            </span>
                         </button>
+
+
+                        <div class="relative shrink-0">
+
+                            <img
+                                id="conversationAvatar"
+                                class="h-11 w-11 rounded-full object-cover"
+                                src="/images/dashboard-default-avatar.png"
+                                alt=""
+                            />
+
+                            <span
+                                id="onlineDot"
+                                class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500"
+                            ></span>
+
+                        </div>
+
+
+                        <div class="min-w-0">
+
+                            <h2
+                                id="conversationName"
+                                class="truncate font-display text-base font-bold text-ink"
+                            >
+                                Conversation
+                            </h2>
+
+
+                            <p
+                                id="conversationSubtitle"
+                                class="mt-0.5 text-xs text-muted"
+                            >
+                                Active conversation
+                            </p>
+
+                        </div>
+
                     </div>
+
+
+                    <div class="flex items-center gap-1">
+
+                        <button
+                            id="conversationInfoButton"
+                            type="button"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-primary"
+                            aria-label="Conversation information"
+                        >
+                            <span class="material-symbols-outlined">
+                                info
+                            </span>
+                        </button>
+
+
+                        <button
+                            id="conversationMoreButton"
+                            type="button"
+                            class="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-primary"
+                            aria-label="More options"
+                        >
+                            <span class="material-symbols-outlined">
+                                more_vert
+                            </span>
+                        </button>
+
+                    </div>
+
                 </div>
+
+
+                <!-- Messages -->
+                <div
+                    id="messagesArea"
+                    class="scrollbar-thin flex-1 overflow-y-auto bg-[#fbfcfe] px-4 py-6 sm:px-8"
+                ></div>
+
+
+                <!-- Composer -->
+                <div class="border-t border-border bg-white p-3 sm:p-4">
+
+                    <div class="flex items-end gap-2 rounded-2xl border border-border bg-slate-50 p-2 focus-within:border-primary focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/10">
+
+                        <button
+                            id="attachButton"
+                            type="button"
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-primary"
+                            aria-label="Attach file"
+                        >
+                            <span class="material-symbols-outlined">
+                                attach_file
+                            </span>
+                        </button>
+
+
+                        <textarea
+                            id="messageInput"
+                            rows="1"
+                            placeholder="Write a message..."
+                            class="max-h-32 min-h-[40px] flex-1 resize-none border-0 bg-transparent px-1 py-2 text-sm outline-none focus:ring-0"
+                        ></textarea>
+
+
+                        <button
+                            id="sendButton"
+                            type="button"
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition hover:bg-primaryDark disabled:cursor-not-allowed disabled:opacity-40"
+                            aria-label="Send message"
+                            disabled
+                        >
+                            <span class="material-symbols-outlined">
+                                send
+                            </span>
+                        </button>
+
+                    </div>
+
+
+                    <p class="mt-2 px-1 text-[11px] text-slate-400">
+                        Keep conversations respectful and never share sensitive account information.
+                    </p>
+
+                </div>
+
             </div>
-        </div>
-    </main>
 
-    <!-- Footer -->
-    <footer class="bg-surface-container-low mt-xl py-lg border-t border-outline-variant">
-        <div class="max-w-1440 mx-auto px-margin-mobile md:px-margin-desktop">
-            <p class="text-center text-caption text-on-surface-variant">© 2024 ExpertHub. All rights reserved.</p>
-        </div>
-    </footer>
+        </section>
 
-    <script>
-        const navMap = {
-            'home': '/',
-        };
+    </section>
 
-        function navigate(route) {
-            window.parent.postMessage({ type: 'navigate', route }, '*');
+</main>
+
+
+<script>
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let currentPayload = null;
+let selectedConversation = null;
+let activeFilter = "all";
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const $ = (selector) => document.querySelector(selector);
+
+
+function navigate(route) {
+
+    window.parent.postMessage(
+        {
+            type: "navigate",
+            route
+        },
+        "*"
+    );
+
+}
+
+
+function postToParent(type, payload = {}) {
+
+    window.parent.postMessage(
+        {
+            type,
+            payload
+        },
+        "*"
+    );
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "").replace(
+        /[&<>"']/g,
+        character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]
+    );
+
+}
+
+
+function initials(name) {
+
+    const parts = String(name || "?")
+        .trim()
+        .split(/\s+/);
+
+    return (
+        ((parts[0] || "")[0] || "") +
+        ((parts[1] || "")[0] || "")
+    ).toUpperCase();
+
+}
+
+
+function formatDate(value) {
+
+    if (!value) return "";
+
+    const date = new Date(
+        `${String(value)}T00:00:00`
+    );
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return date.toLocaleDateString(
+        undefined,
+        {
+            month: "short",
+            day: "numeric"
+        }
+    );
+
+}
+
+
+function formatTime(value) {
+
+    if (!value) return "";
+
+    const [hours, minutes] =
+        String(value)
+            .split(":")
+            .map(Number);
+
+    if (
+        Number.isNaN(hours) ||
+        Number.isNaN(minutes)
+    ) {
+        return value;
+    }
+
+    const date = new Date(
+        2000,
+        0,
+        1,
+        hours,
+        minutes
+    );
+
+    return date.toLocaleTimeString(
+        undefined,
+        {
+            hour: "numeric",
+            minute: "2-digit"
+        }
+    );
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+const STATUS_MAP = {
+
+    pending: {
+        label: "Pending",
+        className: "bg-amber-50 text-amber-700"
+    },
+
+    confirmed: {
+        label: "Confirmed",
+        className: "bg-blue-50 text-blue-700"
+    },
+
+    completed: {
+        label: "Completed",
+        className: "bg-emerald-50 text-emerald-700"
+    },
+
+    cancelled: {
+        label: "Cancelled",
+        className: "bg-red-50 text-red-700"
+    }
+
+};
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+function showError(message) {
+
+    const box = $("#errorBox");
+
+    if (!box) return;
+
+    box.textContent =
+        message ||
+        "Something went wrong.";
+
+    box.classList.remove("hidden");
+
+}
+
+
+/* =========================================================
+   CONVERSATION LIST
+========================================================= */
+
+function renderConversationList() {
+
+    const list = $("#interactionsList");
+    const empty = $("#emptyState");
+    const loading = $("#loading");
+
+    if (!list || !empty || !loading) return;
+
+    loading.classList.add("hidden");
+
+    list.innerHTML = "";
+
+    let conversations =
+        currentPayload?.interactions || [];
+
+
+    if (activeFilter === "unread") {
+
+        conversations =
+            conversations.filter(
+                item => item.unread === true
+            );
+
+    }
+
+
+    if (!conversations.length) {
+
+        list.classList.add("hidden");
+
+        empty.classList.remove("hidden");
+
+        configureEmptyState();
+
+        return;
+
+    }
+
+
+    list.classList.remove("hidden");
+
+    empty.classList.add("hidden");
+
+
+    conversations.forEach(item => {
+
+        const card =
+            document.createElement("button");
+
+        card.type = "button";
+
+        card.className =
+            "conversation-item flex w-full items-center gap-3 border-b border-border px-4 py-4 text-left";
+
+
+        if (
+            selectedConversation &&
+            selectedConversation.id === item.id
+        ) {
+
+            card.classList.add("active");
+
         }
 
-        function postToParent(type, payload) {
-            window.parent.postMessage({ type, payload }, '*');
-        }
 
-        const $ = (sel) => document.querySelector(sel);
+        const avatarHtml =
+            item.avatarUrl
+                ? `
+                    <img
+                        src="${escapeHtml(item.avatarUrl)}"
+                        alt="${escapeHtml(item.name || "Contact")}"
+                        class="h-12 w-12 shrink-0 rounded-full object-cover"
+                    />
+                `
+                : `
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primarySoft text-sm font-bold text-primary">
+                        ${escapeHtml(initials(item.name))}
+                    </div>
+                `;
 
-        const STATUS_MAP = {
-            pending: ['bg-[#fef3c7] text-[#92400e]', 'Pending'],
-            confirmed: ['bg-[#dbeafe] text-[#1e40af]', 'Confirmed'],
-            completed: ['bg-[#dcfce7] text-[#166534]', 'Completed'],
-            cancelled: ['bg-[#fee2e2] text-[#991b1b]', 'Cancelled'],
-        };
 
-        function statusBadge(status) {
-            const [cls, label] = STATUS_MAP[status] || ['bg-[#e5e7eb] text-[#374151]', status];
-            return '<span class="badge ' + cls + '">' + label + '</span>';
-        }
+        const status =
+            STATUS_MAP[item.status] || null;
 
-        function formatDate(d) {
-            if (!d) return '';
-            const parsed = new Date(String(d) + 'T00:00:00');
-            if (isNaN(parsed.getTime())) return String(d);
-            return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-        }
 
-        function escapeHtml(value) {
-            return String(value == null ? '' : value).replace(/[&<>"']/g, (c) => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-            }[c]));
-        }
+        card.innerHTML = `
 
-        function initials(name) {
-            const parts = String(name || '?').trim().split(/\s+/);
-            return ((parts[0] || '')[0] || '') + ((parts[1] || '')[0] || '');
-        }
+            <div class="relative shrink-0">
 
-        function showError(message) {
-            const box = $('#errorBox');
-            if (box) {
-                box.textContent = message;
-                box.classList.remove('hidden');
+                ${avatarHtml}
+
+                <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500"></span>
+
+            </div>
+
+
+            <div class="min-w-0 flex-1">
+
+                <div class="flex items-center justify-between gap-2">
+
+                    <p class="truncate text-sm font-bold text-ink">
+                        ${escapeHtml(item.name || "Contact")}
+                    </p>
+
+                    <span class="shrink-0 text-[11px] text-slate-400">
+                        ${escapeHtml(formatDate(item.date))}
+                    </span>
+
+                </div>
+
+
+                <div class="mt-1 flex items-center gap-2">
+
+                    <p class="truncate text-xs text-muted">
+                        ${escapeHtml(
+                            item.subtitle ||
+                            "Start a conversation"
+                        )}
+                    </p>
+
+                    ${
+                        item.unread
+                            ? `
+                                <span
+                                    class="h-2.5 w-2.5 shrink-0 rounded-full bg-primary"
+                                    title="Unread"
+                                ></span>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+
+                ${
+                    status
+                        ? `
+                            <span class="mt-2 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${status.className}">
+                                ${escapeHtml(status.label)}
+                            </span>
+                        `
+                        : ""
+                }
+
+            </div>
+
+        `;
+
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                selectedConversation = item;
+
+                renderConversationList();
+
+                openConversation(item);
+
             }
-            const loading = $('#loading');
-            if (loading) loading.classList.add('hidden');
+        );
+
+
+        list.appendChild(card);
+
+    });
+
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+function configureEmptyState() {
+
+    const role =
+        currentPayload?.role || "customer";
+
+    const title =
+        $("#emptyTitle");
+
+    const text =
+        $("#emptyText");
+
+    const cta =
+        $("#emptyCta");
+
+    const icon =
+        $("#emptyIcon");
+
+
+    if (!title || !text || !cta || !icon) {
+        return;
+    }
+
+
+    if (activeFilter === "unread") {
+
+        icon.textContent =
+            "mark_email_read";
+
+        title.textContent =
+            "You're all caught up";
+
+        text.textContent =
+            "You don't have any unread messages.";
+
+        cta.textContent =
+            role === "provider"
+                ? "View dashboard"
+                : "Explore providers";
+
+        cta.dataset.route =
+            role === "provider"
+                ? "/provider/dashboard"
+                : "/search";
+
+        return;
+
+    }
+
+
+    if (role === "customer") {
+
+        icon.textContent =
+            "forum";
+
+        title.textContent =
+            "No conversations yet";
+
+        text.textContent =
+            "When you connect with a provider, your conversations will appear here.";
+
+        cta.textContent =
+            "Explore providers";
+
+        cta.dataset.route =
+            "/search";
+
+        return;
+
+    }
+
+
+    if (!currentPayload?.onboarded) {
+
+        icon.textContent =
+            "badge";
+
+        title.textContent =
+            "Complete your provider profile";
+
+        text.textContent =
+            "Finish setting up your business so customers can discover you and contact you.";
+
+        cta.textContent =
+            "Continue onboarding";
+
+        cta.dataset.route =
+            "/provider/onboarding";
+
+        return;
+
+    }
+
+
+    icon.textContent =
+        "forum";
+
+    title.textContent =
+        "No conversations yet";
+
+    text.textContent =
+        "When customers contact you, your conversations will appear here.";
+
+    cta.textContent =
+        "View dashboard";
+
+    cta.dataset.route =
+        "/provider/dashboard";
+
+}
+
+
+/* =========================================================
+   OPEN CONVERSATION
+========================================================= */
+
+function openConversation(item) {
+
+    $("#conversationEmpty")
+        ?.classList.add("hidden");
+
+    $("#conversationContent")
+        ?.classList.remove("hidden");
+
+
+    const name =
+        $("#conversationName");
+
+    const subtitle =
+        $("#conversationSubtitle");
+
+    const avatar =
+        $("#conversationAvatar");
+
+
+    if (name) {
+
+        name.textContent =
+            item.name || "Conversation";
+
+    }
+
+
+    if (subtitle) {
+
+        const status =
+            STATUS_MAP[item.status];
+
+        subtitle.textContent =
+            status
+                ? status.label
+                : "Active conversation";
+
+    }
+
+
+    if (avatar) {
+
+        avatar.src =
+            item.avatarUrl ||
+            "/images/dashboard-default-avatar.png";
+
+        avatar.alt =
+            item.name || "Contact";
+
+    }
+
+
+    const messagesArea =
+        $("#messagesArea");
+
+    if (!messagesArea) return;
+
+
+    /*
+       If your React shell supplies actual messages,
+       render them here.
+
+       Expected format:
+
+       item.messages = [
+           {
+               id,
+               sender_id,
+               content,
+               created_at,
+               mine
+           }
+       ]
+    */
+
+    if (
+        Array.isArray(item.messages) &&
+        item.messages.length
+    ) {
+
+        messagesArea.innerHTML =
+            item.messages
+                .map(message => {
+
+                    const mine =
+                        message.mine === true;
+
+                    return `
+
+                        <div class="mb-3 flex ${
+                            mine
+                                ? "justify-end"
+                                : "justify-start"
+                        }">
+
+                            <div class="message-bubble rounded-2xl px-4 py-3 ${
+                                mine
+                                    ? "bg-primary text-white"
+                                    : "bg-white border border-border text-ink"
+                            }">
+
+                                <p class="text-sm leading-6">
+                                    ${escapeHtml(
+                                        message.content
+                                    )}
+                                </p>
+
+                                ${
+                                    message.created_at
+                                        ? `
+                                            <p class="mt-1 text-[10px] ${
+                                                mine
+                                                    ? "text-blue-100"
+                                                    : "text-slate-400"
+                                            }">
+                                                ${escapeHtml(
+                                                    new Date(
+                                                        message.created_at
+                                                    ).toLocaleTimeString(
+                                                        undefined,
+                                                        {
+                                                            hour: "numeric",
+                                                            minute: "2-digit"
+                                                        }
+                                                    )
+                                                )}
+                                            </p>
+                                        `
+                                        : ""
+                                }
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                })
+                .join("");
+
+    } else {
+
+        messagesArea.innerHTML = `
+
+            <div class="flex min-h-full items-center justify-center">
+
+                <div class="max-w-sm text-center">
+
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primarySoft text-primary">
+
+                        <span class="material-symbols-outlined text-[28px]">
+                            chat
+                        </span>
+
+                    </div>
+
+
+                    <h3 class="mt-4 font-display text-lg font-bold text-ink">
+                        Start the conversation
+                    </h3>
+
+
+                    <p class="mt-2 text-sm leading-6 text-muted">
+                        Send a message to
+                        ${escapeHtml(item.name || "this contact")}
+                        to get the conversation started.
+                    </p>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /*
+       Mobile behaviour
+    */
+
+    $("#conversationListPanel")
+        ?.classList.add("mobile-hidden");
+
+    $("#conversationPanel")
+        ?.classList.add("mobile-open");
+
+}
+
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+function setupFilters() {
+
+    document
+        .querySelectorAll(".filter-button")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    activeFilter =
+                        button.dataset.filter ||
+                        "all";
+
+
+                    document
+                        .querySelectorAll(
+                            ".filter-button"
+                        )
+                        .forEach(other => {
+
+                            other.classList.remove(
+                                "bg-primary",
+                                "text-white"
+                            );
+
+                            other.classList.add(
+                                "text-slate-500"
+                            );
+
+                        });
+
+
+                    button.classList.add(
+                        "bg-primary",
+                        "text-white"
+                    );
+
+                    button.classList.remove(
+                        "text-slate-500"
+                    );
+
+
+                    renderConversationList();
+
+                }
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+function setupSearch() {
+
+    const input =
+        $("#searchInput");
+
+    if (!input) return;
+
+
+    input.addEventListener(
+        "input",
+        () => {
+
+            const query =
+                input.value
+                    .trim()
+                    .toLowerCase();
+
+
+            document
+                .querySelectorAll(
+                    ".conversation-item"
+                )
+                .forEach(item => {
+
+                    const text =
+                        item.textContent
+                            .toLowerCase();
+
+                    item.style.display =
+                        !query ||
+                        text.includes(query)
+                            ? ""
+                            : "none";
+
+                });
+
         }
+    );
 
-        function renderInbox(payload) {
-            const loading = $('#loading');
-            const content = $('#inboxContent');
-            if (loading) loading.classList.add('hidden');
-            if (content) content.classList.remove('hidden');
+}
 
-            const greeting = $('#inboxGreeting');
+
+/* =========================================================
+   MOBILE BACK
+========================================================= */
+
+function setupMobileBack() {
+
+    const button =
+        $("#backToConversations");
+
+    if (!button) return;
+
+
+    button.addEventListener(
+        "click",
+        () => {
+
+            $("#conversationListPanel")
+                ?.classList.remove(
+                    "mobile-hidden"
+                );
+
+            $("#conversationPanel")
+                ?.classList.remove(
+                    "mobile-open"
+                );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function setupNavigation() {
+
+    $("#homeButton")
+        ?.addEventListener(
+            "click",
+            () => navigate("/")
+        );
+
+
+    $("#bookingButton")
+        ?.addEventListener(
+            "click",
+            () => navigate("/booking")
+        );
+
+
+    $("#profileButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    currentPayload?.role ===
+                    "provider"
+                ) {
+
+                    navigate(
+                        "/provider/dashboard"
+                    );
+
+                } else {
+
+                    navigate("/dashboard");
+
+                }
+
+            }
+        );
+
+
+    $("#emptyCta")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                const route =
+                    $("#emptyCta")
+                        ?.dataset.route ||
+                    "/search";
+
+                navigate(route);
+
+            }
+        );
+
+
+    $("#newMessageButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    currentPayload?.role ===
+                    "provider"
+                ) {
+
+                    navigate(
+                        "/provider/dashboard"
+                    );
+
+                } else {
+
+                    navigate("/search");
+
+                }
+
+            }
+        );
+
+
+    $("#conversationInfoButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (!selectedConversation) return;
+
+                postToParent(
+                    "inbox:info",
+                    {
+                        conversation:
+                            selectedConversation
+                    }
+                );
+
+            }
+        );
+
+
+    $("#conversationMoreButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (!selectedConversation) return;
+
+                postToParent(
+                    "inbox:more",
+                    {
+                        conversation:
+                            selectedConversation
+                    }
+                );
+
+            }
+        );
+
+
+    $("#attachButton")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                postToParent(
+                    "inbox:attach",
+                    {
+                        conversation:
+                            selectedConversation
+                    }
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   MESSAGE COMPOSER
+========================================================= */
+
+function setupComposer() {
+
+    const input =
+        $("#messageInput");
+
+    const send =
+        $("#sendButton");
+
+    if (!input || !send) return;
+
+
+    function updateButton() {
+
+        send.disabled =
+            !input.value.trim() ||
+            !selectedConversation;
+
+    }
+
+
+    input.addEventListener(
+        "input",
+        () => {
+
+            updateButton();
+
+            /*
+             * Automatically grow textarea
+             */
+
+            input.style.height =
+                "auto";
+
+            input.style.height =
+                Math.min(
+                    input.scrollHeight,
+                    128
+                ) + "px";
+
+        }
+    );
+
+
+    input.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter" &&
+                !event.shiftKey
+            ) {
+
+                event.preventDefault();
+
+                send.click();
+
+            }
+
+        }
+    );
+
+
+    send.addEventListener(
+        "click",
+        () => {
+
+            const message =
+                input.value.trim();
+
+            if (
+                !message ||
+                !selectedConversation
+            ) {
+                return;
+            }
+
+
+            postToParent(
+                "inbox:send",
+                {
+                    conversation:
+                        selectedConversation,
+
+                    message
+                }
+            );
+
+
+            input.value = "";
+
+            input.style.height =
+                "auto";
+
+            updateButton();
+
+        }
+    );
+
+
+    updateButton();
+
+}
+
+
+/* =========================================================
+   RECEIVE DATA FROM REACT
+========================================================= */
+
+window.addEventListener(
+    "message",
+    event => {
+
+        const message =
+            event.data || {};
+
+
+        /* -----------------------------------------
+           INITIAL DATA
+        ----------------------------------------- */
+
+        if (
+            message.type ===
+            "inbox:init"
+        ) {
+
+            currentPayload =
+                message.payload || {
+                    role: "customer",
+                    name: "",
+                    onboarded: true,
+                    interactions: []
+                };
+
+
+            const greeting =
+                $("#inboxGreeting");
+
             if (greeting) {
-                const roleText = payload.role === 'provider' ? 'Provider account' : 'Customer account';
-                greeting.textContent = payload.name ? payload.name + ' · ' + roleText : roleText;
+
+                const roleText =
+                    currentPayload.role ===
+                    "provider"
+                        ? "Provider account"
+                        : "Customer account";
+
+
+                greeting.textContent =
+                    currentPayload.name
+                        ? `${currentPayload.name} · ${roleText}`
+                        : roleText;
+
             }
 
-            const list = $('#interactionsList');
-            const empty = $('#emptyState');
-            if (!list || !empty) return;
 
-            list.innerHTML = '';
-            empty.classList.add('hidden');
+            renderConversationList();
 
-            if (payload.interactions.length) {
-                payload.interactions.forEach((item) => {
-                    const card = document.createElement('div');
-                    card.className = 'flex items-center gap-md bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm cursor-pointer hover:border-primary transition-colors';
+            return;
 
-                    const avatarHtml = item.avatarUrl
-                        ? '<img src="' + escapeHtml(item.avatarUrl) + '" alt="' + escapeHtml(item.name) + '" class="w-12 h-12 rounded-full object-cover border border-outline-variant shrink-0"/>'
-                        : '<div class="w-12 h-12 rounded-full bg-primary-container/10 text-primary flex items-center justify-center font-label-sm text-label-sm shrink-0">' + escapeHtml(initials(item.name)) + '</div>';
-
-                    const info = document.createElement('div');
-                    info.innerHTML =
-                        '<p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(item.name) + ' ' + statusBadge(item.status) + '</p>' +
-                        '<p class="font-caption text-caption text-on-surface-variant">' + escapeHtml(item.subtitle) +
-                        (item.date ? ' · ' + escapeHtml(formatDate(item.date)) : '') + '</p>';
-
-                    card.innerHTML = avatarHtml;
-                    card.appendChild(info);
-                    list.appendChild(card);
-                });
-                return;
-            }
-
-            // Empty state — role-aware copy + CTA
-            const title = $('#emptyTitle');
-            const text = $('#emptyText');
-            const cta = $('#emptyCta');
-            const icon = $('#emptyIcon');
-
-            if (payload.role === 'customer') {
-                if (icon) icon.textContent = 'forum';
-                if (title) title.textContent = 'No conversations yet';
-                if (text) text.textContent = 'Messages between you and your providers will show up here.';
-                if (cta) { cta.textContent = 'Explore providers'; cta.dataset.route = '/search'; }
-            } else if (!payload.onboarded) {
-                if (icon) icon.textContent = 'badge';
-                if (title) title.textContent = 'Finish setting up your business';
-                if (text) text.textContent = 'Complete your provider profile so clients can find you and start interacting.';
-                if (cta) { cta.textContent = 'Continue onboarding'; cta.dataset.route = '/provider/onboarding'; }
-            } else {
-                if (icon) icon.textContent = 'forum';
-                if (title) title.textContent = 'No conversations yet';
-                if (text) text.textContent = 'Messages between you and your customers will show up here.';
-                if (cta) { cta.textContent = 'View dashboard'; cta.dataset.route = '/provider/dashboard'; }
-            }
-            empty.classList.remove('hidden');
         }
 
-        // Protocol with the React shell
-        window.addEventListener('message', (event) => {
-            const msg = event.data || {};
 
-            if (msg.type === 'inbox:ping') {
-                window.parent.postMessage({ type: 'inbox:ready' }, '*');
-                return;
-            }
+        /* -----------------------------------------
+           NEW / UPDATED MESSAGES
+        ----------------------------------------- */
 
-            if (msg.type === 'inbox:init') {
-                renderInbox(msg.payload || { role: 'customer', name: '', onboarded: true, interactions: [] });
-                return;
-            }
+        if (
+            message.type ===
+            "inbox:update"
+        ) {
 
-            if (msg.type === 'inbox:error') {
-                showError((msg.payload && msg.payload.message) || 'Something went wrong. Please try again.');
-            }
-        });
+            currentPayload =
+                message.payload ||
+                currentPayload;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('[data-nav]').forEach((element) => {
-                element.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const route = navMap[element.dataset.nav];
-                    if (route) navigate(route);
-                });
-            });
 
-            const emptyCta = $('#emptyCta');
-            if (emptyCta) {
-                emptyCta.addEventListener('click', () => {
-                    const route = emptyCta.dataset.route || '/search';
-                    navigate(route);
-                });
-            }
+            renderConversationList();
 
-            // Tell the React shell we're ready to receive the inbox data.
-            window.parent.postMessage({ type: 'inbox:ready' }, '*');
-        });
-    </script>
+            return;
+
+        }
+
+
+        /* -----------------------------------------
+           SENT SUCCESSFULLY
+        ----------------------------------------- */
+
+        if (
+            message.type ===
+            "inbox:sent"
+        ) {
+
+            /*
+             * React/Supabase has successfully
+             * saved the message.
+             *
+             * Request fresh inbox data.
+             */
+
+            postToParent(
+                "inbox:refresh"
+            );
+
+            return;
+
+        }
+
+
+        /* -----------------------------------------
+           ERROR
+        ----------------------------------------- */
+
+        if (
+            message.type ===
+            "inbox:error"
+        ) {
+
+            showError(
+                message.payload?.message ||
+                "Something went wrong. Please try again."
+            );
+
+            return;
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        setupFilters();
+
+        setupSearch();
+
+        setupMobileBack();
+
+        setupNavigation();
+
+        setupComposer();
+
+
+        /*
+         * Tell the React shell that
+         * this HTML page is ready.
+         */
+
+        postToParent(
+            "inbox:ready"
+        );
+
+    }
+);
+
+</script>
+
 </body>
 </html>

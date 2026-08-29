@@ -26,6 +26,7 @@ import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProviderDashboardRouteImport } from './routes/provider.dashboard'
 import { Route as ProviderIdRouteImport } from './routes/provider.$id'
 import { Route as ProfileDesignRouteImport } from './routes/profile.design'
+import { Route as BookingIdRouteImport } from './routes/booking.$id'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 
 const SignupRoute = SignupRouteImport.update({
@@ -113,6 +114,11 @@ const ProfileDesignRoute = ProfileDesignRouteImport.update({
   path: '/profile/design',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookingIdRoute = BookingIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => BookingRoute,
+} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/admin/dashboard',
   path: '/admin/dashboard',
@@ -122,7 +128,7 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
-  '/booking': typeof BookingRoute
+  '/booking': typeof BookingRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/booking/$id': typeof BookingIdRoute
   '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
@@ -142,7 +149,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/book': typeof BookRoute
-  '/booking': typeof BookingRoute
+  '/booking': typeof BookingRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/booking/$id': typeof BookingIdRoute
   '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
@@ -163,7 +171,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/book': typeof BookRoute
-  '/booking': typeof BookingRoute
+  '/booking': typeof BookingRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/booking/$id': typeof BookingIdRoute
   '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/dashboard'
+    | '/booking/$id'
     | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/dashboard'
+    | '/booking/$id'
     | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/dashboard'
+    | '/booking/$id'
     | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
@@ -246,7 +258,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookRoute: typeof BookRoute
-  BookingRoute: typeof BookingRoute
+  BookingRoute: typeof BookingRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   InboxRoute: typeof InboxRoute
   LoginRoute: typeof LoginRoute
@@ -385,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileDesignRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/booking/$id': {
+      id: '/booking/$id'
+      path: '/$id'
+      fullPath: '/booking/$id'
+      preLoaderRoute: typeof BookingIdRouteImport
+      parentRoute: typeof BookingRoute
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/admin/dashboard'
@@ -395,10 +414,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface BookingRouteChildren {
+  BookingIdRoute: typeof BookingIdRoute
+}
+
+const BookingRouteChildren: BookingRouteChildren = {
+  BookingIdRoute: BookingIdRoute,
+}
+
+const BookingRouteWithChildren =
+  BookingRoute._addFileChildren(BookingRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookRoute: BookRoute,
-  BookingRoute: BookingRoute,
+  BookingRoute: BookingRouteWithChildren,
   DashboardRoute: DashboardRoute,
   InboxRoute: InboxRoute,
   LoginRoute: LoginRoute,
