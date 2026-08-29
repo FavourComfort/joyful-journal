@@ -82,6 +82,23 @@
                 border-color 0.18s ease;
         }
 
+        .conversation-item .conversation-main,
+        .conversation-item .conversation-title,
+        .conversation-item .conversation-subtitle {
+            min-width: 0;
+        }
+
+        .conversation-item .conversation-title,
+        .conversation-item .conversation-subtitle {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .conversation-item .conversation-subtitle {
+            flex: 1 1 auto;
+        }
+
         .conversation-item:hover {
             background: #f7f9fd;
         }
@@ -854,11 +871,11 @@ function renderConversationList() {
             </div>
 
 
-            <div class="min-w-0 flex-1">
+            <div class="conversation-main min-w-0 flex-1">
 
                 <div class="flex items-center justify-between gap-2">
 
-                    <p class="truncate text-sm font-bold text-ink">
+                    <p class="conversation-title truncate text-sm font-bold text-ink">
                         ${escapeHtml(item.name || "Contact")}
                     </p>
 
@@ -871,7 +888,7 @@ function renderConversationList() {
 
                 <div class="mt-1 flex items-center gap-2">
 
-                    <p class="truncate text-xs text-muted">
+                    <p class="conversation-subtitle flex-1 truncate text-xs text-muted">
                         ${escapeHtml(
                             item.subtitle ||
                             "Start a conversation"

@@ -148,6 +148,21 @@
             transform: translateY(-1px);
         }
 
+        .booking-card .booking-text,
+        .booking-card .booking-name,
+        .booking-card .booking-service,
+        .booking-card .booking-meta {
+            min-width: 0;
+        }
+
+        .booking-card .booking-name,
+        .booking-card .booking-service,
+        .booking-card .booking-meta {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
         .stat-card {
             transition: transform .2s ease, box-shadow .2s ease;
         }
@@ -1263,18 +1278,18 @@
             </div>
 
 
-            <div class="min-w-0 flex-1">
+            <div class="booking-text min-w-0 flex-1">
 
                 <div class="flex flex-wrap items-start justify-between gap-3">
 
                     <div class="min-w-0">
 
-                        <p class="truncate font-display text-base font-bold text-on-surface group-hover:text-primary">
+                        <p class="booking-name truncate font-display text-base font-bold text-on-surface group-hover:text-primary">
                             ${escapeHtml(provider)}
                         </p>
 
 
-                        <p class="mt-1 truncate text-sm text-on-surface-variant">
+                        <p class="booking-service mt-1 truncate text-sm text-on-surface-variant">
                             ${escapeHtml(service)}
                         </p>
 
@@ -1415,14 +1430,14 @@
             />
 
 
-            <div class="min-w-0 flex-1">
+            <div class="booking-text min-w-0 flex-1">
 
-                <p class="truncate text-sm font-bold text-on-surface">
+                <p class="booking-service truncate text-sm font-bold text-on-surface">
                     ${escapeHtml(service)}
                 </p>
 
 
-                <p class="mt-0.5 truncate text-xs text-on-surface-variant">
+                <p class="booking-meta mt-0.5 truncate text-xs text-on-surface-variant">
 
                     ${escapeHtml(provider)}
                     ·
