@@ -181,7 +181,7 @@
                         <input type="text" name="location" required placeholder="City, Country" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
                     </div>
 
-                   <!-- Password --> <div> <label class="block font-label-sm text-label-sm text-on-background mb-sm"> Password </label> <div class="relative"> <input type="password" name="password" id="password" required placeholder="••••••••" class="w-full px-md py-sm pr-12 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md" /> <!-- Show/Hide Password --> <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Show password" > <span class="material-symbols-outlined" id="passwordEyeIcon"> visibility </span> </button> </div> <!-- Password Requirements --> <div id="passwordRequirements" class="mt-sm space-y-xs text-caption"> <p id="lengthRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least 8 characters </p> <p id="numberRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least one number </p> <p id="specialRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least one special character </p> </div> </div>
+                   <!-- Password --> <div> <label class="block font-label-sm text-label-sm text-on-background mb-sm"> Password </label> <div class="relative"> <input type="password" name="password" id="password" required placeholder="••••••••" class="w-full px-md py-sm pr-12 border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md" /> <!-- Show/Hide Password --> <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors cursor-pointer" aria-label="Show password" > <span class="material-symbols-outlined" id="passwordEyeIcon"> visibility </span> </button> </div> <!-- Password Requirements --> <div id="passwordRequirements" class="mt-sm space-y-xs text-caption"> <p id="lengthRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least 8 characters </p> <p id="uppercaseRequirement" class="text-on-surface-variant transition-colors"> <p id="numberRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least one number </p> <p id="specialRequirement" class="text-on-surface-variant transition-colors"> <span class="requirement-icon mr-xs">○</span> At least one special character </p> </div> </div>
                   
 <!-- Terms Checkbox -->
 <div class="flex items-start gap-sm">
@@ -283,12 +283,65 @@
                 location: formData.get('location'),
                 password: formData.get('password'),
                 confirmPassword: formData.get('confirmPassword'),
-                newsletter: document.getElementById('newsletter').checked,
                 terms: document.getElementById('terms').checked,
             };
         }
 
-        // Password visibility toggle const passwordInput = document.getElementById('password'); const togglePassword = document.getElementById('togglePassword'); const passwordEyeIcon = document.getElementById('passwordEyeIcon'); if (passwordInput && togglePassword && passwordEyeIcon) { togglePassword.addEventListener('click', () => { const isPassword = passwordInput.type === 'password'; passwordInput.type = isPassword ? 'text' : 'password'; passwordEyeIcon.textContent = isPassword ? 'visibility_off' : 'visibility'; togglePassword.setAttribute( 'aria-label', isPassword ? 'Hide password' : 'Show password' ); }); } // Live password requirements if (passwordInput) { passwordInput.addEventListener('input', () => { const password = passwordInput.value; const requirements = { lengthRequirement: password.length >= 8, uppercaseRequirement: /[A-Z]/.test(password), lowercaseRequirement: /[a-z]/.test(password), numberRequirement: /[0-9]/.test(password), specialRequirement: /[^A-Za-z0-9]/.test(password) }; Object.entries(requirements).forEach(([id, isValid]) => { const requirement = document.getElementById(id); if (!requirement) return; const icon = requirement.querySelector('.requirement-icon'); if (isValid) { requirement.classList.remove('text-on-surface-variant'); requirement.classList.add('text-green-600', 'font-semibold'); if (icon) { icon.textContent = '✓'; } } else { requirement.classList.remove('text-green-600', 'font-semibold'); requirement.classList.add('text-on-surface-variant'); if (icon) { icon.textContent = '○'; } } }); }); }
+        // Password visibility toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('password');
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordEyeIcon = document.getElementById('passwordEyeIcon');
+
+            if (!passwordInput || !togglePassword || !passwordEyeIcon) return;
+
+            const syncAria = () => {
+                const isHidden = passwordInput.type === 'password';
+                togglePassword.setAttribute('aria-label', isHidden ? 'Show password' : 'Hide password');
+            };
+
+            togglePassword.addEventListener('click', () => {
+                const isHidden = passwordInput.type === 'password';
+                passwordInput.type = isHidden ? 'text' : 'password';
+                passwordEyeIcon.textContent = isHidden ? 'visibility_off' : 'visibility';
+                syncAria();
+            });
+
+            syncAria();
+        });
+
+        // Live password requirements
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('password');
+            if (!passwordInput) return;
+
+            const updateRequirements = () => {
+                const password = passwordInput.value;
+                const requirements = {
+                    lengthRequirement: password.length >= 8,
+                    uppercaseRequirement: /[A-Z]/.test(password),
+                    lowercaseRequirement: /[a-z]/.test(password),
+                    numberRequirement: /[0-9]/.test(password),
+                    specialRequirement: /[^A-Za-z0-9]/.test(password)
+                };
+                Object.entries(requirements).forEach(([id, isValid]) => {
+                    const requirement = document.getElementById(id);
+                    if (!requirement) return;
+                    const icon = requirement.querySelector('.requirement-icon');
+                    if (isValid) {
+                        requirement.classList.remove('text-on-surface-variant');
+                        requirement.classList.add('text-green-600', 'font-semibold');
+                        if (icon) icon.textContent = '\u2713';
+                    } else {
+                        requirement.classList.remove('text-green-600', 'font-semibold');
+                        requirement.classList.add('text-on-surface-variant');
+                        if (icon) icon.textContent = '\u25CB';
+                    }
+                });
+            };
+
+            passwordInput.addEventListener('input', updateRequirements);
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             // Setup navigation
@@ -314,6 +367,7 @@
                 });
             }
         });
+        
     </script>
 </body>
 </html>

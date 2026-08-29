@@ -152,21 +152,35 @@
 </div>
 <!-- Desktop Nav Items -->
 <div class="hidden md:flex items-center gap-lg">
-<a class="text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm cursor-pointer" data-nav="explore">Explore</a>
-<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="bookings">Bookings</a>
-<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="inbox">Inbox</a>
+<a class="text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm cursor-pointer" data-nav="explore" id="desktopExploreLink">Explore</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer hidden" data-nav="bookings" id="desktopBookingsLink">Bookings</a>
+<a class="text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer hidden" data-nav="inbox" id="desktopInboxLink">Inbox</a>
 <a id="adminNavLink" class="hidden text-error hover:bg-error-container transition-colors px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-nav="admin-dashboard">Admin</a>
 </div>
 <div class="flex items-center gap-md">
 <div class="relative hidden md:block">
 <button id="authOptionsBtn" class="border border-primary text-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:bg-primary-fixed active:scale-95 transition-all" type="button" aria-expanded="false">Sign Up / Login</button>
+<button id="userAvatarBtn" class="hidden h-10 w-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border-2 border-primary/30 hover:border-primary transition-colors cursor-pointer" type="button" aria-expanded="false" aria-label="Account menu">
+<img id="userAvatarImg" class="hidden w-full h-full object-cover" alt="User avatar" />
+<span id="userAvatarFallback" class="material-symbols-outlined text-primary">person</span>
+</button>
 <div id="authOptionsMenu" class="hidden absolute right-0 top-full mt-sm w-64 rounded-xl border border-outline-variant bg-white p-sm shadow-lg">
-<p class="px-sm py-xs text-caption text-on-surface-variant">Choose an account type</p>
+<p class="px-sm py-xs text-caption text-on-surface-variant" id="authMenuGuestLabel">Choose an account type</p>
+<div id="authMenuGuest">
 <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="customer-signup" href="#"><span class="material-symbols-outlined text-primary">person_add</span>Sign up as a customer</a>
 <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="provider-signup" href="#"><span class="material-symbols-outlined text-primary">business_center</span>Sign up as a provider</a>
 <div class="my-xs border-t border-outline-variant"></div>
 <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="customer-login" href="#"><span class="material-symbols-outlined text-primary">login</span>Log in as a customer</a>
 <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="provider-login" href="#"><span class="material-symbols-outlined text-primary">storefront</span>Log in as a provider</a>
+</div>
+<div id="authMenuUser" class="hidden">
+<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="dashboard-link" href="#" id="authMenuDashboard"><span class="material-symbols-outlined text-primary">dashboard</span>Dashboard</a>
+<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="bookings" href="#"><span class="material-symbols-outlined text-primary">calendar_month</span>My bookings</a>
+<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="inbox" href="#"><span class="material-symbols-outlined text-primary">chat</span>Messages</a>
+<div class="my-xs border-t border-outline-variant"></div>
+<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="profile" href="#"><span class="material-symbols-outlined text-primary">person</span>Profile</a>
+<button class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-error hover:bg-error-container w-full text-left" data-action="sign-out" type="button"><span class="material-symbols-outlined text-error">logout</span>Sign Out</button>
+</div>
 </div>
 </div>
 <!-- <div class="hidden md:block">
@@ -450,15 +464,15 @@
 </footer>
 <!-- BottomNavBar (Mobile Only) -->
 <nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-xl px-margin-mobile bg-surface dark:bg-surface-dim md:hidden border-t border-outline-variant shadow-lg">
-<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold cursor-pointer" data-nav="explore">
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold cursor-pointer" data-nav="explore" id="mobileExploreLink">
 <span class="material-symbols-outlined" data-icon="search" data-weight="fill">search</span>
 <span class="text-label-sm font-label-sm">Explore</span>
 </a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant cursor-pointer" data-nav="bookings">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant cursor-pointer hidden" data-nav="bookings" id="mobileBookingsLink">
 <span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
 <span class="text-label-sm font-label-sm">Bookings</span>
 </a>
-<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant cursor-pointer" data-nav="inbox">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant cursor-pointer hidden" data-nav="inbox" id="mobileInboxLink">
 <span class="material-symbols-outlined" data-icon="chat">chat</span>
 <span class="text-label-sm font-label-sm">Inbox</span>
 </a>
@@ -478,6 +492,7 @@
             'provider-signup': '/provider/signup',
             'customer-login': '/login',
             'provider-login': '/provider/login',
+            'dashboard-link': '/dashboard',
             'saved-providers': '/search',
             'reviews': '/dashboard',
             'settings': '/profile/design',
@@ -535,7 +550,7 @@
                 accountRole = msg.payload?.role || null;
                 const isProvider = accountRole === 'provider';
                 const onboarded = !!msg.payload?.onboarded;
-                const avatarUrl = msg.payload?.profilePictureUrl;
+                const avatarUrl = msg.payload?.userAvatarUrl || msg.payload?.profilePictureUrl || null;
 
                 $('#customerMenu')?.classList.toggle('hidden', accountRole !== 'customer');
                 $('#customerMenu')?.classList.toggle('flex', accountRole === 'customer');
@@ -546,6 +561,80 @@
                 $('#adminMenu')?.classList.toggle('hidden', accountRole !== 'admin');
                 $('#adminMenu')?.classList.toggle('flex', accountRole === 'admin');
                 $('#adminNavLink')?.classList.toggle('hidden', accountRole !== 'admin');
+
+                // Show bookings/inbox nav links only when logged in
+                const isLoggedIn = !!accountRole;
+                $('#desktopBookingsLink')?.classList.toggle('hidden', !isLoggedIn);
+                $('#desktopInboxLink')?.classList.toggle('hidden', !isLoggedIn);
+                $('#mobileBookingsLink')?.classList.toggle('hidden', !isLoggedIn);
+                $('#mobileInboxLink')?.classList.toggle('hidden', !isLoggedIn);
+
+                // Swap Explore link to Dashboard when logged in
+                const exploreLink = $('#desktopExploreLink');
+                if (exploreLink) {
+                    if (isLoggedIn) {
+                        const navKey = accountRole === 'provider' ? 'provider-dashboard'
+                            : accountRole === 'admin' ? 'admin-dashboard'
+                            : 'dashboard-link';
+                        exploreLink.dataset.nav = navKey;
+                        exploreLink.textContent = 'Dashboard';
+                    } else {
+                        exploreLink.dataset.nav = 'explore';
+                        exploreLink.textContent = 'Explore';
+                    }
+                }
+                // Same for mobile bottom nav Explore
+                const mobileExploreLink = document.querySelector('#mobileExploreLink');
+                if (mobileExploreLink) {
+                    if (isLoggedIn) {
+                        const navKey = accountRole === 'provider' ? 'provider-dashboard'
+                            : accountRole === 'admin' ? 'admin-dashboard'
+                            : 'dashboard-link';
+                        mobileExploreLink.dataset.nav = navKey;
+                        mobileExploreLink.querySelector('span:last-child').textContent = 'Dashboard';
+                    } else {
+                        mobileExploreLink.dataset.nav = 'explore';
+                        mobileExploreLink.querySelector('span:last-child').textContent = 'Explore';
+                    }
+                }
+
+                // Swap Sign Up / Login button with avatar when logged in
+                $('#authOptionsBtn')?.classList.toggle('hidden', isLoggedIn);
+                $('#userAvatarBtn')?.classList.toggle('hidden', !isLoggedIn);
+
+                // Swap dropdown menu content
+                $('#authMenuGuest')?.classList.toggle('hidden', isLoggedIn);
+                $('#authMenuUser')?.classList.toggle('hidden', !isLoggedIn);
+                $('#authMenuGuestLabel')?.classList.toggle('hidden', isLoggedIn);
+
+                // Set correct dashboard route based on role
+                const dashboardLink = $('#authMenuDashboard');
+                if (dashboardLink) {
+                    if (accountRole === 'provider') {
+                        dashboardLink.dataset.nav = 'provider-dashboard';
+                        dashboardLink.innerHTML = '<span class="material-symbols-outlined text-primary">dashboard</span>Dashboard';
+                    } else if (accountRole === 'admin') {
+                        dashboardLink.dataset.nav = 'admin-dashboard';
+                        dashboardLink.innerHTML = '<span class="material-symbols-outlined text-primary">shield</span>Admin Console';
+                    } else {
+                        dashboardLink.dataset.nav = 'dashboard-link';
+                        dashboardLink.innerHTML = '<span class="material-symbols-outlined text-primary">dashboard</span>Dashboard';
+                    }
+                }
+
+                // Set avatar image or fallback
+                const avatarImg = $('#userAvatarImg');
+                const fallback = $('#userAvatarFallback');
+                if (isLoggedIn && avatarImg && fallback) {
+                    if (avatarUrl) {
+                        avatarImg.src = avatarUrl;
+                        avatarImg.classList.remove('hidden');
+                        fallback.classList.add('hidden');
+                    } else {
+                        avatarImg.classList.add('hidden');
+                        fallback.classList.remove('hidden');
+                    }
+                }
 
                 setProviderIconVisible(isProvider, avatarUrl);
 
@@ -586,21 +675,40 @@
             menuButton?.addEventListener('click', openDrawer);
             closeButton?.addEventListener('click', closeDrawer);
             backdrop?.addEventListener('click', closeDrawer);
-
             const authOptionsBtn = $('#authOptionsBtn');
+            const userAvatarBtn = $('#userAvatarBtn');
             const authOptionsMenu = $('#authOptionsMenu');
+
+            const toggleAuthMenu = (btn) => {
+                const isOpen = !authOptionsMenu.classList.contains('hidden');
+                authOptionsMenu.classList.toggle('hidden', isOpen);
+                btn.setAttribute('aria-expanded', String(!isOpen));
+            };
+
             if (authOptionsBtn && authOptionsMenu) {
                 authOptionsBtn.addEventListener('click', (event) => {
                     event.stopPropagation();
-                    const isOpen = !authOptionsMenu.classList.contains('hidden');
-                    authOptionsMenu.classList.toggle('hidden', isOpen);
-                    authOptionsBtn.setAttribute('aria-expanded', String(!isOpen));
-                });
-                document.addEventListener('click', () => {
-                    authOptionsMenu.classList.add('hidden');
-                    authOptionsBtn.setAttribute('aria-expanded', 'false');
+                    toggleAuthMenu(authOptionsBtn);
                 });
             }
+            if (userAvatarBtn) {
+                userAvatarBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    // A logged-out user should never reach this (avatar is hidden),
+                    // but guard anyway so a stray click does nothing.
+                    if (!accountRole) return;
+                    // Signed-in avatar routes straight to that user's dashboard
+                    const route = accountRole === 'provider' ? '/provider/dashboard'
+                        : accountRole === 'admin' ? '/admin/dashboard'
+                        : '/dashboard';
+                    navigate(route);
+                });
+            }
+            document.addEventListener('click', () => {
+                authOptionsMenu?.classList.add('hidden');
+                authOptionsBtn?.setAttribute('aria-expanded', 'false');
+                userAvatarBtn?.setAttribute('aria-expanded', 'false');
+            });
 
             // Setup navigation links and buttons with data-nav attribute
             document.querySelectorAll('[data-nav]').forEach(element => {

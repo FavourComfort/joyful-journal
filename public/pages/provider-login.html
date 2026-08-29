@@ -193,7 +193,28 @@
             'forgot-password': '#',
         };
 
-        // Password visibility toggle const passwordInput = document.getElementById('password'); const togglePassword = document.getElementById('togglePassword'); const passwordEyeIcon = document.getElementById('passwordEyeIcon'); if (passwordInput && togglePassword && passwordEyeIcon) { togglePassword.addEventListener('click', () => { const isPassword = passwordInput.type === 'password'; passwordInput.type = isPassword ? 'text' : 'password'; passwordEyeIcon.textContent = isPassword ? 'visibility_off' : 'visibility'; togglePassword.setAttribute( 'aria-label', isPassword ? 'Hide password' : 'Show password' ); }); }
+        // Password visibility toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('password');
+            const togglePassword = document.getElementById('togglePassword');
+            const passwordEyeIcon = document.getElementById('passwordEyeIcon');
+
+            if (!passwordInput || !togglePassword || !passwordEyeIcon) return;
+
+            const syncAria = () => {
+                const isHidden = passwordInput.type === 'password';
+                togglePassword.setAttribute('aria-label', isHidden ? 'Show password' : 'Hide password');
+            };
+
+            togglePassword.addEventListener('click', () => {
+                const isHidden = passwordInput.type === 'password';
+                passwordInput.type = isHidden ? 'text' : 'password';
+                passwordEyeIcon.textContent = isHidden ? 'visibility_off' : 'visibility';
+                syncAria();
+            });
+
+            syncAria();
+        });
 
         function navigate(route) {
             if (route === '#') return;

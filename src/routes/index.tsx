@@ -20,6 +20,11 @@ export const Route = createFileRoute("/")({
     const [accountRole, setAccountRole] = useState<"customer" | "provider" | "admin" | null>(null);
     const [isOnboarded, setIsOnboarded] = useState(false);
     const [providerAvatarUrl, setProviderAvatarUrl] = useState<string | null>(null);
+    const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+
+    // Refs to hold latest state for the onLoad callback (avoids stale closures)
+    const latestPayloadRef = useRef({ role: null as typeof accountRole, isProvider: false, onboarded: false, profilePictureUrl: null as string | null, userAvatarUrl: null as string | null });
+    latestPayloadRef.current = { role: accountRole, isProvider, onboarded: isOnboarded, profilePictureUrl: providerAvatarUrl, userAvatarUrl };
 
     useEffect(() => {
       const handleMessage = async (event: MessageEvent) => {
@@ -35,14 +40,18 @@ export const Route = createFileRoute("/")({
     }, [router]);
 
     useEffect(() => {
-      const checkProvider = async () => {
+      const checkAuthState = async () => {
         const profile = await getCurrentProfile();
         if (!profile) {
           setAccountRole(null);
+          setUserAvatarUrl(null);
           return;
         }
 
         // Preserve the admin role so the home shell can surface admin navigation.
+        setAccountRole(profile.role);
+        setUserAvatarUrl(profile.avatar_url || null);
+
         if (profile.role === "provider") {
           setIsProvider(true);
           const { data, error } = await supabase
@@ -60,20 +69,18 @@ export const Route = createFileRoute("/")({
         } else {
           setIsProvider(false);
         }
-
-        setAccountRole(profile.role);
       };
 
-      checkProvider();
+      checkAuthState();
     }, []);
 
     useEffect(() => {
       if (!iframeRef.current) return;
       iframeRef.current.contentWindow?.postMessage(
-        { type: "home:init", payload: { role: accountRole, isProvider, onboarded: isOnboarded, profilePictureUrl: providerAvatarUrl } },
+        { type: "home:init", payload: { role: accountRole, isProvider, onboarded: isOnboarded, profilePictureUrl: providerAvatarUrl, userAvatarUrl } },
         "*"
       );
-    }, [isProvider, isOnboarded, providerAvatarUrl]);
+    }, [accountRole, isProvider, isOnboarded, providerAvatarUrl, userAvatarUrl]);
 
     return (
       <PageFrame
@@ -81,8 +88,9 @@ export const Route = createFileRoute("/")({
         title="Home"
         iframeRef={iframeRef}
         onLoad={() => {
+          const p = latestPayloadRef.current;
           iframeRef.current?.contentWindow?.postMessage(
-            { type: "home:init", payload: { role: accountRole, isProvider, onboarded: isOnboarded, profilePictureUrl: providerAvatarUrl } },
+            { type: "home:init", payload: { role: p.role, isProvider: p.isProvider, onboarded: p.onboarded, profilePictureUrl: p.profilePictureUrl, userAvatarUrl: p.userAvatarUrl } },
             "*"
           );
         }}

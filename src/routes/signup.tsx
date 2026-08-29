@@ -11,7 +11,6 @@ interface SignupData {
   location: string;
   password: string;
   confirmPassword: string;
-  newsletter: boolean;
   terms: boolean;
 }
 
