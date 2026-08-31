@@ -227,11 +227,11 @@ function AdminDashboardComponent() {
 export const Route = createFileRoute("/admin/dashboard")({
   head: () => ({
     meta: [
-      { title: "Admin Dashboard | ExpertHub" },
+      { title: "Admin Dashboard | NINJAWO" },
       {
         name: "description",
         content:
-          "Admin moderation console for verifying providers and managing content on ExpertHub.",
+          "Admin moderation console for verifying providers and managing content on NINJAWO.",
       },
     ],
   }),

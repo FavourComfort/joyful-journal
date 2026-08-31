@@ -105,8 +105,8 @@ function ProviderSignupComponent() {
 export const Route = createFileRoute("/provider/signup")({
   head: () => ({
     meta: [
-      { title: "Become a Provider | ExpertHub" },
-      { name: "description", content: "Join ExpertHub as a service provider and grow your business." },
+      { title: "Become a Provider | NINJAWO" },
+      { name: "description", content: "Join NINJAWO as a service provider and grow your business." },
     ],
   }),
   component: ProviderSignupComponent,

@@ -98,11 +98,11 @@ function SignupComponent() {
 export const Route = createFileRoute("/signup")({
   head: () => ({
     meta: [
-      { title: "Sign Up | ExpertHub" },
+      { title: "Sign Up | NINJAWO" },
       {
         name: "description",
         content:
-          "Create your ExpertHub account to find and book vetted professionals.",
+          "Create your NINJAWO account to find and book vetted professionals.",
       },
     ],
   }),

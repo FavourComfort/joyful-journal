@@ -7,9 +7,9 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ExpertHub | Professional Service Marketplace" },
+      { title: "NINJAWO | Professional Service Marketplace" },
       { name: "description", content: "Connect with vetted industry leaders and local specialists for your business or home needs." },
-      { property: "og:title", content: "ExpertHub | Professional Service Marketplace" },
+      { property: "og:title", content: "NINJAWO | Professional Service Marketplace" },
       { property: "og:description", content: "Vetted experts, transparent pricing, white-glove service." },
     ],
   }),

@@ -159,7 +159,7 @@ function MyRequestsComponent() {
             >
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
-            <span className="text-2xl font-bold text-[#003d9b]">ExpertHub</span>
+            <span className="text-2xl font-bold text-[#003d9b]">NINJAWO</span>
           </div>
             <div className="flex items-center gap-4">
              <button
@@ -312,6 +312,6 @@ function MyRequestsComponent() {
 }
 
 export const Route = createFileRoute("/my-requests")({
-  head: () => ({ meta: [{ title: "My Requests | ExpertHub" }] }),
+  head: () => ({ meta: [{ title: "My Requests | NINJAWO" }] }),
   component: MyRequestsComponent,
 });

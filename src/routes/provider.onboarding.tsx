@@ -291,10 +291,10 @@ function ProviderOnboardingComponent() {
 export const Route = createFileRoute("/provider/onboarding")({
   head: () => ({
     meta: [
-      { title: "Provider Onboarding | ExpertHub" },
+      { title: "Provider Onboarding | NINJAWO" },
       {
         name: "description",
-        content: "Set up your ExpertHub provider profile, services, and business details.",
+        content: "Set up your NINJAWO profile, services, and business details.",
       },
     ],
   }),

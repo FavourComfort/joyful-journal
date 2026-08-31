@@ -276,7 +276,7 @@ export const Route = createFileRoute(
   head: () => ({
     meta: [
       {
-        title: "Customer Requests | ExpertHub",
+        title: "Customer Requests | NINJAWO",
       },
     ],
   }),

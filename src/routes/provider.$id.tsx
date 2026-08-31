@@ -153,7 +153,7 @@ function ProviderProfileComponent() {
             >
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
-            <span className="text-2xl font-bold text-[#003d9b]">ExpertHub</span>
+            <span className="text-2xl font-bold text-[#003d9b]">NINJAWO</span>
           </div>
           <div className="hidden items-center gap-6 md:flex">
             <button
@@ -446,6 +446,6 @@ function ProviderProfileComponent() {
 
 
 export const Route = createFileRoute("/provider/$id")({
-  head: () => ({ meta: [{ title: "Provider Profile | ExpertHub" }] }),
+  head: () => ({ meta: [{ title: "Provider Profile | NINJAWO" }] }),
   component: ProviderProfileComponent,
 });

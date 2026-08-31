@@ -432,7 +432,7 @@ function BookingComponent() {
             </span>
 
             <span className="text-xl font-extrabold tracking-tight text-[#003d9b]">
-              ExpertHub
+              NINJAWO
             </span>
           </button>
 
@@ -637,11 +637,11 @@ export const Route = createFileRoute("/booking")({
   head: () => ({
     meta: [
       {
-        title: "Bookings | ExpertHub",
+        title: "Bookings | NINJAWO",
       },
       {
         name: "description",
-        content: "View and manage your ExpertHub bookings.",
+        content: "View and manage your NINJAWO bookings.",
       },
     ],
   }),

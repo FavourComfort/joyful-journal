@@ -6,6 +6,6 @@ function PostRequestComponent() {
 }
 
 export const Route = createFileRoute("/post-request")({
-  head: () => ({ meta: [{ title: "Post a Request | ExpertHub" }] }),
+  head: () => ({ meta: [{ title: "Post a Request | NINJAWO" }] }),
   component: PostRequestComponent,
 });

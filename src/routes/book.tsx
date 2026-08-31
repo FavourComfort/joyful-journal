@@ -345,7 +345,7 @@ function BookComponent() {
             </button>
 
             <span className="text-2xl font-bold text-[#003d9b]">
-              ExpertHub
+              NINJAWO
             </span>
           </div>
 
@@ -656,7 +656,7 @@ export const Route = createFileRoute("/book")({
   head: () => ({
     meta: [
       {
-        title: "Book Service | ExpertHub",
+        title: "Book Service | NINJAWO",
       },
     ],
   }),

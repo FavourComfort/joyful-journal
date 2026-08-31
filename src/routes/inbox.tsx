@@ -146,8 +146,8 @@ function InboxComponent() {
 export const Route = createFileRoute("/inbox")({
   head: () => ({
     meta: [
-      { title: "Inbox | ExpertHub" },
-      { name: "description", content: "Your ExpertHub interactions." },
+      { title: "Inbox | NINJAWO" },
+      { name: "description", content: "Your NINJAWO interactions." },
     ],
   }),
   component: InboxComponent,

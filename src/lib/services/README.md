@@ -1,6 +1,6 @@
-# ExpertHub Database Services
+NINJAWO Database Services
 
-This folder contains all database interaction services for the ExpertHub application. These services provide a clean, reusable interface for interacting with Supabase tables.
+This folder contains all database interaction services for the NINJAWO application. These services provide a clean, reusable interface for interacting with Supabase tables.
 
 ## Structure
 

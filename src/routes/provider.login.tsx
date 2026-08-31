@@ -85,8 +85,8 @@ function ProviderLoginComponent() {
 export const Route = createFileRoute("/provider/login")({
   head: () => ({
     meta: [
-      { title: "Provider Login | ExpertHub" },
-      { name: "description", content: "Sign in to your ExpertHub provider account." },
+      { title: "Provider Login | NINJAWO" },
+      { name: "description", content: "Sign in to your NINJA account." },
     ],
   }),
   component: ProviderLoginComponent,

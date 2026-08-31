@@ -245,7 +245,7 @@ export async function createRequestNotificationsForProviders(
     const rows = providerIds.map((providerId) => ({
       request_id: requestId,
       provider_id: providerId,
-      subject: "You have a new service request from ExpertHub",
+      subject: "You have a new service request from NINJAWO",
       message: `A new request, "${requestTitle}", is waiting for you.`,
       link: requestLink,
       status: "new",

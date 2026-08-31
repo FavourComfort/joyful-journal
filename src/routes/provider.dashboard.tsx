@@ -362,10 +362,10 @@ function ProviderDashboardComponent() {
 export const Route = createFileRoute("/provider/dashboard")({
   head: () => ({
     meta: [
-      { title: "Provider Dashboard | ExpertHub" },
+      { title: "Provider Dashboard | NINJAWO" },
       {
         name: "description",
-        content: "Manage your ExpertHub provider profile, services, and bookings.",
+        content: "Manage your NINJAWO provider profile, services, and bookings.",
       },
     ],
   }),

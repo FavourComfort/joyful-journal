@@ -9,6 +9,6 @@ export const Route = createFileRoute("/profile/design")({
       throw redirect({ to: "/search" });
     }
   },
-  head: () => ({ meta: [{ title: "ExpertHub | Designer Profile" }] }),
+  head: () => ({ meta: [{ title: "NINJAWO | Designer Profile" }] }),
   component: () => <PageFrame src="/pages/profile-design.html" title="Designer Profile" />,
 });

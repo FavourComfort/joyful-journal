@@ -101,8 +101,8 @@ function LoginComponent() {
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Login | ExpertHub" },
-      { name: "description", content: "Sign in to your ExpertHub account." },
+      { title: "Login | NINJAWO" },
+      { name: "description", content: "Sign in to your NINJAWO account." },
     ],
   }),
   component: LoginComponent,
