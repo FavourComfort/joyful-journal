@@ -10,7 +10,7 @@ export interface Payment {
   amount: number;
   currency: string;
 
-  payment_status: "pending" | "paid" | "failed" | "refunded";
+  payment_status: "pending" | "escrowed" | "released" | "failed" | "refunded" | "disputed";
   payment_method?: string | null;
 
   transaction_ref?: string | null;
@@ -22,6 +22,7 @@ export interface Payment {
   failure_reason?: string | null;
 
   paid_at?: string | null;
+  released_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -82,8 +83,9 @@ export async function createPayment(
   transactionRef?: string
 ): Promise<Payment | null> {
   try {
-    const platformFee = 0;
-    const providerAmount = amount - platformFee;
+    const normalizedAmount = Number(amount) || 0;
+    const platformFee = Number((normalizedAmount * 0.1).toFixed(2));
+    const providerAmount = Number((normalizedAmount - platformFee).toFixed(2));
 
     const { data, error } = await supabase
       .from("payments")
@@ -92,9 +94,9 @@ export async function createPayment(
           booking_id: bookingId,
           customer_id: customerId,
           provider_id: providerId,
-          amount,
+          amount: normalizedAmount,
           currency: "UGX",
-          payment_status: "pending",
+          payment_status: "escrowed",
           payment_method: paymentMethod,
           transaction_ref: transactionRef,
           platform_fee: platformFee,
@@ -119,7 +121,7 @@ export async function createPayment(
 // Update payment status
 export async function updatePaymentStatus(
   paymentId: string,
-  status: "pending" | "paid" | "failed" | "refunded",
+  status: "pending" | "escrowed" | "released" | "failed" | "refunded" | "disputed",
   transactionRef?: string
 ): Promise<Payment | null> {
   try {
@@ -132,7 +134,8 @@ export async function updatePaymentStatus(
       updates.transaction_ref = transactionRef;
     }
 
-    if (status === "paid") {
+    if (status === "released") {
+      updates.released_at = new Date().toISOString();
       updates.paid_at = new Date().toISOString();
     }
 
@@ -155,12 +158,65 @@ export async function updatePaymentStatus(
   }
 }
 
-// Mark payment as paid
-export async function markPaymentAsPaid(
+// Hold payment in escrow until service completion is confirmed.
+export async function markPaymentAsEscrowed(
   paymentId: string,
   transactionRef: string
 ): Promise<Payment | null> {
-  return updatePaymentStatus(paymentId, "paid", transactionRef);
+  return updatePaymentStatus(paymentId, "escrowed", transactionRef);
+}
+
+// Release escrowed funds to the provider after customer confirms completion.
+export async function releaseEscrow(
+  paymentId: string,
+  transactionRef?: string
+): Promise<Payment | null> {
+  return updatePaymentStatus(paymentId, "released", transactionRef);
+}
+
+export async function releaseEscrowForBooking(
+  bookingId: string
+): Promise<Payment | null> {
+  try {
+    const payment = await getPaymentByBookingId(bookingId);
+
+    if (!payment) {
+      console.error("No payment found for booking to release.");
+      return null;
+    }
+
+    return releaseEscrow(payment.id, payment.transaction_ref || undefined);
+  } catch (error) {
+    console.error("Error releasing escrow for booking:", error);
+    return null;
+  }
+}
+
+export async function confirmServiceCompletionAndRelease(
+  bookingId: string
+): Promise<Payment | null> {
+  try {
+    const payment = await getPaymentByBookingId(bookingId);
+
+    if (!payment) {
+      console.error("No payment record exists for this booking.");
+      return null;
+    }
+
+    const booking = await import("./bookings.service").then((mod) =>
+      mod.updateBookingStatus(bookingId, "completed")
+    );
+
+    if (!booking) {
+      console.error("Could not mark booking as completed before releasing escrow.");
+      return null;
+    }
+
+    return releaseEscrow(payment.id, payment.transaction_ref || undefined);
+  } catch (error) {
+    console.error("Error completing service and releasing escrow:", error);
+    return null;
+  }
 }
 
 // Mark payment as failed
@@ -206,7 +262,7 @@ export async function markPaymentAsRefunded(
 
 // Get payments by status
 export async function getPaymentsByStatus(
-  status: "pending" | "paid" | "failed" | "refunded"
+  status: "pending" | "escrowed" | "released" | "failed" | "refunded" | "disputed"
 ): Promise<Payment[]> {
   try {
     const { data, error } = await supabase

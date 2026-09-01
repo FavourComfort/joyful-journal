@@ -1,3 +1,6 @@
+import { createBooking, updateBookingStatus } from "./bookings.service";
+import { createPaymentNotifications } from "./notifications.service";
+import { createPayment } from "./payments.service";
 import { supabase } from "../supabase";
 
 export interface CustomerRequest {
@@ -7,6 +10,7 @@ export interface CustomerRequest {
   description: string;
   category?: string | null;
   location?: string | null;
+  budget_min?: number | null;
   budget_max?: number | null;
   created_at: string;
 }
@@ -86,6 +90,28 @@ export async function getCustomerRequests(customerId: string) {
   } catch (err) {
     console.error("Exception fetching customer requests:", err);
     return [];
+  }
+}
+
+export async function getRequestById(
+  requestId: string
+): Promise<CustomerRequest | null> {
+  try {
+    const { data, error } = await supabase
+      .from("requests")
+      .select("*")
+      .eq("id", requestId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching request:", error);
+      return null;
+    }
+
+    return data as CustomerRequest | null;
+  } catch (err) {
+    console.error("Exception fetching request:", err);
+    return null;
   }
 }
 
@@ -560,8 +586,203 @@ async function setOfferStatus(
   }
 }
 
+async function getOfferWithContext(offerId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("offers")
+      .select(
+        `
+          *,
+          requests:request_id (
+            id,
+            customer_id,
+            title,
+            description,
+            category,
+            location,
+            budget_min,
+            budget_max,
+            created_at
+          ),
+          providers:provider_id (
+            id,
+            user_id,
+            business_name
+          )
+        `
+      )
+      .eq("id", offerId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error loading offer for booking creation:", error);
+      return null;
+    }
+
+    return data as
+      | (Record<string, unknown> & {
+          request_id: string;
+          provider_id: string;
+          price?: number | null;
+          estimated_start?: string | null;
+          requests?: {
+            id: string;
+            customer_id: string;
+            title?: string | null;
+            description?: string | null;
+            category?: string | null;
+            location?: string | null;
+            budget_min?: number | null;
+            budget_max?: number | null;
+            created_at?: string;
+          } | null;
+          providers?: {
+            id: string;
+            user_id: string;
+            business_name?: string | null;
+          } | null;
+        })
+      | null;
+  } catch (err) {
+    console.error("Exception loading offer for booking creation:", err);
+    return null;
+  }
+}
+
+async function getOfferBookingServiceId(
+  providerId: string,
+  requestCategory?: string | null
+): Promise<string | null> {
+  try {
+    let qb = supabase
+      .from("services")
+      .select("id")
+      .eq("provider_id", providerId)
+      .eq("active", true)
+      .order("created_at", { ascending: true });
+
+    if (requestCategory?.trim()) {
+      qb = qb.ilike("category", `%${requestCategory.trim()}%`);
+    }
+
+    const { data, error } = await qb.limit(1);
+
+    if (error) {
+      console.error("Error resolving booking service for accepted offer:", error);
+      return null;
+    }
+
+    return data?.[0]?.id ?? null;
+  } catch (err) {
+    console.error("Exception resolving booking service for accepted offer:", err);
+    return null;
+  }
+}
+
 export async function acceptOffer(offerId: string): Promise<boolean> {
-  return setOfferStatus(offerId, "accepted");
+  try {
+    const offer = await getOfferWithContext(offerId);
+
+    if (!offer?.request_id || !offer?.provider_id) {
+      console.error("Offer missing request/provider context for booking creation.");
+      return false;
+    }
+
+    const request = offer.requests;
+    const provider = offer.providers;
+
+    if (!request || !provider) {
+      console.error("Offer is missing its request or provider row.");
+      return false;
+    }
+
+    const serviceId = await getOfferBookingServiceId(
+      offer.provider_id,
+      request.category
+    );
+
+    if (!serviceId) {
+      console.error(
+        "Could not create a booking because the provider has no active service record for this offer."
+      );
+      return false;
+    }
+
+    const bookingDate =
+      offer.estimated_start && typeof offer.estimated_start === "string"
+        ? offer.estimated_start
+        : new Date().toISOString().slice(0, 10);
+
+    const booking = await createBooking(
+      request.customer_id,
+      offer.provider_id,
+      serviceId,
+      bookingDate,
+      "09:00",
+      "11:00",
+      Number(offer.price ?? request.budget_max ?? request.budget_min ?? 0)
+    );
+
+    if (!booking) {
+      console.error("Accepted offer could not create a booking record.");
+      return false;
+    }
+
+    const paymentReference = `OFFER-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)
+      .toUpperCase()}`;
+
+    const payment = await createPayment(
+      booking.id,
+      request.customer_id,
+      offer.provider_id,
+      Number(offer.price ?? request.budget_max ?? request.budget_min ?? 0),
+      "mock_checkout",
+      paymentReference
+    );
+
+    if (!payment) {
+      console.error("Accepted offer could not create a payment record.");
+      return false;
+    }
+
+    if (!payment || payment.payment_status !== "escrowed") {
+      console.error("Accepted offer payment could not be secured in escrow.");
+      return false;
+    }
+
+    const confirmedBooking = await updateBookingStatus(booking.id, "confirmed");
+
+    if (!confirmedBooking) {
+      console.error("Accepted offer booking could not be confirmed.");
+      return false;
+    }
+
+    const finished = await setOfferStatus(offerId, "accepted");
+
+    if (!finished) {
+      console.error("Accepted offer status update failed after booking and payment creation.");
+      return false;
+    }
+
+    const notificationsCreated = await createPaymentNotifications({
+      customerId: request.customer_id,
+      providerUserId: provider.user_id,
+      bookingId: confirmedBooking.id,
+      paymentId: payment.id,
+      amount: Number(offer.price ?? request.budget_max ?? request.budget_min ?? 0),
+    });
+
+    if (!notificationsCreated) {
+      console.warn("Accepted offer created booking and payment but notification creation failed.");
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Exception accepting offer and creating booking:", err);
+    return false;
+  }
 }
 
 export async function declineOffer(offerId: string): Promise<boolean> {

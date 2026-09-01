@@ -15,7 +15,6 @@ import {
 } from "@/lib/services/bookings.service";
 import {
   createPayment,
-  markPaymentAsPaid,
 } from "@/lib/services/payments.service";
 import { createPaymentNotifications } from "@/lib/services/notifications.service";
 
@@ -156,9 +155,11 @@ function BookComponent() {
        * STEP 2
        * Create a payment record.
        *
-       * This is still our mock checkout for now.
+       * The payment is held in escrow by NINJAWO until the customer confirms the
+       * service is complete. This matches the platform contract and protects both
+       * sides while the work is being delivered.
        */
-      const transactionRef = `EXP-${Date.now()}-${Math.random()
+      const transactionRef = `ESCROW-${Date.now()}-${Math.random()
         .toString(36)
         .slice(2, 8)
         .toUpperCase()}`;
@@ -174,7 +175,7 @@ function BookComponent() {
 
       if (!payment) {
         setError(
-          "We could not process the payment. Please try again."
+          "We could not secure the payment. Please try again."
         );
         setSubmitting(false);
         return;
@@ -182,18 +183,12 @@ function BookComponent() {
 
       /*
        * STEP 3
-       * Simulate successful payment.
-       *
-       * Later this will be replaced by the real payment provider.
+       * Keep the funds in escrow until the service is completed and confirmed.
+       * The payment record remains escrowed, not paid out immediately.
        */
-      const paidPayment = await markPaymentAsPaid(
-        payment.id,
-        transactionRef
-      );
-
-      if (!paidPayment) {
+      if (!payment || payment.payment_status !== "escrowed") {
         setError(
-          "Payment could not be completed. Please try again."
+          "Payment could not be secured in escrow. Please try again."
         );
         setSubmitting(false);
         return;
@@ -201,7 +196,7 @@ function BookComponent() {
 
       /*
        * STEP 4
-       * Payment succeeded, so confirm the booking.
+       * Booking is created and held pending delivery/confirmation.
        */
       const confirmedBooking = await updateBookingStatus(
         booking.id,
@@ -221,10 +216,10 @@ function BookComponent() {
        * Create notifications for BOTH sides.
        *
        * Customer:
-       * "Payment successful"
+       * "Payment is being held in escrow until service confirmation"
        *
        * Provider:
-       * "New booking confirmed"
+       * "New booking confirmed; funds are held by NINJAWO"
        */
       const notificationsCreated =
         await createPaymentNotifications({

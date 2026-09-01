@@ -1038,6 +1038,15 @@
                 };
 
 
+            case "in_progress":
+
+                return {
+                    label: "In progress",
+                    className: "bg-violet-50 text-violet-700",
+                    dot: "bg-violet-600"
+                };
+
+
             case "cancelled":
 
                 return {
@@ -1265,6 +1274,9 @@
             formatTime(booking.end_time);
 
 
+        const allowCompletionRelease =
+            booking.status === "confirmed" || booking.status === "in_progress";
+
         card.innerHTML = `
 
             <div class="relative shrink-0">
@@ -1344,6 +1356,25 @@
 
                 </div>
 
+                ${
+                    allowCompletionRelease
+                        ? `
+                            <div class="mt-4 flex justify-end border-t border-outline-variant pt-3">
+                                <button
+                                    type="button"
+                                    data-confirm-booking-completion="${escapeHtml(booking.id)}"
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
+                                >
+                                    <span class="material-symbols-outlined text-[16px]">
+                                        verified
+                                    </span>
+                                    Confirm completion & release funds
+                                </button>
+                            </div>
+                        `
+                        : ""
+                }
+
             </div>
 
 
@@ -1353,6 +1384,26 @@
 
         `;
 
+        const confirmButton =
+            card.querySelector(
+                "[data-confirm-booking-completion]"
+            );
+
+        confirmButton?.addEventListener(
+            "click",
+            (event) => {
+                event.stopPropagation();
+
+                if (!booking.id) return;
+
+                postToParent(
+                    "dashboard:confirmBookingCompletion",
+                    {
+                        bookingId: booking.id
+                    }
+                );
+            }
+        );
 
         card.addEventListener(
             "click",

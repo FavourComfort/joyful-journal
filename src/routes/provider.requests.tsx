@@ -5,7 +5,6 @@ import { getCurrentProfile } from "@/lib/services/auth.service";
 import { getProviderByUserId } from "@/lib/services/providers.service";
 import { supabase } from "@/lib/supabase";
 import {
-  createOffer,
   getNotificationsForProvider,
   getRequestsForProvider,
 } from "@/lib/services/requests.service";
@@ -33,10 +32,19 @@ function ProviderRequestsComponent() {
       getNotificationsForProvider(providerId),
     ]);
 
+    // Notifications are created only for providers that match a request's
+    // location and category. They form this provider's eligible request feed.
+    const eligibleRequestIds = new Set(
+      notifications.map((notification) => notification.request_id)
+    );
+    const eligibleRequests = requests.filter((request) =>
+      eligibleRequestIds.has(request.id)
+    );
+
     sendToIframe({
       type: "provider-requests:init",
       payload: {
-        requests,
+        requests: eligibleRequests,
         notifications,
       },
     });
@@ -155,66 +163,21 @@ function ProviderRequestsComponent() {
         return;
       }
 
-      if (type === "provider-requests:interested") {
-        if (!providerId) {
-          sendToIframe({
-            type: "provider-requests:offerCreated",
-            payload: {
-              success: false,
-              message:
-                "Provider session is not ready.",
-            },
-          });
-
-          return;
-        }
-
+      if (
+        type === "provider-requests:interested" ||
+        type === "provider-requests:viewDetails"
+      ) {
         const requestId = payload?.requestId;
 
         if (!requestId) {
-          sendToIframe({
-            type: "provider-requests:offerCreated",
-            payload: {
-              success: false,
-              message: "Request ID is required.",
-            },
-          });
-
+          setError("A request could not be opened. Please refresh and try again.");
           return;
         }
 
-        const offer = await createOffer({
-          request_id: requestId,
-          provider_id: providerId,
-          message:
-            "I am interested in your request and would like to discuss next steps.",
+        await router.navigate({
+          to: "/provider/offer",
+          search: { requestId },
         });
-
-        sendToIframe({
-  type: "provider-requests:offerCreated",
-  payload: {
-    success: !!offer,
-    message: offer
-      ? "Offer sent successfully."
-      : "Unable to send your interest right now.",
-    offer,
-    requestId,
-  },
-});
-
-        return;
-      }
-
-      if (type === "provider-requests:viewDetails") {
-        sendToIframe({
-          type: "provider-requests:viewDetails:response",
-          payload: {
-            message:
-              "Details are not available in this prototype.",
-            requestId: payload?.requestId,
-          },
-        });
-
         return;
       }
     };
@@ -227,7 +190,7 @@ function ProviderRequestsComponent() {
         handleMessage
       );
     };
-  }, [providerId, providerLocation]);
+  }, [providerId, providerLocation, router]);
 
   // --------------------------------------------------
   // LOADING / ERROR

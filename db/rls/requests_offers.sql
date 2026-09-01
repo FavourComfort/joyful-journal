@@ -31,29 +31,60 @@ CREATE POLICY "Requests update/delete by owner"
   USING (auth.uid() = customer_id)
   WITH CHECK (auth.uid() = customer_id);
 
--- OFFERS: allow providers to insert offers where provider_id = auth.uid()
+-- OFFERS: allow providers to insert offers where the offer is linked to their own
+-- provider row. NOTE: `offers.provider_id` references `providers(id)`, NOT `auth.uid()`,
+-- so mapthe session user to their provider row via `providers.user_id`.
+DROP POLICY IF EXISTS "Offers insert by provider" ON public.offers;
 CREATE POLICY "Offers insert by provider"
   ON public.offers
   FOR INSERT
-  WITH CHECK (auth.uid() = provider_id);
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.providers p
+      WHERE p.id = provider_id AND p.user_id = auth.uid()
+    )
+  );
 
--- OFFERS: allow select for provider who made the offer OR the customer who owns the request
+-- OFFERS: allow select for provider who made the offer ORthe customer who owns the request
+DROP POLICY IF EXISTS "Offers select for provider or request owner" ON public.offers;
 CREATE POLICY "Offers select for provider or request owner"
   ON public.offers
   FOR SELECT
   USING (
-    auth.uid() = provider_id
+    EXISTS (
+      SELECT 1 FROM public.providers p
+      WHERE p.id = provider_id AND p.user_id = auth.uid()
+    )
     OR EXISTS (
       SELECT 1 FROM public.requests r WHERE r.id = request_id AND r.customer_id = auth.uid()
     )
   );
 
 -- OFFERS: allow update/delete only by the provider who created the offer
+DROP POLICY IF EXISTS "Offers update/delete by provider" ON public.offers;
 CREATE POLICY "Offers update/delete by provider"
   ON public.offers
   FOR UPDATE, DELETE
-  USING (auth.uid() = provider_id)
-  WITH CHECK (auth.uid() = provider_id);
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.providers p
+      WHERE p.id = provider_id AND p.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.providers p
+      WHERE p.id = provider_id AND p.user_id = auth.uid()
+    )
+  );
+
+-- One offer per provider/request: enforce at the database level.
+-- A provider may submit at most one offer for a given request. The service
+-- already guards this in `createOffer`, but a DB-level unique constraint
+-- re-inforces it against races and direct PostgREST writes. This also backs the
+-- idempotent "create or reuse" flow.
+CREATE UNIQUE INDEX IF NOT EXISTS offers_provider_request_unique
+  ON public.offers (provider_id, request_id);
 
 -- Notes:
 -- - If you want customers to accept/decline offers by updating a column on offers

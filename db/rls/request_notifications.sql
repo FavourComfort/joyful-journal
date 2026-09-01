@@ -36,17 +36,29 @@ CREATE POLICY "Request notifications insert by request owner"
 DROP POLICY IF EXISTS "Request notifications select by provider" ON public.request_notifications;
 CREATE POLICY "Request notifications select by provider"
   ON public.request_notifications FOR SELECT
-  USING (auth.uid() = provider_id OR EXISTS (
-    SELECT 1 FROM public.providers p WHERE p.id = provider_id AND p.user_id = auth.uid()
-  ));
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.providers p
+      WHERE p.id = provider_id AND p.user_id = auth.uid()
+    )
+  );
 
 -- A provider can mark their own notifications as viewed/dismissed.
 DROP POLICY IF EXISTS "Request notifications update by provider" ON public.request_notifications;
 CREATE POLICY "Request notifications update by provider"
   ON public.request_notifications FOR UPDATE
-  USING (auth.uid() = provider_id OR EXISTS (
-    SELECT 1 FROM public.providers p WHERE p.id = provider_id AND p.user_id = auth.uid()
-  ));
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.providers p
+      WHERE p.id = provider_id AND p.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.providers p
+      WHERE p.id = provider_id AND p.user_id = auth.uid()
+    )
+  );
 
 -- Admin can read/delete notifications for moderation consistency (additive).
 DROP POLICY IF EXISTS "Request notifications select for admin" ON public.request_notifications;

@@ -8,7 +8,7 @@ export interface Booking {
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
   total_amount: number;
   created_at: string;
 }
@@ -110,7 +110,7 @@ export async function createBooking(
 // Update booking status
 export async function updateBookingStatus(
   bookingId: string,
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  status: 'pending' | 'confirmed' | 'in_progress' | 'in_progress' | 'completed' | 'cancelled'
 ): Promise<Booking | null> {
   try {
     const { data, error } = await supabase

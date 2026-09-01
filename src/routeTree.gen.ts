@@ -22,6 +22,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProviderSignupRouteImport } from './routes/provider.signup'
 import { Route as ProviderRequestsRouteImport } from './routes/provider.requests'
 import { Route as ProviderOnboardingRouteImport } from './routes/provider.onboarding'
+import { Route as ProviderOfferRouteImport } from './routes/provider.offer'
 import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProviderDashboardRouteImport } from './routes/provider.dashboard'
 import { Route as ProviderIdRouteImport } from './routes/provider.$id'
@@ -94,6 +95,11 @@ const ProviderOnboardingRoute = ProviderOnboardingRouteImport.update({
   path: '/provider/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProviderOfferRoute = ProviderOfferRouteImport.update({
+  id: '/provider/offer',
+  path: '/provider/offer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProviderLoginRoute = ProviderLoginRouteImport.update({
   id: '/provider/login',
   path: '/provider/login',
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
+  '/provider/offer': typeof ProviderOfferRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
   '/provider/requests': typeof ProviderRequestsRoute
   '/provider/signup': typeof ProviderSignupRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
+  '/provider/offer': typeof ProviderOfferRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
   '/provider/requests': typeof ProviderRequestsRoute
   '/provider/signup': typeof ProviderSignupRoute
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
+  '/provider/offer': typeof ProviderOfferRoute
   '/provider/onboarding': typeof ProviderOnboardingRoute
   '/provider/requests': typeof ProviderRequestsRoute
   '/provider/signup': typeof ProviderSignupRoute
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/provider/$id'
     | '/provider/dashboard'
     | '/provider/login'
+    | '/provider/offer'
     | '/provider/onboarding'
     | '/provider/requests'
     | '/provider/signup'
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/provider/$id'
     | '/provider/dashboard'
     | '/provider/login'
+    | '/provider/offer'
     | '/provider/onboarding'
     | '/provider/requests'
     | '/provider/signup'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/provider/$id'
     | '/provider/dashboard'
     | '/provider/login'
+    | '/provider/offer'
     | '/provider/onboarding'
     | '/provider/requests'
     | '/provider/signup'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   ProviderIdRoute: typeof ProviderIdRoute
   ProviderDashboardRoute: typeof ProviderDashboardRoute
   ProviderLoginRoute: typeof ProviderLoginRoute
+  ProviderOfferRoute: typeof ProviderOfferRoute
   ProviderOnboardingRoute: typeof ProviderOnboardingRoute
   ProviderRequestsRoute: typeof ProviderRequestsRoute
   ProviderSignupRoute: typeof ProviderSignupRoute
@@ -369,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProviderOnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/provider/offer': {
+      id: '/provider/offer'
+      path: '/provider/offer'
+      fullPath: '/provider/offer'
+      preLoaderRoute: typeof ProviderOfferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/provider/login': {
       id: '/provider/login'
       path: '/provider/login'
@@ -441,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProviderIdRoute: ProviderIdRoute,
   ProviderDashboardRoute: ProviderDashboardRoute,
   ProviderLoginRoute: ProviderLoginRoute,
+  ProviderOfferRoute: ProviderOfferRoute,
   ProviderOnboardingRoute: ProviderOnboardingRoute,
   ProviderRequestsRoute: ProviderRequestsRoute,
   ProviderSignupRoute: ProviderSignupRoute,

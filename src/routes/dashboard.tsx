@@ -16,6 +16,7 @@ declineOffer,
 
 import { uploadAvatar } from "@/lib/services/providers.service";
 import { getCustomerBookings } from "@/lib/services/bookings.service";
+import { confirmServiceCompletionAndRelease } from "@/lib/services/payments.service";
 import { supabase } from "@/lib/supabase";
 
 function ClientDashboardComponent() {
@@ -189,6 +190,44 @@ function ClientDashboardComponent() {
           return;
         }
         await router.navigate({ to: "/login" });
+        return;
+      }
+
+      if (type === "dashboard:confirmBookingCompletion") {
+        try {
+          const bookingId = payload?.bookingId;
+
+          if (typeof bookingId !== "string") {
+            throw new Error("Invalid booking ID.");
+          }
+
+          const payment = await confirmServiceCompletionAndRelease(bookingId);
+
+          if (!payment) {
+            throw new Error("Unable to release escrow for this booking.");
+          }
+
+          await loadDashboard();
+
+          postToIframe({
+            type: "dashboard:releaseSuccess",
+            payload: {
+              bookingId,
+              paymentStatus: payment.payment_status,
+            },
+          });
+        } catch (err) {
+          postToIframe({
+            type: "dashboard:error",
+            payload: {
+              message:
+                err instanceof Error
+                  ? err.message
+                  : "Failed to confirm service completion.",
+            },
+          });
+        }
+
         return;
       }
 

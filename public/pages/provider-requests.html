@@ -164,10 +164,6 @@
 interestedButton.dataset.requestId = request.id;
 
 interestedButton.addEventListener('click', () => {
-  interestedButton.disabled = true;
-  interestedButton.textContent = 'Sending...';
-  interestedButton.classList.add('opacity-60', 'cursor-not-allowed');
-
   postToParent('provider-requests:interested', {
     requestId: request.id,
   });

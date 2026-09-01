@@ -152,13 +152,13 @@ export async function markAllNotificationsAsRead(
 }
 
 /**
- * Create the notifications generated after a successful payment.
+ * Create the notifications generated after a booking is secured in escrow.
  *
  * Customer:
- *   Payment successful
+ *   Payment is being held in escrow until service confirmation.
  *
  * Provider:
- *   New booking confirmed
+ *   New booking confirmed; funds are held by NINJAWO until completion.
  */
 export async function createPaymentNotifications({
   customerId,
@@ -180,9 +180,9 @@ export async function createPaymentNotifications({
       await Promise.all([
         createNotification(
           customerId,
-          "payment_success",
-          "Payment successful",
-          `Your payment of UGX ${formattedAmount} was successful.`,
+          "payment_escrowed",
+          "Payment held in escrow",
+          `Your payment of UGX ${formattedAmount} is being held by NINJAWO until you confirm the service is complete.`,
           bookingId,
           paymentId
         ),
@@ -191,7 +191,7 @@ export async function createPaymentNotifications({
           providerUserId,
           "booking_confirmed",
           "New booking confirmed",
-          `You have received a new booking worth UGX ${formattedAmount}.`,
+          `A new booking worth UGX ${formattedAmount} has been secured. Funds are held by NINJAWO until the customer confirms completion.`,
           bookingId,
           paymentId
         ),
