@@ -1230,10 +1230,7 @@
     ) {
 
         const card =
-            document.createElement("button");
-
-
-        card.type = "button";
+            document.createElement("div");
 
 
         card.className =
@@ -1276,6 +1273,10 @@
 
         const allowCompletionRelease =
             booking.status === "confirmed" || booking.status === "in_progress";
+        const canCancel = booking.status !== "completed" && booking.status !== "cancelled";
+        const completionMessage = booking.completion_requested
+            ? "Provider requested completion. Confirm only when the service is complete."
+            : "Confirm completion & release funds";
 
         card.innerHTML = `
 
@@ -1368,7 +1369,24 @@
                                     <span class="material-symbols-outlined text-[16px]">
                                         verified
                                     </span>
-                                    Confirm completion & release funds
+                                    ${completionMessage}
+                                </button>
+                            </div>
+                        `
+                        : ""
+                }
+
+                ${
+                    canCancel
+                        ? `
+                            <div class="mt-3 flex justify-end">
+                                <button
+                                    type="button"
+                                    data-cancel-booking="${escapeHtml(booking.id)}"
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 px-3.5 py-2 text-xs font-bold text-red-700 transition hover:bg-red-50"
+                                >
+                                    <span class="material-symbols-outlined text-[16px]">cancel</span>
+                                    Cancel & refund escrow
                                 </button>
                             </div>
                         `
@@ -1404,6 +1422,18 @@
                 );
             }
         );
+
+        const cancelButton = card.querySelector("[data-cancel-booking]");
+        cancelButton?.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (!booking.id) return;
+            if (window.confirm("Cancel this booking? The escrow payment will be refunded to you.")) {
+                postToParent("dashboard:cancelBooking", {
+                    bookingId: booking.id,
+                    reason: "Cancelled by customer"
+                });
+            }
+        });
 
         card.addEventListener(
             "click",
@@ -2745,6 +2775,11 @@
 
                 return;
 
+            }
+
+            if (message.type === "dashboard:actionSuccess") {
+                showToast(message.payload?.message || "Action completed.");
+                return;
             }
 
         }

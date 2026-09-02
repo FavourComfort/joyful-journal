@@ -1,4 +1,9 @@
 import { supabase } from '../supabase';
+import {
+  assertBookingTransition,
+  bookingTransitionError,
+  type BookingStatus,
+} from '../state-machines';
 
 export interface Booking {
   id: string;
@@ -8,7 +13,7 @@ export interface Booking {
   booking_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+  status: BookingStatus;
   total_amount: number;
   created_at: string;
 }
@@ -107,12 +112,28 @@ export async function createBooking(
   }
 }
 
-// Update booking status
+// Update booking status.
+//
+// State-machine enforced: the transition is checked against BOOKING_TRANSITIONS
+// before the write and the server rejects illegal transitions as well (see the
+// validate_booking_status_transition trigger). Returns null on a rejected move.
 export async function updateBookingStatus(
   bookingId: string,
-  status: 'pending' | 'confirmed' | 'in_progress' | 'in_progress' | 'completed' | 'cancelled'
+  status: BookingStatus
 ): Promise<Booking | null> {
   try {
+    const current = await getBookingById(bookingId);
+    if (!current) {
+      console.error('Error updating booking status: booking not found');
+      return null;
+    }
+
+    const transitionError = bookingTransitionError(current.status, status);
+    if (transitionError) {
+      console.error('State machine rejected booking transition:', transitionError);
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('bookings')
       .update({ status })
@@ -132,9 +153,19 @@ export async function updateBookingStatus(
   }
 }
 
-// Cancel booking
+// Cancel booking (soft cancel) — only allowed from pending / confirmed / in_progress.
 export async function cancelBooking(bookingId: string): Promise<boolean> {
   try {
+    const current = await getBookingById(bookingId);
+    if (!current) return false;
+
+    try {
+      assertBookingTransition(current.status, 'cancelled');
+    } catch (transitionError) {
+      console.error('State machine rejected cancellation:', transitionError);
+      return false;
+    }
+
     const { error } = await supabase
       .from('bookings')
       .update({ status: 'cancelled' })

@@ -29,6 +29,11 @@ import {
   getProviderReviews,
   type Review,
 } from "@/lib/services/reviews.service";
+import {
+  cancelBookingAndRefund,
+  getCompletionRequestBookingIds,
+  requestServiceCompletion,
+} from "@/lib/services/payments.service";
 
 interface DashboardData {
   provider: Provider;
@@ -40,6 +45,7 @@ interface DashboardData {
   earnings: number;
   upcoming: number;
   completed: number;
+  completionRequestedBookingIds: string[];
 }
 
 function ProviderDashboardComponent() {
@@ -80,6 +86,7 @@ function ProviderDashboardComponent() {
       getProviderReviews(provider.id),
       getProviderAverageRating(provider.id),
     ]);
+    const completionRequestedBookingIds = [...await getCompletionRequestBookingIds(bookings.map((booking) => booking.id))];
 
     const customerIds = [...new Set(bookings.map((b) => b.customer_id))];
     let customerNames: Record<string, string> = {};
@@ -120,13 +127,14 @@ function ProviderDashboardComponent() {
       earnings,
       upcoming,
       completed: completed.length,
+      completionRequestedBookingIds,
     };
   };
 
   const sendData = async () => {
     try {
       const data = await fetchDashboardData();
-      postToIframe({ type: "dashboard:init", payload: data });
+      postToIframe({ type: "dashboard:data", payload: data });
     } catch (err) {
       postToIframe({
         type: "dashboard:error",
@@ -315,6 +323,31 @@ function ProviderDashboardComponent() {
               message: err instanceof Error ? err.message : "Failed to update the booking.",
             },
           });
+        }
+        return;
+      }
+
+      if (type === "dashboard:requestCompletion") {
+        try {
+          const provider = providerRef.current;
+          if (!provider || typeof payload?.bookingId !== "string") throw new Error("Invalid completion request.");
+          if (!await requestServiceCompletion(payload.bookingId, provider.id)) throw new Error("Could not send the completion request.");
+          await sendData();
+          postToIframe({ type: "dashboard:actionSuccess", payload: { message: "Completion request sent to the customer for approval." } });
+        } catch (err) {
+          postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to request completion." } });
+        }
+        return;
+      }
+
+      if (type === "dashboard:cancelBooking") {
+        try {
+          if (typeof payload?.bookingId !== "string") throw new Error("Invalid booking ID.");
+          if (!await cancelBookingAndRefund(payload.bookingId, payload.reason)) throw new Error("Unable to cancel this booking and verify its refund.");
+          await sendData();
+          postToIframe({ type: "dashboard:actionSuccess", payload: { message: "Booking cancelled. The escrow payment has been refunded." } });
+        } catch (err) {
+          postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to cancel booking." } });
         }
         return;
       }

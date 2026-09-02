@@ -1,0 +1,408 @@
+-- Atomic transaction function for creating booking + payment in escrow
+-- This ensures that if either operation fails, both are rolled back.
+
+-- ================================================================
+-- Function: create_booking_with_escrow_payment
+-- ================================================================
+-- Purpose:
+--   Atomically create a booking and a corresponding escrowed payment.
+--   If any step fails, the entire transaction is rolled back.
+--
+-- Parameters:
+--   p_customer_id        - UUID of customer (profile ID)
+--   p_provider_id        - UUID of provider (provider row ID)
+--   p_service_id         - UUID of service
+--   p_booking_date       - Date of booking (ISO 8601)
+--   p_start_time         - Start time (HH:MM:SS format)
+--   p_end_time           - End time (HH:MM:SS format)
+--   p_total_amount       - Total amount to charge
+--   p_currency           - Currency code (default: 'UGX')
+--   p_transaction_ref    - Transaction reference (optional)
+--   p_payment_method     - Payment method (default: 'mock_checkout')
+--
+-- Returns:
+--   JSON object with booking and payment records on success,
+--   or error JSON if transaction fails.
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.create_booking_with_escrow_payment(
+  p_customer_id uuid,
+  p_provider_id uuid,
+  p_service_id uuid,
+  p_booking_date date,
+  p_start_time time,
+  p_end_time time,
+  p_total_amount numeric(12,2),
+  p_currency text DEFAULT 'UGX',
+  p_transaction_ref text DEFAULT NULL,
+  p_payment_method text DEFAULT 'mock_checkout'
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_booking_id uuid;
+  v_payment_id uuid;
+  v_platform_fee numeric(12,2);
+  v_provider_amount numeric(12,2);
+  v_booking_record json;
+  v_payment_record json;
+  v_result json;
+BEGIN
+  -- Validate inputs
+  IF p_customer_id IS NULL OR p_provider_id IS NULL OR p_service_id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Missing required parameters'
+    );
+  END IF;
+
+  IF p_total_amount < 0 THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Amount must be non-negative'
+    );
+  END IF;
+
+  BEGIN
+    -- STEP 1: Create booking with status 'pending'
+    INSERT INTO public.bookings(
+      customer_id,
+      provider_id,
+      service_id,
+      booking_date,
+      start_time,
+      end_time,
+      status,
+      total_amount
+    )
+    VALUES (
+      p_customer_id,
+      p_provider_id,
+      p_service_id,
+      p_booking_date,
+      p_start_time,
+      p_end_time,
+      'pending',
+      p_total_amount
+    )
+    RETURNING id INTO v_booking_id;
+
+    IF v_booking_id IS NULL THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Failed to create booking'
+      );
+    END IF;
+
+    -- STEP 2: Calculate fees
+    v_platform_fee := ROUND(p_total_amount * 0.1, 2);
+    v_provider_amount := ROUND(p_total_amount - v_platform_fee, 2);
+
+    -- STEP 3: Create escrowed payment
+    INSERT INTO public.payments(
+      booking_id,
+      customer_id,
+      provider_id,
+      amount,
+      currency,
+      payment_status,
+      payment_method,
+      transaction_ref,
+      platform_fee,
+      provider_amount
+    )
+    VALUES (
+      v_booking_id,
+      p_customer_id,
+      p_provider_id,
+      p_total_amount,
+      p_currency,
+      'escrowed',
+      p_payment_method,
+      p_transaction_ref,
+      v_platform_fee,
+      v_provider_amount
+    )
+    RETURNING id INTO v_payment_id;
+
+    IF v_payment_id IS NULL THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Failed to create payment record'
+      );
+    END IF;
+
+    -- STEP 4: Fetch the full records for response
+    SELECT row_to_json(b.*) INTO v_booking_record
+    FROM public.bookings b
+    WHERE b.id = v_booking_id;
+
+    SELECT row_to_json(p.*) INTO v_payment_record
+    FROM public.payments p
+    WHERE p.id = v_payment_id;
+
+    -- STEP 5: Return success with both records
+    RETURN json_build_object(
+      'success', true,
+      'booking', v_booking_record,
+      'payment', v_payment_record
+    );
+
+  EXCEPTION WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', SQLERRM
+    );
+  END;
+
+END $$;
+
+-- ================================================================
+-- Function: release_escrow_to_provider
+-- ================================================================
+-- Purpose:
+--   Atomically mark a payment as 'released' and booking as 'completed'.
+--   Called when customer confirms service delivery.
+--
+-- Parameters:
+--   p_booking_id - UUID of booking to complete
+--
+-- Returns:
+--   JSON object with updated payment status on success.
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.release_escrow_to_provider(
+  p_booking_id uuid
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_payment_id uuid;
+  v_payment_status text;
+  v_booking_status text;
+  v_payment_record json;
+BEGIN
+  -- Validate input
+  IF p_booking_id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Booking ID is required'
+    );
+  END IF;
+
+  BEGIN
+    -- STEP 1: Fetch the booking and check its current status
+    SELECT status INTO v_booking_status
+    FROM public.bookings
+    WHERE id = p_booking_id;
+
+    IF v_booking_status IS NULL THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Booking not found'
+      );
+    END IF;
+
+    -- Only the customer can approve completion and release escrow.
+    IF NOT EXISTS (
+      SELECT 1 FROM public.bookings
+      WHERE id = p_booking_id AND customer_id = auth.uid()
+    ) THEN
+      RETURN json_build_object('success', false, 'error', 'Only the customer may release escrow');
+    END IF;
+
+    -- STEP 2: Ensure booking is in confirmed or in_progress state
+    IF v_booking_status NOT IN ('confirmed', 'in_progress') THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Cannot release escrow for booking in status: ' || v_booking_status
+      );
+    END IF;
+
+    -- STEP 3: Fetch payment record
+    SELECT id, payment_status INTO v_payment_id, v_payment_status
+    FROM public.payments
+    WHERE booking_id = p_booking_id;
+
+    IF v_payment_id IS NULL THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'No payment record found for this booking'
+      );
+    END IF;
+
+    -- STEP 4: Ensure payment is in escrowed state
+    IF v_payment_status != 'escrowed' THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Payment is not in escrowed state; current status: ' || v_payment_status
+      );
+    END IF;
+
+    -- STEP 5: Update booking status to 'completed'
+    UPDATE public.bookings
+    SET status = 'completed'
+    WHERE id = p_booking_id;
+
+    -- STEP 6: Release payment and mark timestamps
+    UPDATE public.payments
+    SET
+      payment_status = 'released',
+      released_at = now(),
+      paid_at = now(),
+      updated_at = now()
+    WHERE id = v_payment_id;
+
+    -- STEP 7: Fetch and return updated payment record
+    SELECT row_to_json(p.*) INTO v_payment_record
+    FROM public.payments p
+    WHERE p.id = v_payment_id;
+
+    RETURN json_build_object(
+      'success', true,
+      'booking_id', p_booking_id,
+      'payment', v_payment_record
+    );
+
+  EXCEPTION WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', SQLERRM
+    );
+  END;
+
+END $$;
+
+-- ================================================================
+-- Function: cancel_booking_and_refund
+-- ================================================================
+-- Purpose:
+--   Atomically cancel a booking and refund the escrowed payment.
+--   Called when either customer or provider cancels before completion.
+--
+-- Parameters:
+--   p_booking_id      - UUID of booking to cancel
+--   p_cancel_reason   - Optional reason for cancellation
+--   p_refund_reason   - Optional reason for refund
+--
+-- Returns:
+--   JSON object with updated booking and payment status on success.
+-- ================================================================
+
+CREATE OR REPLACE FUNCTION public.cancel_booking_and_refund(
+  p_booking_id uuid,
+  p_cancel_reason text DEFAULT NULL,
+  p_refund_reason text DEFAULT NULL
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_payment_id uuid;
+  v_payment_status text;
+  v_booking_status text;
+  v_booking_record json;
+  v_payment_record json;
+BEGIN
+  IF p_booking_id IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Booking ID is required'
+    );
+  END IF;
+
+  BEGIN
+    -- STEP 1: Fetch booking
+    SELECT id, status INTO v_booking_id, v_booking_status
+    FROM public.bookings
+    WHERE id = p_booking_id;
+
+    IF v_booking_id IS NULL THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Booking not found'
+      );
+    END IF;
+
+    -- Either party may cancel their own booking; SECURITY DEFINER must not bypass this check.
+    IF NOT EXISTS (
+      SELECT 1 FROM public.bookings b
+      WHERE b.id = p_booking_id AND (
+        b.customer_id = auth.uid() OR EXISTS (
+          SELECT 1 FROM public.providers p
+          WHERE p.id = b.provider_id AND p.user_id = auth.uid()
+        )
+      )
+    ) THEN
+      RETURN json_build_object('success', false, 'error', 'Only a booking participant may cancel');
+    END IF;
+
+    -- STEP 2: Only allow cancellation if not already completed or cancelled
+    IF v_booking_status IN ('completed', 'cancelled') THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Cannot cancel booking in status: ' || v_booking_status
+      );
+    END IF;
+
+    -- STEP 3: Fetch payment
+    SELECT id, payment_status INTO v_payment_id, v_payment_status
+    FROM public.payments
+    WHERE booking_id = p_booking_id;
+
+    IF v_payment_id IS NULL THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'No payment record found for this booking'
+      );
+    END IF;
+
+    IF v_payment_status != 'escrowed' THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Only an escrowed payment can be refunded; current status: ' || v_payment_status
+      );
+    END IF;
+
+    -- STEP 4: Update booking to cancelled
+    UPDATE public.bookings
+    SET status = 'cancelled'
+    WHERE id = p_booking_id;
+
+    -- STEP 5: Refund escrowed payment (move to refunded state)
+    UPDATE public.payments
+    SET
+      payment_status = 'refunded',
+      failure_reason = p_refund_reason,
+      updated_at = now(),
+      released_at = now()
+    WHERE id = v_payment_id;
+
+    -- STEP 6: Fetch updated records
+    SELECT row_to_json(b.*) INTO v_booking_record
+    FROM public.bookings b
+    WHERE b.id = p_booking_id;
+
+    SELECT row_to_json(p.*) INTO v_payment_record
+    FROM public.payments p
+    WHERE p.id = v_payment_id;
+
+    RETURN json_build_object(
+      'success', true,
+      'booking', v_booking_record,
+      'payment', v_payment_record
+    );
+
+  EXCEPTION WHEN OTHERS THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', SQLERRM
+    );
+  END;
+
+END $$;

@@ -179,7 +179,6 @@ export async function releaseEscrowForBooking(
 ): Promise<Payment | null> {
   try {
     const payment = await getPaymentByBookingId(bookingId);
-
     if (!payment) {
       console.error("No payment found for booking to release.");
       return null;
@@ -196,25 +195,51 @@ export async function confirmServiceCompletionAndRelease(
   bookingId: string
 ): Promise<Payment | null> {
   try {
-    const payment = await getPaymentByBookingId(bookingId);
-
-    if (!payment) {
-      console.error("No payment record exists for this booking.");
-      return null;
-    }
-
-    const booking = await import("./bookings.service").then((mod) =>
-      mod.updateBookingStatus(bookingId, "completed")
-    );
-
-    if (!booking) {
-      console.error("Could not mark booking as completed before releasing escrow.");
-      return null;
-    }
-
-    return releaseEscrow(payment.id, payment.transaction_ref || undefined);
+    const { data, error } = await supabase.rpc("release_escrow_to_provider", { p_booking_id: bookingId });
+    if (error) throw error;
+    return (ensureEscrowSuccess(data as EscrowRpcResult).payment || null) as Payment | null;
   } catch (error) {
     console.error("Error completing service and releasing escrow:", error);
+    return null;
+  }
+}
+
+/** Provider starts the mutual completion flow; the customer still releases escrow. */
+export async function requestServiceCompletion(bookingId: string, providerId: string): Promise<CompletionRequest | null> {
+  try {
+    const { data, error } = await supabase.from("completion_requests")
+      .upsert({ booking_id: bookingId, provider_id: providerId }, { onConflict: "booking_id" })
+      .select().single();
+    if (error) throw error;
+    return data as CompletionRequest;
+  } catch (error) {
+    console.error("Error requesting service completion:", error);
+    return null;
+  }
+}
+
+export async function getCompletionRequestBookingIds(bookingIds: string[]): Promise<Set<string>> {
+  if (!bookingIds.length) return new Set();
+  try {
+    const { data, error } = await supabase.from("completion_requests").select("booking_id").in("booking_id", bookingIds);
+    if (error) throw error;
+    return new Set((data || []).map((request) => request.booking_id));
+  } catch (error) {
+    console.error("Error loading completion requests:", error);
+    return new Set();
+  }
+}
+
+/** Atomically cancels a booking and returns the escrowed payment to the customer. */
+export async function cancelBookingAndRefund(bookingId: string, reason?: string): Promise<Payment | null> {
+  try {
+    const { data, error } = await supabase.rpc("cancel_booking_and_refund", {
+      p_booking_id: bookingId, p_cancel_reason: reason || null, p_refund_reason: reason || null,
+    });
+    if (error) throw error;
+    return (ensureEscrowSuccess(data as EscrowRpcResult).payment || null) as Payment | null;
+  } catch (error) {
+    console.error("Error cancelling booking and refunding escrow:", error);
     return null;
   }
 }
@@ -310,4 +335,18 @@ export async function getProviderRevenue(
     console.error("Error getting provider revenue:", error);
     return 0;
   }
+}
+
+export interface CompletionRequest {
+  id: string;
+  booking_id: string;
+  provider_id: string;
+  requested_at: string;
+}
+
+type EscrowRpcResult = { success?: boolean; error?: string; payment?: Payment };
+
+function ensureEscrowSuccess(result: EscrowRpcResult | null): EscrowRpcResult {
+  if (!result?.success) throw new Error(result?.error || "The escrow action could not be completed.");
+  return result;
 }

@@ -16,7 +16,11 @@ declineOffer,
 
 import { uploadAvatar } from "@/lib/services/providers.service";
 import { getCustomerBookings } from "@/lib/services/bookings.service";
-import { confirmServiceCompletionAndRelease } from "@/lib/services/payments.service";
+import {
+  cancelBookingAndRefund,
+  confirmServiceCompletionAndRelease,
+  getCompletionRequestBookingIds,
+} from "@/lib/services/payments.service";
 import { supabase } from "@/lib/supabase";
 
 function ClientDashboardComponent() {
@@ -83,6 +87,9 @@ function ClientDashboardComponent() {
       getCustomerBookings(profile.id),
       getCustomerRequests(profile.id),
     ]);
+    const completionRequestBookingIds = await getCompletionRequestBookingIds(
+      bookings.map((booking) => booking.id)
+    );
     const offers = await getOffersWithProvidersForRequests(
       requests.map((request) => request.id)
     );
@@ -93,7 +100,10 @@ function ClientDashboardComponent() {
         name: profile.full_name || "",
         avatarUrl: profile.avatar_url || null,
         role: profile.role || "customer",
-        bookings,
+        bookings: bookings.map((booking) => ({
+          ...booking,
+          completion_requested: completionRequestBookingIds.has(booking.id),
+        })),
         requests,
         offers,
       },
@@ -116,8 +126,18 @@ function ClientDashboardComponent() {
       )
       .subscribe();
 
+    const completionChannel = supabase
+      .channel(`customer-completion-requests-${customerId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "completion_requests" },
+        () => void loadDashboard().catch((err) => console.error("Failed to refresh completion request:", err))
+      )
+      .subscribe();
+
     return () => {
       void supabase.removeChannel(channel);
+      void supabase.removeChannel(completionChannel);
     };
   }, [customerId]);
 
@@ -228,6 +248,21 @@ function ClientDashboardComponent() {
           });
         }
 
+        return;
+      }
+
+      if (type === "dashboard:cancelBooking") {
+        try {
+          const bookingId = payload?.bookingId;
+          if (typeof bookingId !== "string") throw new Error("Invalid booking ID.");
+          if (!await cancelBookingAndRefund(bookingId, payload?.reason)) {
+            throw new Error("Unable to cancel this booking and verify its refund.");
+          }
+          await loadDashboard();
+          postToIframe({ type: "dashboard:actionSuccess", payload: { message: "Booking cancelled. The escrow payment has been refunded." } });
+        } catch (err) {
+          postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to cancel booking." } });
+        }
         return;
       }
 
