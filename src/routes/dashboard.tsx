@@ -21,6 +21,10 @@ import {
   confirmServiceCompletionAndRelease,
   getCompletionRequestBookingIds,
 } from "@/lib/services/payments.service";
+import {
+  getDisputesForBookings,
+  raiseDispute,
+} from "@/lib/services/disputes.service";
 import { supabase } from "@/lib/supabase";
 
 function ClientDashboardComponent() {
@@ -90,6 +94,9 @@ function ClientDashboardComponent() {
     const completionRequestBookingIds = await getCompletionRequestBookingIds(
       bookings.map((booking) => booking.id)
     );
+    const disputes = await getDisputesForBookings(
+      bookings.map((booking) => booking.id)
+    );
     const offers = await getOffersWithProvidersForRequests(
       requests.map((request) => request.id)
     );
@@ -104,6 +111,7 @@ function ClientDashboardComponent() {
           ...booking,
           completion_requested: completionRequestBookingIds.has(booking.id),
         })),
+        disputes,
         requests,
         offers,
       },
@@ -262,6 +270,44 @@ function ClientDashboardComponent() {
           postToIframe({ type: "dashboard:actionSuccess", payload: { message: "Booking cancelled. The escrow payment has been refunded." } });
         } catch (err) {
           postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to cancel booking." } });
+        }
+        return;
+      }
+
+      // ------------------------------------------------
+      // Dispute: customer flags a service as not delivered
+      // ------------------------------------------------
+
+      if (type === "dashboard:raiseDispute") {
+        try {
+          const bookingId = payload?.bookingId;
+          const reason = payload?.reason;
+          if (typeof bookingId !== "string") throw new Error("Invalid booking ID.");
+
+          const validReasons = [
+            "service_not_delivered",
+            "service_not_as_described",
+            "other",
+          ];
+          if (!validReasons.includes(reason)) throw new Error("Please choose a dispute reason.");
+
+          const dispute = await raiseDispute(
+            bookingId,
+            reason as "service_not_delivered" | "service_not_as_described" | "other",
+            typeof payload?.description === "string" ? payload.description : undefined
+          );
+
+          if (!dispute) {
+            throw new Error("Could not raise the dispute. The booking may no longer be eligible.");
+          }
+
+          await loadDashboard();
+          postToIframe({
+            type: "dashboard:actionSuccess",
+            payload: { message: "Dispute raised. The provider has been notified and your funds are protected in escrow." },
+          });
+        } catch (err) {
+          postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to raise the dispute." } });
         }
         return;
       }

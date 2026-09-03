@@ -220,6 +220,7 @@
                         <button class="tab-btn" data-tab="requests">Requests</button>
                         <button class="tab-btn" data-tab="offers">Offers</button>
                         <button class="tab-btn" data-tab="bookings">Bookings</button>
+                        <button class="tab-btn" data-tab="disputes">Disputes</button>
                         <button class="tab-btn" data-tab="reviews">Reviews</button>
                     </div>
                 </div>
@@ -280,6 +281,14 @@
                         <h2 class="font-headline-md text-headline-md text-on-background">All Bookings</h2>
                     </div>
                     <div id="bookingsList" class="space-y-sm"></div>
+                </section>
+
+                <!-- Disputes -->
+                <section id="disputes-panel" class="hidden">
+                    <div class="flex justify-between items-center mb-md flex-wrap gap-sm">
+                        <h2 class="font-headline-md text-headline-md text-on-background">Dispute Resolution</h2>
+                    </div>
+                    <div id="disputesList" class="space-y-sm"></div>
                 </section>
 
                 <!-- Reviews -->
@@ -353,8 +362,10 @@
             const map = {
                 pending: ['bg-[#fef3c7] text-[#92400e]', 'Pending'],
                 confirmed: ['bg-[#dbeafe] text-[#1e40af]', 'Confirmed'],
+                in_progress: ['bg-[#ede9fe] text-[#6d28d9]', 'In progress'],
                 completed: ['bg-[#dcfce7] text-[#166534]', 'Completed'],
                 cancelled: ['bg-[#fee2e2] text-[#991b1b]', 'Cancelled'],
+                disputed: ['bg-[#ffedd5] text-[#c2410c]', 'Disputed'],
             };
             const [cls, label] = map[status] || ['bg-[#e5e7eb] text-[#374151]', status];
             return '<span class="badge ' + cls + '">' + escapeHtml(label) + '</span>';
@@ -397,7 +408,7 @@
             document.querySelectorAll('.tab-btn').forEach((b) => {
                 b.classList.toggle('tab-active', b.dataset.tab === tab);
             });
-            ['overview', 'providers', 'requests', 'offers', 'bookings', 'reviews'].forEach((t) => {
+            ['overview', 'providers', 'requests', 'offers', 'bookings', 'disputes', 'reviews'].forEach((t) => {
                 const panel = document.getElementById(t + '-panel');
                 if (panel) panel.classList.toggle('hidden', t !== tab);
             });
@@ -414,6 +425,9 @@
             }
             if (tab === 'reviews' && !data.__reviews) {
                 postToParent('admin:loadReviews');
+            }
+            if (tab === 'disputes' && !data.__disputes) {
+                postToParent('admin:loadDisputes');
             }
         }
 
@@ -599,6 +613,74 @@
             }));
         }
 
+function disputeStatusBadge(status) {
+            const map = {
+                open: ['bg-[#fef3c7] text-[#92400e]', 'Open'],
+                provider_responded: ['bg-[#dbeafe] text-[#1e40af]', 'Provider responded'],
+                resolved_customer: ['bg-[#fee2e2] text-[#991b1b]', 'Resolved — refunded'],
+                resolved_provider: ['bg-[#dcfce7] text-[#166534]', 'Resolved — released'],
+                closed: ['bg-[#e5e7eb] text-[#374151]', 'Closed'],
+            };
+            const [cls, label] = map[status] || ['bg-[#e5e7eb] text-[#374151]', status || 'open'];
+            return '<span class="badge ' + cls + '">' + escapeHtml(label) + '</span>';
+        }
+
+        function renderDisputes(disputes) {
+            const container = $('#disputesList');
+            if (!container) return;
+            if (!disputes.length) {
+                container.innerHTML = '<div class="text-center text-on-surface-variant font-body-md py-lg bg-surface-container-low rounded-xl">No disputes to review.</div>';
+                return;
+            }
+
+            const reasonMap = {
+                service_not_delivered: 'Service was not delivered',
+                service_not_as_described: 'Service not as described',
+                other: 'Other',
+            };
+
+            container.innerHTML = disputes.map((d) => {
+                const actionable = d.status === 'open' || d.status === 'provider_responded';
+                const reason = reasonMap[d.reason] || d.reason;
+                let actions = '';
+                if (actionable) {
+                    actions +=
+                        '<button type="button" class="disputeAdjudicateBtn bg-[#dcfce7] text-[#166534] px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + d.id + '" data-decision="refund">Refund customer</button>' +
+                        '<button type="button" class="disputeAdjudicateBtn bg-[#dbeafe] text-[#1e40af] px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + d.id + '" data-decision="release">Release to provider</button>' +
+                        '<button type="button" class="disputeCloseBtn text-on-surface-variant border border-outline-variant px-sm py-xs rounded-lg font-label-sm text-label-sm cursor-pointer" data-id="' + d.id + '">Close</button>';
+                }
+                return '<div class="bg-surface-container-low rounded-xl p-md flex items-center justify-between gap-md flex-wrap table-row-link">' +
+                    '<div class="flex-1 min-w-0">' +
+                    '<p class="font-label-sm text-label-sm text-on-background">' + escapeHtml(d.customer_name) + ' → ' + escapeHtml(d.provider_business_name) + '</p>' +
+                    '<p class="text-caption text-on-surface-variant">' + escapeHtml(reason) + (d.description ? ' — ' + escapeHtml(d.description) : '') + '</p>' +
+                    '<div class="flex flex-wrap gap-xs text-caption text-on-surface-variant">' +
+                    disputeStatusBadge(d.status) +
+                    (d.booking_amount != null ? '<span class="material-symbols-outlined text-xs">payments</span><span>' + formatPrice(d.booking_amount) + '</span>' : '') +
+                    '<span class="material-symbols-outlined text-xs">schedule</span><span>' + formatDate(d.raised_at) + '</span>' +
+                    (d.provider_response ? '<p class="w-full text-on-background"><b>Provider response:</b> ' + escapeHtml(d.provider_response) + '</p>' : '') +
+                    (d.admin_notes ? '<p class="w-full text-on-background"><b>Admin note:</b> ' + escapeHtml(d.admin_notes) + '</p>' : '') +
+                    '</div></div>' +
+                    (actions ? '<div class="flex items-center gap-sm shrink-0">' + actions + '</div>' : '') +
+                    '</div>';
+            }).join('');
+
+            document.querySelectorAll('.disputeAdjudicateBtn').forEach((b) => {
+                b.addEventListener('click', () => {
+                    const id = b.getAttribute('data-id');
+                    const decision = b.getAttribute('data-decision');
+                    const notes = window.prompt('Admin note (optional):', '') || '';
+                    if (!confirm('Adjudicate this dispute — ' + (decision === 'refund' ? 'refund the customer and cancel the booking' : 'release the escrow funds to the provider') + '?')) return;
+                    postToParent('admin:adjudicateDispute', { disputeId: id, decision, adminNotes: notes });
+                });
+            });
+            document.querySelectorAll('.disputeCloseBtn').forEach((b) => {
+                b.addEventListener('click', () => {
+                    const notes = window.prompt('Admin note (optional):', '') || '';
+                    if (!confirm('Close this dispute without moving funds?')) return;
+                    postToParent('admin:closeDispute', { disputeId: b.getAttribute('data-id'), adminNotes: notes });
+                });
+            });
+        }
         function bindDeleteButtons() {
             document.querySelectorAll('.deleteBtn').forEach((b) => {
                 if (b._bound) return;
@@ -636,6 +718,7 @@
                 data.__offers = null;
                 data.__bookings = null;
                 data.__reviews = null;
+                data.__disputes = null;
                 $('#loadingState').classList.add('hidden');
                 $('#dashboardContent').classList.remove('hidden');
                 const chip = $('#adminRoleChip');
@@ -662,6 +745,19 @@
             if (msg.type === 'admin:reviews') {
                 data.__reviews = msg.payload.reviews;
                 if (activeTab === 'reviews') renderReviews(data.__reviews);
+                return;
+            }
+            if (msg.type === 'admin:disputes') {
+                data.__disputes = msg.payload.disputes;
+                if (activeTab === 'disputes') renderDisputes(data.__disputes);
+                return;
+            }
+            if (msg.type === 'admin:disputeResult') {
+                showToast((msg.payload && msg.payload.message) || (msg.payload && msg.payload.ok ? 'Dispute updated.' : 'Could not update the dispute.'));
+                if (activeTab === 'disputes') {
+                    data.__disputes = null;
+                    postToParent('admin:loadDisputes');
+                }
                 return;
             }
 

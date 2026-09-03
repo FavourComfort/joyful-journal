@@ -624,6 +624,8 @@
                 const actions = document.createElement('div');
                 actions.className = 'flex items-center gap-sm shrink-0';
                 const completionRequested = (data.completionRequestedBookingIds || []).includes(b.id);
+                const bDispute = (data.disputes || []).find((d) => d.booking_id === b.id);
+                const isDisputed = b.status === 'disputed' || Boolean(bDispute);
 
                 if (b.status === 'pending') {
                     const confirmBtn = document.createElement('button');
@@ -633,7 +635,7 @@
 
                     actions.appendChild(confirmBtn);
                 }
-                if (b.status === 'confirmed' || b.status === 'in_progress') {
+                if (!isDisputed && (b.status === 'confirmed' || b.status === 'in_progress')) {
                     if (completionRequested) {
                         const notice = document.createElement('span');
                         notice.className = 'text-xs font-semibold text-on-surface-variant';
@@ -653,7 +655,7 @@
 
                     actions.appendChild(completeBtn);
                 }
-                if (b.status !== 'completed' && b.status !== 'cancelled') {
+                if (!isDisputed && b.status !== 'completed' && b.status !== 'cancelled') {
                     const cancelBtn = document.createElement('button');
                     cancelBtn.className = 'border border-outline-variant text-on-background px-sm py-xs rounded-xl font-label-sm text-label-sm hover:bg-surface-container transition-all cursor-pointer';
                     cancelBtn.textContent = 'Cancel & refund';
@@ -665,6 +667,37 @@
                     actions.appendChild(cancelBtn);
                 }
 
+if (bDispute) {
+                    const statusText =
+                        bDispute.status === 'open' ? 'Dispute — awaiting your response' :
+                        bDispute.status === 'provider_responded' ? 'Dispute — sent to admin for review' :
+                        bDispute.status === 'resolved_customer' ? 'Dispute resolved — refunded to customer' :
+                        bDispute.status === 'resolved_provider' ? 'Dispute resolved — released to you' :
+                        'Dispute closed';
+
+                    const disputeMeta = document.createElement('div');
+                    disputeMeta.className = 'flex flex-col items-end gap-sm';
+
+                    const label = document.createElement('span');
+                    label.className = 'text-xs font-bold text-orange-700';
+                    label.textContent = statusText;
+                    disputeMeta.appendChild(label);
+
+                    if (bDispute.status === 'open') {
+                        const respondBtn = document.createElement('button');
+                        respondBtn.className = 'bg-primary text-on-primary px-sm py-xs rounded-xl font-label-sm text-label-sm hover:brightness-110 transition-all cursor-pointer';
+                        respondBtn.textContent = 'Respond to dispute';
+                        respondBtn.addEventListener('click', () => {
+                            const response = window.prompt("Your response to the customer's dispute:", '');
+                            if (response && response.trim()) {
+                                postToParent('dashboard:respondDispute', { disputeId: bDispute.id, response: response.trim() });
+                            }
+                        });
+                        disputeMeta.appendChild(respondBtn);
+                    }
+
+                    actions.appendChild(disputeMeta);
+                }
                 item.appendChild(info);
                 if (actions.childNodes.length) item.appendChild(actions);
                 list.appendChild(item);

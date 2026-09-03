@@ -21,6 +21,12 @@ import {
   deleteBookingPermanently,
   deleteReviewPermanently,
 } from "@/lib/services/admin.service";
+import {
+  adjudicateDispute,
+  closeDispute,
+  getAllDisputesForAdmin,
+  type DisputeDecision,
+} from "@/lib/services/disputes.service";
 
 function AdminDashboardComponent() {
   const router = useRouter();
@@ -145,6 +151,81 @@ function AdminDashboardComponent() {
       if (type === "admin:loadReviews") {
         const reviews = await getAllReviewsForAdmin();
         postToIframe({ type: "admin:reviews", payload: { reviews } });
+        return;
+      }
+
+      // ------------------------------------------------
+      // Disputes: list + adjudicate + close
+      // ------------------------------------------------
+
+      if (type === "admin:loadDisputes") {
+        try {
+          const disputes = await getAllDisputesForAdmin();
+          postToIframe({ type: "admin:disputes", payload: { disputes } });
+        } catch (err) {
+          postToIframe({
+            type: "admin:error",
+            payload: { message: err instanceof Error ? err.message : "Failed to load disputes." },
+          });
+        }
+        return;
+      }
+
+      if (type === "admin:adjudicateDispute") {
+        try {
+          const disputeId = payload?.disputeId;
+          const decision = payload?.decision as DisputeDecision | undefined;
+          if (typeof disputeId !== "string" || (decision !== "refund" && decision !== "release")) {
+            throw new Error("A valid dispute and decision are required.");
+          }
+          const dispute = await adjudicateDispute(
+            disputeId,
+            decision,
+            typeof payload?.adminNotes === "string" ? payload.adminNotes : undefined
+          );
+          if (!dispute) {
+            throw new Error("Could not adjudicate this dispute. It may already be resolved.");
+          }
+          postToIframe({
+            type: "admin:disputeResult",
+            payload: {
+              ok: true,
+              message:
+                decision === "refund"
+                  ? "Dispute resolved — funds refunded to the customer."
+                  : "Dispute resolved — funds released to the provider.",
+            },
+          });
+        } catch (err) {
+          postToIframe({
+            type: "admin:disputeResult",
+            payload: { ok: false, message: err instanceof Error ? err.message : "Failed to adjudicate the dispute." },
+          });
+        }
+        return;
+      }
+
+      if (type === "admin:closeDispute") {
+        try {
+          const disputeId = payload?.disputeId;
+          if (typeof disputeId !== "string") throw new Error("Invalid dispute ID.");
+          const dispute = await closeDispute(
+            disputeId,
+            typeof payload?.adminNotes === "string" ? payload.adminNotes : undefined
+          );
+          if (!dispute) {
+            throw new Error("Could not close this dispute.");
+          }
+          postToIframe({
+            type: "admin:disputeResult",
+            payload: { ok: true, message: "Dispute closed without changes." },
+          });
+        } catch (err) {
+          postToIframe({
+            type: "admin:disputeResult",
+            payload: { ok: false, message: err instanceof Error ? err.message : "Failed to close the dispute." },
+          });
+        }
         return;
       }
 

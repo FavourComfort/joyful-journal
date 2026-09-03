@@ -157,19 +157,7 @@ export async function findMatchingProvidersForRequest(
   try {
     let qb = supabase
       .from("providers")
-      .select(
-        `
-          id,
-          user_id,
-          business_name,
-          location,
-          verified,
-          created_at,
-          services!inner(
-            category
-          )
-        `
-      )
+      .select("id, user_id, business_name, location, verified, created_at")
       .eq("verified", true);
 
     /*
@@ -188,21 +176,26 @@ export async function findMatchingProvidersForRequest(
       );
     }
 
-    /*
-     * Match the detected category when we know one.
-     *
-     * "other" means our current classifier could not
-     * confidently determine the category, so we don't
-     * restrict providers by category at all.
-     */
+    /* Resolve service matches separately so provider discovery does not depend
+     * on PostgREST nested relationship metadata. */
+    let matchingProviderIds: Set<string> | null = null;
     if (
       category?.trim() &&
       category.trim() !== "other"
     ) {
-      qb = qb.eq(
-        "services.category",
-        category.trim()
-      );
+      const { data: services, error: servicesError } = await supabase
+        .from("services")
+        .select("provider_id")
+        .eq("active", true)
+        .eq("category", category.trim());
+
+      if (servicesError) {
+        console.error("Error fetching matching provider services:", servicesError);
+      } else {
+        matchingProviderIds = new Set(
+          (services || []).map((service) => service.provider_id)
+        );
+      }
     }
 
     const { data, error } = await qb.order(
@@ -231,6 +224,10 @@ export async function findMatchingProvidersForRequest(
     const uniqueProviders = new Map();
 
     for (const provider of data || []) {
+      if (matchingProviderIds && !matchingProviderIds.has(provider.id)) {
+        continue;
+      }
+
       if (!uniqueProviders.has(provider.id)) {
         uniqueProviders.set(provider.id, {
           id: provider.id,
@@ -277,10 +274,9 @@ export async function createRequestNotificationsForProviders(
       status: "new",
     }));
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("request_notifications")
-      .insert(rows)
-      .select();
+      .insert(rows);
 
     if (error) {
       console.error(
@@ -290,7 +286,7 @@ export async function createRequestNotificationsForProviders(
       return [];
     }
 
-    return (data || []) as RequestNotification[];
+    return rows as RequestNotification[];
   } catch (err) {
     console.error(
       "Exception creating provider notifications:",
@@ -332,8 +328,80 @@ export async function getNotificationsForProvider(
 // PROVIDER REQUEST FEED
 // --------------------------------------------------
 
+/**
+ * The provider's CURRENT set of service categories, derived from their
+ * active `services` rows.
+ *
+ * This is the "live" source of truth used to re-evaluate request eligibility
+ * every time the feed loads. Because we read the current categories instead of
+ * relying on the one-time notification snapshot taken when a request was posted,
+ * a provider who adds a service (or a whole new category) later will start
+ * seeing older applicable requests instead of silently missing them.
+ */
+export async function getProviderServiceCategories(
+  providerId: string
+): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from("services")
+      .select("category")
+      .eq("provider_id", providerId)
+      .eq("active", true);
+
+    if (error) {
+      console.error(
+        "Error fetching provider service categories:",
+        error
+      );
+      return [];
+    }
+
+    /* Distinct categories so callers can use them as a Set without surprises. */
+    const distinctCategories = (data || []).map(
+      (s) => s.category
+    );
+    return Array.from(new Set(distinctCategories));
+  } catch (err) {
+    console.error(
+      "Exception fetching provider service categories:",
+      err
+    );
+    return [];
+  }
+}
+
+/**
+ * Pure eligibility check for a single request against a provider's service
+ * categories that mirrors the posting-side matcher (`findMatchingProvidersForRequest`):
+ *
+ * - Requests with no category, or with the catch-all category "other", are
+ *   visible to every provider (the posting matcher skips the category filter
+ *   for "other".)
+ * - Any other request is only visible if its category is one the provider
+ *   currently serves (matching cat-for-cat).
+ *
+ * This runs at load time with the provider's CURRENT categories, which is what
+ * lets relevant providers surface older requests instead of missing them.
+ */
+export function canProvideForCategory(
+  requestCategory: string | null | undefined,
+  providerCategories: string[] | ReadonlySet<string> | null | undefined
+): boolean {
+  if (!requestCategory || requestCategory.trim() === "" || requestCategory === "other") {
+    return true;
+  }
+
+  const set =
+    providerCategories instanceof Set
+      ? providerCategories
+      : new Set(providerCategories || []);
+
+  return set.has(requestCategory);
+}
+
 export async function getRequestsForProvider(
-  location?: string
+  location?: string,
+  categories?: string[]
 ) {
   try {
     let qb = supabase
@@ -343,7 +411,7 @@ export async function getRequestsForProvider(
     /*
      * For now we use the provider's location to find
      * potentially relevant requests.
-     *
+
      * If the provider has no location, return all
      * requests rather than accidentally returning none.
      */
@@ -367,10 +435,57 @@ export async function getRequestsForProvider(
       return [];
     }
 
-    return (data || []) as CustomerRequest[];
+    const requests = (data || []) as CustomerRequest[];
+
+    /*
+     * Re-evaluate category eligibility against the provider's current services.
+
+     * Gate the feed by category here so a provider only ever sees requests for
+     * categories they currently serve. When no categories are provided (e.g.
+     * keep backwards compatibility), no category gating is applied.
+
+     * Note: category "other" and requests with no category are treated as a
+     * catch-all and visible to everyone (see `canProvideForCategory`).
+     */
+    if (categories) {
+      return requests.filter((request) =>
+        canProvideForCategory(request.category, categories)
+      );
+    }
+
+    return requests;
   } catch (err) {
     console.error(
       "Exception fetching requests for provider:",
+      err
+    );
+    return [];
+  }
+}
+
+/**
+ * Load the requests a provider is eligible for right now:
+ * location-based pull (if they set one) plus a live category gate based on
+ * their CURRENT active service categories.
+
+ * Replaces the older "notification-snapshot" approach so that providers
+ * who add services later no longer miss older relevant requests.
+
+ * Consumers of this function should also fetch `getNotificationsForProvider`
+ * separately if they want the "new notification" panel, since it is a
+ * historical inbox rather than the eligibility feed source.
+
+ */
+export async function getEligibleRequestsForProvider(
+  providerId: string,
+  location?: string
+): Promise<CustomerRequest[]> {
+  try {
+    const categories = await getProviderServiceCategories(providerId);
+    return getRequestsForProvider(location, categories);
+  } catch (err) {
+    console.error(
+      "Exception loading eligible requests for provider:",
       err
     );
     return [];
@@ -524,9 +639,13 @@ export async function getOffersWithProvidersForRequests(
       return [];
     }
 
+    // NOTE: we intentionally do NOT use a `providers(...)` embed here.
+    // The live database may not expose an offers -> providers foreign key to
+    // PostgREST, which makes the embed fail with PGRST200 and previously
+    // caused ALL offers to silently disappear from the customer dashboard.
     const { data, error } = await supabase
       .from("offers")
-      .select("*, providers(business_name)")
+      .select("*")
       .in("request_id", requestIds)
       .order("created_at", {
         ascending: false,
@@ -540,10 +659,49 @@ export async function getOffersWithProvidersForRequests(
       return [];
     }
 
-    return (data || []).map((offer: any) => ({
+    const offers = (data || []) as ProviderOffer[];
+
+    // Resolve provider business names in a second query (no FK embed needed).
+    const providerIds = [
+      ...new Set(
+        offers
+          .map((offer) => offer.provider_id)
+          .filter(Boolean)
+      ),
+    ];
+
+    let businessNameById = new Map<string, string>();
+
+    if (providerIds.length) {
+      const { data: providers, error: providersError } =
+        await supabase
+          .from("providers")
+          .select("id, business_name")
+          .in("id", providerIds);
+
+      if (providersError) {
+        // Non-fatal: fall back to a generic label per offer.
+        console.error(
+          "Error fetching provider names for offers:",
+          providersError
+        );
+      } else {
+        businessNameById = new Map(
+          ((providers || []) as Array<{
+            id: string;
+            business_name: string | null;
+          }>).map((provider) => [
+            provider.id,
+            provider.business_name || "Provider",
+          ])
+        );
+      }
+    }
+
+    return offers.map((offer) => ({
       ...offer,
       provider_business_name:
-        offer.providers?.business_name || "Provider",
+        businessNameById.get(offer.provider_id) || "Provider",
     }));
   } catch (err) {
     console.error(
@@ -588,29 +746,13 @@ async function setOfferStatus(
 
 async function getOfferWithContext(offerId: string) {
   try {
+    // NOTE: no FK embeds here either — the live database does not expose an
+    // offers -> requests/providers relationship to PostgREST, so embeds fail
+    // with PGRST200. We fetch the offer, then its request and provider rows
+    // separately and assemble the same shape the embed used to return.
     const { data, error } = await supabase
       .from("offers")
-      .select(
-        `
-          *,
-          requests:request_id (
-            id,
-            customer_id,
-            title,
-            description,
-            category,
-            location,
-            budget_min,
-            budget_max,
-            created_at
-          ),
-          providers:provider_id (
-            id,
-            user_id,
-            business_name
-          )
-        `
-      )
+      .select("*")
       .eq("id", offerId)
       .maybeSingle();
 
@@ -619,13 +761,57 @@ async function getOfferWithContext(offerId: string) {
       return null;
     }
 
-    return data as
-      | (Record<string, unknown> & {
-          request_id: string;
-          provider_id: string;
-          price?: number | null;
-          estimated_start?: string | null;
-          requests?: {
+    if (!data) {
+      return null;
+    }
+
+    const offerRow = data as {
+      request_id?: string | null;
+      provider_id?: string | null;
+      [key: string]: unknown;
+    };
+
+    const [requestRow, providerRow] = await Promise.all([
+      offerRow.request_id
+        ? supabase
+            .from("requests")
+            .select(
+              "id, customer_id, title, description, category, location, budget_min, budget_max, created_at"
+            )
+            .eq("id", offerRow.request_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      offerRow.provider_id
+        ? supabase
+            .from("providers")
+            .select("id, user_id, business_name")
+            .eq("id", offerRow.provider_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+
+    if (requestRow.error) {
+      console.error(
+        "Error loading request context for offer:",
+        requestRow.error
+      );
+    }
+    if (providerRow.error) {
+      console.error(
+        "Error loading provider context for offer:",
+        providerRow.error
+      );
+    }
+
+    return {
+      ...(offerRow as Record<string, unknown> & {
+        request_id: string;
+        provider_id: string;
+        price?: number | null;
+        estimated_start?: string | null;
+      }),
+      requests: (requestRow.data as
+        | {
             id: string;
             customer_id: string;
             title?: string | null;
@@ -635,14 +821,16 @@ async function getOfferWithContext(offerId: string) {
             budget_min?: number | null;
             budget_max?: number | null;
             created_at?: string;
-          } | null;
-          providers?: {
+          }
+        | null) ?? null,
+      providers: (providerRow.data as
+        | {
             id: string;
             user_id: string;
             business_name?: string | null;
-          } | null;
-        })
-      | null;
+          }
+        | null) ?? null,
+    } | null;
   } catch (err) {
     console.error("Exception loading offer for booking creation:", err);
     return null;

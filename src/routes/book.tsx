@@ -10,11 +10,7 @@ import {
   type Service,
 } from "@/lib/services/services.service";
 import {
-  createBooking,
-  updateBookingStatus,
-} from "@/lib/services/bookings.service";
-import {
-  createPayment,
+  createBookingWithEscrowPayment,
 } from "@/lib/services/payments.service";
 import { createPaymentNotifications } from "@/lib/services/notifications.service";
 
@@ -129,64 +125,34 @@ function BookComponent() {
         return;
       }
 
-      /*
-       * STEP 1
-       * Create the booking.
-       */
-      const booking = await createBooking(
+      const transactionRef = `ESCROW-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)
+        .toUpperCase()}`;
+
+      const transaction = await createBookingWithEscrowPayment(
         profile.id,
         search.providerId,
         search.serviceId,
         bookingDate,
         startTime,
         endTime,
-        service.price || 0
-      );
-
-      if (!booking) {
-        setError(
-          "We could not create your booking. Please try again."
-        );
-        setSubmitting(false);
-        return;
-      }
-
-      /*
-       * STEP 2
-       * Create a payment record.
-       *
-       * The payment is held in escrow by NINJAWO until the customer confirms the
-       * service is complete. This matches the platform contract and protects both
-       * sides while the work is being delivered.
-       */
-      const transactionRef = `ESCROW-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)
-        .toUpperCase()}`;
-
-      const payment = await createPayment(
-        booking.id,
-        profile.id,
-        search.providerId,
         service.price || 0,
         "mock_checkout",
         transactionRef
       );
 
-      if (!payment) {
+      if (!transaction) {
         setError(
-          "We could not secure the payment. Please try again."
+          "We could not secure your booking payment. Please try again."
         );
         setSubmitting(false);
         return;
       }
 
-      /*
-       * STEP 3
-       * Keep the funds in escrow until the service is completed and confirmed.
-       * The payment record remains escrowed, not paid out immediately.
-       */
-      if (!payment || payment.payment_status !== "escrowed") {
+      const { booking, payment } = transaction;
+
+      if (payment.payment_status !== "escrowed") {
         setError(
           "Payment could not be secured in escrow. Please try again."
         );
@@ -195,24 +161,7 @@ function BookComponent() {
       }
 
       /*
-       * STEP 4
-       * Booking is created and held pending delivery/confirmation.
-       */
-      const confirmedBooking = await updateBookingStatus(
-        booking.id,
-        "confirmed"
-      );
-
-      if (!confirmedBooking) {
-        setError(
-          "Payment succeeded, but we could not confirm your booking. Please contact support."
-        );
-        setSubmitting(false);
-        return;
-      }
-
-      /*
-       * STEP 5
+      * STEP 2
        * Create notifications for BOTH sides.
        *
        * Customer:
@@ -225,7 +174,7 @@ function BookComponent() {
         await createPaymentNotifications({
           customerId: profile.id,
           providerUserId: provider.user_id,
-          bookingId: booking.id,
+          bookingId: String(booking.id),
           paymentId: payment.id,
           amount: service.price || 0,
         });
@@ -245,7 +194,7 @@ function BookComponent() {
       }
 
       /*
-       * STEP 6
+      * STEP 3
        * Everything important succeeded.
        */
       setSuccess(true);

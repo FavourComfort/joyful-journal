@@ -298,25 +298,29 @@
 
         // Password visibility toggle
         document.addEventListener('DOMContentLoaded', () => {
-            const passwordInput = document.getElementById('password');
-            const togglePassword = document.getElementById('togglePassword');
-            const passwordEyeIcon = document.getElementById('passwordEyeIcon');
+            const setupToggle = (inputId, toggleId, iconId) => {
+                const input = document.getElementById(inputId);
+                const toggle = document.getElementById(toggleId);
+                const icon = document.getElementById(iconId);
+                if (!input || !toggle || !icon) return;
 
-            if (!passwordInput || !togglePassword || !passwordEyeIcon) return;
+                const syncAria = () => {
+                    const isHidden = input.type === 'password';
+                    toggle.setAttribute('aria-label', isHidden ? 'Show password' : 'Hide password');
+                };
 
-            const syncAria = () => {
-                const isHidden = passwordInput.type === 'password';
-                togglePassword.setAttribute('aria-label', isHidden ? 'Show password' : 'Hide password');
+                toggle.addEventListener('click', () => {
+                    const isHidden = input.type === 'password';
+                    input.type = isHidden ? 'text' : 'password';
+                    icon.textContent = isHidden ? 'visibility_off' : 'visibility';
+                    syncAria();
+                });
+
+                syncAria();
             };
 
-            togglePassword.addEventListener('click', () => {
-                const isHidden = passwordInput.type === 'password';
-                passwordInput.type = isHidden ? 'text' : 'password';
-                passwordEyeIcon.textContent = isHidden ? 'visibility_off' : 'visibility';
-                syncAria();
-            });
-
-            syncAria();
+            setupToggle('password', 'togglePassword', 'passwordEyeIcon');
+            setupToggle('confirmPassword', 'toggleConfirmPassword', 'confirmPasswordEyeIcon');
         });
 
         // Live password requirements

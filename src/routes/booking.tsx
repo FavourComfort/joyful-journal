@@ -63,6 +63,11 @@ const statusStyles: Record<
     dot: "bg-blue-500",
     label: "Confirmed",
   },
+  in_progress: {
+    badge: "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-200",
+    dot: "bg-indigo-500",
+    label: "In Progress",
+  },
   completed: {
     badge:
       "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
@@ -73,6 +78,11 @@ const statusStyles: Record<
     badge: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200",
     dot: "bg-red-500",
     label: "Cancelled",
+  },
+  disputed: {
+    badge: "bg-orange-50 text-orange-700 ring-1 ring-inset ring-orange-200",
+    dot: "bg-orange-500",
+    label: "Disputed",
   },
 };
 

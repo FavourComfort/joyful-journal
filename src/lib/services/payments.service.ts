@@ -1,4 +1,8 @@
 import { supabase } from "../supabase";
+import {
+  paymentTransitionError,
+  type PaymentStatus,
+} from "../state-machines";
 
 export interface Payment {
   id: string;
@@ -10,7 +14,7 @@ export interface Payment {
   amount: number;
   currency: string;
 
-  payment_status: "pending" | "escrowed" | "released" | "failed" | "refunded" | "disputed";
+  payment_status: PaymentStatus;
   payment_method?: string | null;
 
   transaction_ref?: string | null;
@@ -25,6 +29,94 @@ export interface Payment {
   released_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface BookingWithEscrowPayment {
+  booking: Record<string, unknown>;
+  payment: Payment;
+}
+
+// Normal bookings must use the database transaction so booking and escrow
+// payment creation cannot leave a partially-created booking behind.
+export async function createBookingWithEscrowPayment(
+  customerId: string,
+  providerId: string,
+  serviceId: string,
+  bookingDate: string,
+  startTime: string,
+  endTime: string,
+  totalAmount: number,
+  paymentMethod = "mock_checkout",
+  transactionRef?: string
+): Promise<BookingWithEscrowPayment | null> {
+  try {
+    const { data, error } = await supabase.rpc(
+      "create_booking_with_escrow_payment",
+      {
+        p_customer_id: customerId,
+        p_provider_id: providerId,
+        p_service_id: serviceId,
+        p_booking_date: bookingDate,
+        p_start_time: startTime,
+        p_end_time: endTime,
+        p_total_amount: Number(totalAmount) || 0,
+        p_currency: "UGX",
+        p_transaction_ref: transactionRef ?? null,
+        p_payment_method: paymentMethod,
+      }
+    );
+
+    if (error) {
+      console.error("Error creating booking with escrow payment:", error);
+      return null;
+    }
+
+    const result = data as {
+      success?: boolean;
+      error?: string;
+      booking?: Record<string, unknown>;
+      payment?: Payment;
+    } | null;
+
+    if (!result?.success || !result.booking || !result.payment) {
+      console.error(
+        "Booking with escrow payment was rejected:",
+        result?.error || "Unknown transaction error"
+      );
+      return null;
+    }
+
+    return {
+      booking: result.booking,
+      payment: result.payment,
+    };
+  } catch (error) {
+    console.error("Exception creating booking with escrow payment:", error);
+    return null;
+  }
+}
+
+// Internal helper: fetch a payment by its id (used by state-machine guards).
+async function getPaymentByIdHelper(
+  paymentId: string
+): Promise<Payment | null> {
+  try {
+    const { data, error } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("id", paymentId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching payment by id:", error);
+      return null;
+    }
+
+    return (data as Payment) || null;
+  } catch (error) {
+    console.error("Error getting payment by id:", error);
+    return null;
+  }
 }
 
 // Get payment by booking ID
@@ -118,13 +210,29 @@ export async function createPayment(
   }
 }
 
-// Update payment status
+// Update payment status.
+//
+// State-machine enforced: the transition is checked against PAYMENT_TRANSITIONS
+// before the write, and the validate_payment_status_transition trigger rejects
+// illegal moves on the server as well. Returns null on a rejected transition.
 export async function updatePaymentStatus(
   paymentId: string,
-  status: "pending" | "escrowed" | "released" | "failed" | "refunded" | "disputed",
+  status: PaymentStatus,
   transactionRef?: string
 ): Promise<Payment | null> {
   try {
+    const current = await getPaymentByIdHelper(paymentId);
+    if (!current) {
+      console.error("Error updating payment status: payment not found");
+      return null;
+    }
+
+    const transitionError = paymentTransitionError(current.payment_status, status);
+    if (transitionError) {
+      console.error("State machine rejected payment transition:", transitionError);
+      return null;
+    }
+
     const updates: Record<string, unknown> = {
       payment_status: status,
       updated_at: new Date().toISOString(),
@@ -244,12 +352,21 @@ export async function cancelBookingAndRefund(bookingId: string, reason?: string)
   }
 }
 
-// Mark payment as failed
+// Mark payment as failed (state-machine enforced)
 export async function markPaymentAsFailed(
   paymentId: string,
   failureReason?: string
 ): Promise<Payment | null> {
   try {
+    const current = await getPaymentByIdHelper(paymentId);
+    if (!current) return null;
+
+    const transitionError = paymentTransitionError(current.payment_status, "failed");
+    if (transitionError) {
+      console.error("State machine rejected failure transition:", transitionError);
+      return null;
+    }
+
     const updates: Record<string, unknown> = {
       payment_status: "failed",
       updated_at: new Date().toISOString(),
@@ -287,7 +404,7 @@ export async function markPaymentAsRefunded(
 
 // Get payments by status
 export async function getPaymentsByStatus(
-  status: "pending" | "escrowed" | "released" | "failed" | "refunded" | "disputed"
+  status: PaymentStatus
 ): Promise<Payment[]> {
   try {
     const { data, error } = await supabase

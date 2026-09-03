@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { getCurrentProfile } from "@/lib/services/auth.service";
 import { getProviderByUserId } from "@/lib/services/providers.service";
 import {
+  canProvideForCategory,
   createOffer,
-  getNotificationsForProvider,
   getProviderOfferForRequest,
+  getProviderServiceCategories,
   getRequestById,
   type CustomerRequest,
   type ProviderOffer,
@@ -45,15 +46,25 @@ function ProviderOfferComponent() {
         return;
       }
 
-      const [requestData, notifications] = await Promise.all([
+      const [requestData, providerCategories] = await Promise.all([
         getRequestById(requestId),
-        getNotificationsForProvider(provider.id),
+        getProviderServiceCategories(provider.id),
       ]);
 
       if (cancelled) return;
 
-      if (!requestData || !notifications.some((item) => item.request_id === requestId)) {
-        setError("This request is unavailable or is not matched to your provider account.");
+      /*
+       * Gate by the provider's CURRENT service categories (re-evaluated live,
+       * same as the provider request feed). Notifications are a historical inbox,
+       * not the eligibility source — so a provider who adds a service later can now
+       * open (and offer on) older relevant requests instead of being blocked by a
+       * stale one-time snapshot taken when the request was posted.
+       */
+      if (
+        !requestData ||
+        !canProvideForCategory(requestData.category, providerCategories)
+      ) {
+        setError("This request is unavailable or is not in one of your current service categories.");
         setLoading(false);
         return;
       }

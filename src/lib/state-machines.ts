@@ -45,7 +45,7 @@ export type DisputeStatus =
 //                └──────────────────────────▶ disputed (customer raises dispute)
 export const BOOKING_TRANSITIONS: Record<BookingStatus, readonly BookingStatus[]> = {
   pending: ["confirmed", "cancelled"],
-  confirmed: ["in_progress", "cancelled", "disputed"],
+  confirmed: ["in_progress", "completed", "cancelled", "disputed"],
   in_progress: ["completed", "cancelled", "disputed"],
   completed: [],
   cancelled: [],

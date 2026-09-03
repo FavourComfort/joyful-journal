@@ -34,6 +34,11 @@ import {
   getCompletionRequestBookingIds,
   requestServiceCompletion,
 } from "@/lib/services/payments.service";
+import {
+  getDisputesForBookings,
+  respondToDispute,
+  type Dispute,
+} from "@/lib/services/disputes.service";
 
 interface DashboardData {
   provider: Provider;
@@ -46,6 +51,7 @@ interface DashboardData {
   upcoming: number;
   completed: number;
   completionRequestedBookingIds: string[];
+  disputes: Dispute[];
 }
 
 function ProviderDashboardComponent() {
@@ -87,6 +93,7 @@ function ProviderDashboardComponent() {
       getProviderAverageRating(provider.id),
     ]);
     const completionRequestedBookingIds = [...await getCompletionRequestBookingIds(bookings.map((booking) => booking.id))];
+    const disputes = await getDisputesForBookings(bookings.map((booking) => booking.id));
 
     const customerIds = [...new Set(bookings.map((b) => b.customer_id))];
     let customerNames: Record<string, string> = {};
@@ -128,6 +135,7 @@ function ProviderDashboardComponent() {
       upcoming,
       completed: completed.length,
       completionRequestedBookingIds,
+      disputes,
     };
   };
 
@@ -348,6 +356,34 @@ function ProviderDashboardComponent() {
           postToIframe({ type: "dashboard:actionSuccess", payload: { message: "Booking cancelled. The escrow payment has been refunded." } });
         } catch (err) {
           postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to cancel booking." } });
+        }
+        return;
+      }
+
+      // ------------------------------------------------
+      // Dispute: provider responds to a customer's dispute
+      // ------------------------------------------------
+
+      if (type === "dashboard:respondDispute") {
+        try {
+          const disputeId = payload?.disputeId;
+          const response = payload?.response;
+          if (typeof disputeId !== "string" || typeof response !== "string" || !response.trim()) {
+            throw new Error("Please provide your response to the dispute.");
+          }
+
+          const dispute = await respondToDispute(disputeId, response.trim());
+          if (!dispute) {
+            throw new Error("Could not submit your response. This dispute may already be resolved.");
+          }
+
+          await sendData();
+          postToIframe({
+            type: "dashboard:actionSuccess",
+            payload: { message: "Your response has been submitted and will be reviewed. Funds remain in escrow." },
+          });
+        } catch (err) {
+          postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to respond to the dispute." } });
         }
         return;
       }

@@ -895,6 +895,46 @@
     let currentBookings = [];
 
 
+    let currentDisputes = [];
+
+
+    function findDisputeForBooking(bookingId) {
+
+        if (
+            !Array.isArray(currentDisputes) ||
+            !bookingId
+        ) {
+
+            return null;
+
+        }
+
+        return currentDisputes.find(
+            dispute =>
+                dispute.booking_id === bookingId
+        ) || null;
+
+    }
+
+
+    function getDisputeStatusLabel(status) {
+
+        const labels = {
+
+            open: "Awaiting provider response",
+            provider_responded: "Provider responded — awaiting review",
+            resolved_customer: "Resolved — refunded to you",
+            resolved_provider: "Resolved — released to provider",
+            closed: "Closed"
+
+        };
+
+        return labels[status] || status;
+
+    }
+
+
+
     /* ========================================================
        PARENT COMMUNICATION
     ======================================================== */
@@ -1062,6 +1102,15 @@
                     label: "Pending",
                     className: "bg-amber-50 text-amber-700",
                     dot: "bg-amber-500"
+                };
+
+
+            case "disputed":
+
+                return {
+                    label: "Disputed",
+                    className: "bg-orange-50 text-orange-700",
+                    dot: "bg-orange-600"
                 };
 
 
@@ -1271,9 +1320,14 @@
             formatTime(booking.end_time);
 
 
+        const dispute = findDisputeForBooking(booking.id);
         const allowCompletionRelease =
-            booking.status === "confirmed" || booking.status === "in_progress";
-        const canCancel = booking.status !== "completed" && booking.status !== "cancelled";
+            (booking.status === "confirmed" || booking.status === "in_progress") && !dispute;
+        const canCancel = booking.status !== "completed" && booking.status !== "cancelled" && booking.status !== "disputed";
+        const hasActiveDispute = Boolean(dispute) && ["open", "provider_responded"].includes(dispute.status);
+        const canDispute =
+            (booking.status === "confirmed" || booking.status === "in_progress") && !dispute;
+        const disputeStatusLabel = dispute ? getDisputeStatusLabel(dispute.status) : "";
         const completionMessage = booking.completion_requested
             ? "Provider requested completion. Confirm only when the service is complete."
             : "Confirm completion & release funds";
@@ -1377,6 +1431,40 @@
                 }
 
                 ${
+                    canDispute
+                        ? `
+                            <div class="mt-3 flex justify-end">
+                                <button
+                                    type="button"
+                                    data-dispute-booking="${escapeHtml(booking.id)}"
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200 px-3.5 py-2 text-xs font-bold text-orange-700 transition hover:bg-orange-50"
+                                >
+                                    <span class="material-symbols-outlined text-[16px]">gavel</span>
+                                    Dispute this service
+                                </button>
+                            </div>
+                        `
+                        : ""
+                }
+
+                ${
+                    dispute
+                        ? `
+                            <div class="mt-3 rounded-xl border border-orange-200 bg-orange-50 px-3.5 py-2.5">
+                                <p class="flex items-center gap-1.5 text-xs font-bold text-orange-700">
+                                    <span class="material-symbols-outlined text-[16px]">gavel</span>
+                                    Dispute: ${escapeHtml(disputeStatusLabel)}
+                                </p>
+                                <p class="mt-1 text-xs text-on-surface-variant">
+                                    Your funds are protected in escrow while this dispute is reviewed${dispute.status === "open" ? " by the provider" : " by the admin"}.
+                                </p>
+                            </div>
+                        `
+                        : ""
+                }
+
+
+                ${
                     canCancel
                         ? `
                             <div class="mt-3 flex justify-end">
@@ -1434,6 +1522,31 @@
                 });
             }
         });
+        const disputeButton = card.querySelector("[data-dispute-booking]");
+        disputeButton?.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (!booking.id) return;
+
+            const reasonChoice = window.prompt(
+                "Why are you disputing this service?\n1) Service was not delivered\n2) Service not as described\n3) Other\n\nEnter a number (1-3):",
+                "1"
+            );
+            if (!reasonChoice) return;
+
+            let mappedReason = "other";
+            if (reasonChoice.trim() === "1") mappedReason = "service_not_delivered";
+            else if (reasonChoice.trim() === "2") mappedReason = "service_not_as_described";
+
+            const details = window.prompt("Add any extra detail (optional):", "") || "";
+
+            postToParent("dashboard:raiseDispute", {
+                bookingId: booking.id,
+                reason: mappedReason,
+                description: details
+            });
+        });
+
+
 
         card.addEventListener(
             "click",
@@ -2471,10 +2584,12 @@
             )
             ?.addEventListener(
                 "click",
-                () =>
+                () => {
+                    if (!window.confirm("Are you sure you want to sign out of your account?")) return;
                     postToParent(
                         "dashboard:signOut"
-                    )
+                    );
+                }
             );
 
 
@@ -2686,6 +2801,13 @@
                         currentPayload.bookings
                     )
                         ? currentPayload.bookings
+                        : [];
+
+                currentDisputes =
+                    Array.isArray(
+                        currentPayload.disputes
+                    )
+                        ? currentPayload.disputes
                         : [];
 
 

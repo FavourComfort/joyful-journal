@@ -5,8 +5,8 @@ import { getCurrentProfile } from "@/lib/services/auth.service";
 import { getProviderByUserId } from "@/lib/services/providers.service";
 import { supabase } from "@/lib/supabase";
 import {
+  getEligibleRequestsForProvider,
   getNotificationsForProvider,
-  getRequestsForProvider,
 } from "@/lib/services/requests.service";
 
 function ProviderRequestsComponent() {
@@ -28,23 +28,22 @@ function ProviderRequestsComponent() {
     if (!providerId) return;
 
     const [requests, notifications] = await Promise.all([
-      getRequestsForProvider(providerLocation),
+      getEligibleRequestsForProvider(providerId, providerLocation),
       getNotificationsForProvider(providerId),
     ]);
 
-    // Notifications are created only for providers that match a request's
-    // location and category. They form this provider's eligible request feed.
-    const eligibleRequestIds = new Set(
-      notifications.map((notification) => notification.request_id)
-    );
-    const eligibleRequests = requests.filter((request) =>
-      eligibleRequestIds.has(request.id)
-    );
-
+    /*
+     * The feed is the LIVE eligibility set: location (if set) plus the
+     * provider's CURRENT active service categories are re-evaluated on eevuery
+     * load. This means a provider who adds a service later now starts seeing
+     * older applicable requests instead of missing them. Notifications below are
+     * a historical inbox (and the "new request" panel), not thi stance filtering
+     * source for eligibility.
+     */
     sendToIframe({
       type: "provider-requests:init",
       payload: {
-        requests: eligibleRequests,
+        requests,
         notifications,
       },
     });
