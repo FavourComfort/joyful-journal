@@ -143,6 +143,29 @@
   </style>
   </head>
 <body class="font-body-md text-body-md overflow-x-hidden">
+<!-- Branded splash: first thing seen after the native PWA splash; fades into the page -->
+<div id="brandSplash" style="position:fixed;inset:0;z-index:9999;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s ease;">
+  <img src="/logo.png" alt="NINJAWO — Your Task. Our Ninja. Best Result." style="width:min(78vw,420px);height:auto;"/>
+  <div style="width:34px;height:34px;border:3px solid #f3f4f6;border-top-color:#F5A623;border-radius:50%;animation:splashSpin .8s linear infinite;"></div>
+</div>
+<style>@keyframes splashSpin{to{transform:rotate(360deg)}}</style>
+<script>
+(function () {
+  var splash = document.getElementById('brandSplash');
+  if (!splash) return;
+  var gone = false;
+  function hide() {
+    if (gone) return;
+    gone = true;
+    splash.style.opacity = '0';
+    setTimeout(function () { splash.remove(); }, 550);
+  }
+  // hide once the page is ready, with a hard cap so it can never hang
+  if (document.readyState === 'complete') setTimeout(hide, 600);
+  else window.addEventListener('load', function () { setTimeout(hide, 600); });
+  setTimeout(hide, 3000);
+})();
+</script>
 <!-- TopAppBar -->
 <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
 <nav class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-1440 mx-auto z-50">

@@ -27,7 +27,7 @@ export default defineConfig({
           short_name: "NINJAWO",
           description: "Find trusted service providers near you.",
           theme_color: "#0D0D0D",
-          background_color: "#0D0D0D",
+          background_color: "#FFFFFF",
           display: "standalone",
           start_url: "/",
           scope: "/",
