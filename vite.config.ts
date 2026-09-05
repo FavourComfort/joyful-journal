@@ -51,6 +51,22 @@ export default defineConfig({
               purpose: "maskable",
             },
           ],
+          screenshots: [
+            {
+              src: "/screenshots/wide.png",
+              sizes: "1280x720",
+              type: "image/png",
+              form_factor: "wide",
+              label: "NINJAWO — Your Task. Our Ninja. Best Result.",
+            },
+            {
+              src: "/screenshots/narrow.png",
+              sizes: "720x1280",
+              type: "image/png",
+              form_factor: "narrow",
+              label: "NINJAWO — Your Task. Our Ninja. Best Result.",
+            },
+          ],
         },
         workbox: {
           // SSR app: there is no precached index.html app shell, so a
