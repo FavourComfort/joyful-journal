@@ -214,7 +214,7 @@
                         <h1 class="font-headline-md text-headline-md text-on-background">Admin Dashboard</h1>
                         <span id="adminRoleChip" class="badge bg-[#dae2ff] text-[#0040a2] hidden">Admin</span>
                     </div>
-                    <div class="flex gap-xs bg-surface-container-low rounded-xl p-xs">
+                    <div class="flex flex-wrap gap-xs bg-surface-container-low rounded-xl p-xs">
                         <button class="tab-btn tab-active" data-tab="overview">Overview</button>
                         <button class="tab-btn" data-tab="providers">Provider Verification</button>
                         <button class="tab-btn" data-tab="requests">Requests</button>
@@ -235,12 +235,12 @@
                     <div id="providersToolbar" class="flex justify-between items-center mb-md flex-wrap gap-sm">
                         <h2 class="font-headline-md text-headline-md text-on-background">Provider Verification</h2>
                         <div class="relative">
-                            <input id="providerSearch" type="text" placeholder="Search by business name..." class="pl-md pr-sm py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md w-64"/>
+                            <input id="providerSearch" type="text" placeholder="Search by business name..." class="pl-md pr-sm py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md w-full sm:w-64"/>
                             <span class="material-symbols-outlined text-sm text-outline absolute left-sm top-1/2 -translate-y-1/2">search</span>
                         </div>
                     </div>
-                    <div class="bg-surface-container-low rounded-xl overflow-hidden shadow-sm">
-                        <table class="w-full text-left">
+                    <div class="bg-surface-container-low rounded-xl overflow-x-auto shadow-sm">
+                        <table class="w-full min-w-[720px] text-left">
                             <thead>
                                 <tr class="bg-surface-container-lowest border-b border-outline-variant">
                                     <th class="px-md py-sm text-label-sm text-on-background font-label-sm">Provider</th>

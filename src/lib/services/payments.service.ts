@@ -305,11 +305,82 @@ export async function confirmServiceCompletionAndRelease(
   try {
     const { data, error } = await supabase.rpc("release_escrow_to_provider", { p_booking_id: bookingId });
     if (error) throw error;
-    return (ensureEscrowSuccess(data as EscrowRpcResult).payment || null) as Payment | null;
+
+    const result = data as EscrowRpcResult | null;
+
+    // Legacy bookings (created before the escrow system) have no payments row,
+    // so the RPC reports "No payment found". Complete them directly instead.
+    if (result && !result.success && /no payment found/i.test(result.error || "")) {
+      console.warn("No escrow payment for booking; completing legacy booking directly.");
+      const legacy = await completeLegacyBooking(bookingId, "completed");
+      return legacy;
+    }
+
+    return (ensureEscrowSuccess(result).payment || null) as Payment | null;
   } catch (error) {
     console.error("Error completing service and releasing escrow:", error);
     return null;
   }
+}
+
+// Fallback for pre-escrow bookings: update booking status, walking through the
+// legal state-machine transitions (pending → confirmed → in_progress → completed).
+async function completeLegacyBooking(
+  bookingId: string,
+  status: "completed" | "cancelled"
+): Promise<Payment | null> {
+  const setBookingStatus = async (
+    next: string
+  ): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from("bookings")
+      .update({ status: next })
+      .eq("id", bookingId)
+      .select("id, status")
+      .single();
+
+    if (error) {
+      // Illegal transitions are expected while skipping steps; ignore them.
+      if (/invalid booking status transition/i.test(error.message || "")) {
+        return false;
+      }
+      console.error(`Error marking booking ${bookingId} as ${next}:`, error);
+      return false;
+    }
+    return Boolean(data);
+  };
+
+  let finalStatus = false;
+
+  if (status === "completed") {
+    // Walk the chain; intermediate steps may already be done (illegal → false).
+    await setBookingStatus("confirmed");
+    await setBookingStatus("in_progress");
+    finalStatus = await setBookingStatus("completed");
+  } else {
+    finalStatus = await setBookingStatus("cancelled");
+  }
+
+  if (!finalStatus) {
+    console.error(`Could not mark booking ${bookingId} as ${status}.`);
+    return null;
+  }
+
+  // Shape the result so the existing dashboard flow (which expects a payment)
+  // keeps working without escrow-specific fields.
+  return {
+    id: "",
+    booking_id: bookingId,
+    customer_id: "",
+    provider_id: "",
+    amount: 0,
+    currency: "UGX",
+    payment_status: status === "completed" ? "released" : "refunded",
+    platform_fee: 0,
+    provider_amount: 0,
+    created_at: "",
+    updated_at: "",
+  } as Payment;
 }
 
 /** Provider starts the mutual completion flow; the customer still releases escrow. */
@@ -345,7 +416,17 @@ export async function cancelBookingAndRefund(bookingId: string, reason?: string)
       p_booking_id: bookingId, p_cancel_reason: reason || null, p_refund_reason: reason || null,
     });
     if (error) throw error;
-    return (ensureEscrowSuccess(data as EscrowRpcResult).payment || null) as Payment | null;
+
+    const result = data as EscrowRpcResult | null;
+
+    // Legacy bookings (created before the escrow system) have no payments row
+    // to refund; cancel them directly instead.
+    if (result && !result.success && /no payment found/i.test(result.error || "")) {
+      console.warn("No escrow payment for booking; cancelling legacy booking directly.");
+      return completeLegacyBooking(bookingId, "cancelled");
+    }
+
+    return (ensureEscrowSuccess(result).payment || null) as Payment | null;
   } catch (error) {
     console.error("Error cancelling booking and refunding escrow:", error);
     return null;

@@ -556,7 +556,7 @@ function BookingComponent() {
                 <button
                   key={value}
                   onClick={() => setFilter(value)}
-                  className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                     active
                       ? "bg-[#003d9b] text-white shadow-sm"
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"

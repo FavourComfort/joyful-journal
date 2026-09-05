@@ -205,7 +205,7 @@ function ProviderProfileComponent() {
                     </span>
                   )}
                 </div>
-                <div className="mt-1 flex items-center gap-2 text-sm text-[#434654]">
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[#434654]">
                   {avgRating > 0 && (
                     <>
                       <span className="flex items-center text-[#5e3c00]">
@@ -378,9 +378,9 @@ function ProviderProfileComponent() {
                             : "border-transparent hover:border-[#c3c6d6] hover:bg-[#f1f3ff]"
                         }`}
                       >
-                        <div className="mb-1 flex items-center justify-between">
-                          <span className="font-bold">{service.title}</span>
-                          <span className="font-bold text-[#003d9b]">
+                        <div className="mb-1 flex items-center justify-between gap-3">
+                          <span className="min-w-0 truncate font-bold">{service.title}</span>
+                          <span className="shrink-0 font-bold text-[#003d9b]">
                             UGX {Number(service.price).toLocaleString()}
                           </span>
                         </div>

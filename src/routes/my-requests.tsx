@@ -206,12 +206,12 @@ function MyRequestsComponent() {
                   key={request.id}
                   className="rounded-xl border border-[#e8edff] bg-white p-4 shadow-sm"
                 >
-                  <div className="mb-1 flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="text-lg font-bold">{request.title}</h2>
-                      <p className="mb-2 text-sm text-[#434654]">{request.description}</p>
+                  <div className="mb-1 flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-4">
+                    <div className="min-w-0">
+                      <h2 className="break-words text-lg font-bold">{request.title}</h2>
+                      <p className="mb-2 break-words text-sm text-[#434654]">{request.description}</p>
                     </div>
-                    <span className="rounded-full bg-[#dae2ff] px-3 py-1 text-xs font-semibold text-[#0040a2]">
+                    <span className="max-w-full shrink-0 truncate rounded-full bg-[#dae2ff] px-3 py-1 text-xs font-semibold text-[#0040a2] sm:max-w-[40%]">
                       {request.location || "Any location"}
                     </span>
                   </div>
@@ -237,9 +237,9 @@ function MyRequestsComponent() {
                             key={offer.id}
                             className="rounded-lg border border-[#e8edff] bg-[#f9f9ff] p-3"
                           >
-                            <div className="flex items-center justify-between gap-4">
-                              <div>
-                                <p className="font-semibold">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                              <div className="min-w-0">
+                                <p className="break-words font-semibold">
                                   {offer.provider_business_name || "Provider"}
                                 </p>
                                 {offer.price != null && (
@@ -264,7 +264,7 @@ function MyRequestsComponent() {
                                       params: { id: offer.provider_id },
                                     })
                                   }
-                                  className="rounded-lg border border-[#c3c6d6] px-4 py-1.5 text-sm font-semibold text-[#003d9b] hover:bg-[#f1f3ff]"
+                                  className="min-h-11 rounded-lg border border-[#c3c6d6] px-4 py-2 text-sm font-semibold text-[#003d9b] hover:bg-[#f1f3ff]"
                                 >
                                   View Profile
                                 </button>
@@ -272,13 +272,13 @@ function MyRequestsComponent() {
                                   <>
                                     <button
                                       onClick={() => handleAccept(offer.id)}
-                                      className="rounded-lg bg-[#003d9b] px-4 py-1.5 text-sm font-semibold text-white hover:bg-[#0052cc]"
+                                      className="min-h-11 rounded-lg bg-[#003d9b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0052cc]"
                                     >
                                       Accept
                                     </button>
                                     <button
                                       onClick={() => handleDecline(offer.id)}
-                                      className="rounded-lg border border-red-300 px-4 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
+                                      className="min-h-11 rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
                                     >
                                       Decline
                                     </button>

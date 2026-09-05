@@ -28,7 +28,7 @@ export function PageFrame({
   }, [router]);
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-background">
+    <div className="relative h-dvh w-full overflow-hidden bg-background">
       <iframe
         key={src}
         ref={iframeRef}

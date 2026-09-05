@@ -539,7 +539,7 @@ CREATE TRIGGER trg_validate_payment_status
 --
 -- For the current MOCK checkout flow:
 --
---   booking -> pending
+--   booking -> confirmed
 --   payment -> escrowed
 --
 -- IMPORTANT:
@@ -707,7 +707,7 @@ BEGIN
       p_booking_date,
       p_start_time,
       p_end_time,
-      'pending',
+      'confirmed',
       p_total_amount
     )
     RETURNING id INTO v_booking_id;

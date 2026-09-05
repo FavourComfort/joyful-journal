@@ -318,12 +318,12 @@ function BookComponent() {
                 />
               </div>
 
-              <div>
-                <h2 className="text-lg font-bold text-[#003d9b]">
+              <div className="min-w-0">
+                <h2 className="truncate text-lg font-bold text-[#003d9b]">
                   {service?.title}
                 </h2>
 
-                <p className="text-sm text-[#434654]">
+                <p className="truncate text-sm text-[#434654]">
                   with {provider?.business_name}
                 </p>
               </div>

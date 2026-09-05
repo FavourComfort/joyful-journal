@@ -140,12 +140,22 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    /* Prevent long IDs/emails/amounts from pushing the page wider */
+    overflow-wrap: break-word;
   }
 
   html,
   body,
   #root {
     min-height: 100%;
+  }
+
+  /* Never allow horizontal page scrolling on phones */
+  @media (max-width: 640px) {
+    html,
+    body {
+      overflow-x: hidden;
+    }
   }
 }
 

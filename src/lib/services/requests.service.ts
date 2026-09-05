@@ -1,6 +1,5 @@
-import { createBooking, updateBookingStatus } from "./bookings.service";
 import { createPaymentNotifications } from "./notifications.service";
-import { createPayment } from "./payments.service";
+import { createBookingWithEscrowPayment } from "./payments.service";
 import { supabase } from "../supabase";
 
 export interface CustomerRequest {
@@ -744,7 +743,32 @@ async function setOfferStatus(
   }
 }
 
-async function getOfferWithContext(offerId: string) {
+type OfferBookingContext = {
+  request_id: string | null;
+  provider_id: string | null;
+  price?: number | null;
+  estimated_start?: string | null;
+  requests: {
+    id: string;
+    customer_id: string;
+    title?: string | null;
+    description?: string | null;
+    category?: string | null;
+    location?: string | null;
+    budget_min?: number | null;
+    budget_max?: number | null;
+    created_at?: string;
+  } | null;
+  providers: {
+    id: string;
+    user_id: string;
+    business_name?: string | null;
+  } | null;
+};
+
+async function getOfferWithContext(
+  offerId: string
+): Promise<OfferBookingContext | null> {
   try {
     // NOTE: no FK embeds here either — the live database does not expose an
     // offers -> requests/providers relationship to PostgREST, so embeds fail
@@ -765,18 +789,25 @@ async function getOfferWithContext(offerId: string) {
       return null;
     }
 
-    const offerRow = data as {
+    const offerRow = data as OfferBookingContext & {
       request_id?: string | null;
       provider_id?: string | null;
       [key: string]: unknown;
     };
+
+    if (!offerRow.request_id || !offerRow.provider_id) {
+      console.error(
+        "Offer row is missing request_id/provider_id:",
+        offerRow
+      );
+    }
 
     const [requestRow, providerRow] = await Promise.all([
       offerRow.request_id
         ? supabase
             .from("requests")
             .select(
-              "id, customer_id, title, description, category, location, budget_min, budget_max, created_at"
+              "id, customer_id, title, description, category, location, budget_max, created_at"
             )
             .eq("id", offerRow.request_id)
             .maybeSingle()
@@ -804,33 +835,12 @@ async function getOfferWithContext(offerId: string) {
     }
 
     return {
-      ...(offerRow as Record<string, unknown> & {
-        request_id: string;
-        provider_id: string;
-        price?: number | null;
-        estimated_start?: string | null;
-      }),
-      requests: (requestRow.data as
-        | {
-            id: string;
-            customer_id: string;
-            title?: string | null;
-            description?: string | null;
-            category?: string | null;
-            location?: string | null;
-            budget_min?: number | null;
-            budget_max?: number | null;
-            created_at?: string;
-          }
-        | null) ?? null,
-      providers: (providerRow.data as
-        | {
-            id: string;
-            user_id: string;
-            business_name?: string | null;
-          }
-        | null) ?? null,
-    } | null;
+      ...offerRow,
+      request_id: offerRow.request_id ?? null,
+      provider_id: offerRow.provider_id ?? null,
+      requests: (requestRow.data as OfferBookingContext["requests"]) ?? null,
+      providers: (providerRow.data as OfferBookingContext["providers"]) ?? null,
+    };
   } catch (err) {
     console.error("Exception loading offer for booking creation:", err);
     return null;
@@ -869,7 +879,19 @@ async function getOfferBookingServiceId(
 
 export async function acceptOffer(offerId: string): Promise<boolean> {
   try {
+    console.log("acceptOffer: called with offerId =", offerId);
     const offer = await getOfferWithContext(offerId);
+    console.log(
+      "acceptOffer: context resolved =",
+      offer
+        ? {
+            request_id: offer.request_id,
+            provider_id: offer.provider_id,
+            has_request_row: Boolean(offer.requests),
+            has_provider_row: Boolean(offer.providers),
+          }
+        : null
+    );
 
     if (!offer?.request_id || !offer?.provider_id) {
       console.error("Offer missing request/provider context for booking creation.");
@@ -901,49 +923,32 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
         ? offer.estimated_start
         : new Date().toISOString().slice(0, 10);
 
-    const booking = await createBooking(
+    const paymentReference = `OFFER-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)
+      .toUpperCase()}`;
+
+    const transaction = await createBookingWithEscrowPayment(
       request.customer_id,
       offer.provider_id,
       serviceId,
       bookingDate,
       "09:00",
       "11:00",
-      Number(offer.price ?? request.budget_max ?? request.budget_min ?? 0)
-    );
-
-    if (!booking) {
-      console.error("Accepted offer could not create a booking record.");
-      return false;
-    }
-
-    const paymentReference = `OFFER-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)
-      .toUpperCase()}`;
-
-    const payment = await createPayment(
-      booking.id,
-      request.customer_id,
-      offer.provider_id,
       Number(offer.price ?? request.budget_max ?? request.budget_min ?? 0),
       "mock_checkout",
       paymentReference
     );
 
-    if (!payment) {
-      console.error("Accepted offer could not create a payment record.");
+    if (!transaction) {
+      console.error("Accepted offer could not create booking and payment.");
       return false;
     }
 
-    if (!payment || payment.payment_status !== "escrowed") {
+    const { booking, payment } = transaction;
+
+    if (payment.payment_status !== "escrowed") {
       console.error("Accepted offer payment could not be secured in escrow.");
-      return false;
-    }
-
-    const confirmedBooking = await updateBookingStatus(booking.id, "confirmed");
-
-    if (!confirmedBooking) {
-      console.error("Accepted offer booking could not be confirmed.");
       return false;
     }
 
@@ -957,7 +962,7 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
     const notificationsCreated = await createPaymentNotifications({
       customerId: request.customer_id,
       providerUserId: provider.user_id,
-      bookingId: confirmedBooking.id,
+      bookingId: String(booking.id),
       paymentId: payment.id,
       amount: Number(offer.price ?? request.budget_max ?? request.budget_min ?? 0),
     });
