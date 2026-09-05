@@ -96,40 +96,132 @@ function ring(cx, cy, ro, ratio) {
   };
 }
 
-// bold letter N centered in box [bx, by, bw, bh]
-function letterN(bx, by, bw, bh, stroke) {
+// ---------- ninja mascot ----------
+// head circle centered at (cx, cy) radius r
+function circle(cx, cy, r) {
+  return (x, y) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
+}
+
+// rounded rect: box [bx, by, bw, bh] with vertical corner radius cr
+function roundedRect(bx, by, bw, bh, cr) {
   return (x, y) => {
-    if (y < by || y > by + bh) return false;
-    const left = bx;
-    const right = bx + bw - stroke;
-    const inLeft = x >= left && x <= left + stroke;
-    const inRight = x >= right && x <= right + stroke;
-    // diagonal from top of left bar to bottom of right bar
-    const t = (y - by) / bh;
-    const dx = left + stroke / 2 + t * (right + stroke / 2 - (left + stroke / 2) - stroke * 0.9);
-    const inDiag = Math.abs(x - dx) <= stroke * 0.75;
-    return inLeft || inRight || inDiag;
+    if (x < bx || x > bx + bw || y < by || y > by + bh) return false;
+    const cx = Math.min(Math.max(x, bx + cr), bx + bw - cr);
+    const cy = Math.min(Math.max(y, by + cr), by + bh - cr);
+    return (x - cx) ** 2 + (y - cy) ** 2 <= cr * cr;
   };
 }
 
-function renderIcon(size, { maskable = false } = {}) {
+// ninja head + mask band + eyes + headband tail, all sized off (cx, cy, r)
+function ninjaShapes(cx, cy, r) {
+  return {
+    head: circle(cx, cy, r),
+    eyeL: circle(cx - 0.32 * r, cy + 0.1 * r, 0.128 * r),
+    eyeR: circle(cx + 0.32 * r, cy + 0.1 * r, 0.128 * r),
+    // headband tail flaring out to the left of the band
+    tail: (x, y) => {
+      const x0 = cx - 1.6 * r;
+      const x1 = cx - 1.04 * r;
+      if (x < x0 || x > x1) return false;
+      const t = (x - x0) / (x1 - x0);
+      const yTop = cy - 0.04 * r;
+      return y >= yTop && y <= yTop + 0.52 * r + 0.4 * r * (1 - t);
+    },
+  };
+}
+
+function bandRect(cx, cy, r) {
+  return roundedRect(cx - 1.04 * r, cy - 0.1 * r, 2.08 * r, 0.52 * r, 0.26 * r);
+}
+
+// ---------- tiny 5x7 pixel font (for the tagline) ----------
+const FONT = {
+  N: ["10001", "11001", "11001", "10101", "10011", "10011", "10001"],
+  I: ["11111", "00100", "00100", "00100", "00100", "00100", "11111"],
+  J: ["11111", "00010", "00010", "00010", "00010", "10010", "01100"],
+  A: ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
+  W: ["10001", "10001", "10001", "10101", "10101", "11011", "10001"],
+  O: ["01110", "10001", "10001", "10001", "10001", "10001", "01110"],
+  Y: ["10001", "10001", "01010", "00100", "00100", "00100", "00100"],
+  U: ["10001", "10001", "10001", "10001", "10001", "10001", "01110"],
+  R: ["11110", "10001", "10001", "11110", "10100", "10010", "10001"],
+  T: ["11111", "00100", "00100", "00100", "00100", "00100", "00100"],
+  S: ["01111", "10000", "10000", "01110", "00001", "00001", "11110"],
+  K: ["10001", "10010", "10100", "11000", "10100", "10010", "10001"],
+  B: ["11110", "10001", "10001", "11110", "10001", "10001", "11110"],
+  E: ["11111", "10000", "10000", "11110", "10000", "10000", "11111"],
+  L: ["10000", "10000", "10000", "10000", "10000", "10000", "11111"],
+  ",": ["00000", "00000", "00000", "00000", "00110", "00100", "01000"],
+  " ": ["00000", "00000", "00000", "00000", "00000", "00000", "00000"],
+};
+
+// coverage of a text string starting at (x0, y0), each glyph cell is c px
+function textCoverage(text, x0, y0, c) {
+  return (x, y) => {
+    const col = Math.floor((x - x0) / c);
+    const row = Math.floor((y - y0) / c);
+    if (row < 0 || row > 6) return false;
+    const glyphCol = Math.floor(col / 6); // 5px glyph + 1px space
+    const inCol = col - glyphCol * 6;
+    if (glyphCol < 0 || glyphCol >= text.length) return false;
+    if (inCol >= 5) return false;
+    const glyph = FONT[text[glyphCol]];
+    if (!glyph) return false;
+    return glyph[row][inCol] === "1";
+  };
+}
+
+function renderIcon(size, { maskable = false, tagline = false } = {}) {
   const rgba = Buffer.alloc(size * size * 4);
   const bg = maskable ? () => true : (x, y) => roundedSquare(0.18, x, y);
-  const ringShape = ring(0.5, 0.5, maskable ? 0.38 : 0.42, 0.16);
-  const nShape = letterN(0.34, 0.3, 0.32, 0.4, 0.09);
+
+  // mascot geometry: slightly smaller & higher when a tagline sits below
+  const cx = 0.5;
+  const cy = tagline ? 0.3 : 0.54;
+  const r = tagline ? 0.19 : 0.25;
+  const { head, eyeL, eyeR, tail } = ninjaShapes(cx, cy, r);
+  const band = bandRect(cx, cy, r);
+
+  // helper: centered pixel text, returns { shape, width, height }
+  const pixelText = (text, cell, y0) => {
+    const w = (text.length * 6 - 1) * cell;
+    return { shape: textCoverage(text, 0.5 - w / 2, y0, cell), width: w };
+  };
+
+  let shapes = [];
+  if (tagline) {
+    // brand name in yellow under the mascot
+    shapes.push({ ...pixelText("NINJAWO", 0.016, 0.52), color: YELLOW });
+    // tagline in white, two light lines
+    shapes.push({ ...pixelText("YOUR TASK, OUR NINJA", 0.0074, 0.685), color: [255, 255, 255] });
+    shapes.push({ ...pixelText("BEST RESULT", 0.0074, 0.762), color: [255, 255, 255] });
+  }
+
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       let px = DARK;
       const bgA = coverage(bg, x, y, size);
       if (bgA > 0) {
-        let a = coverage(ringShape, x, y, size);
-        // slight orange gradient on the lower-right half of the ring
+        // head with a subtle orange shading on the lower-right
+        let a = coverage(head, x, y, size);
         const nx = (x + 0.5) / size - 0.5;
         const ny = (y + 0.5) / size - 0.5;
-        const col = nx + ny > 0 ? ORANGE : YELLOW;
-        px = mix(px, col, a);
-        a = coverage(nShape, x, y, size);
+        const headCol = nx + ny > 0.12 ? ORANGE : YELLOW;
+        px = mix(px, headCol, a);
+        // dark mask band across the eyes
+        a = coverage(band, x, y, size);
+        px = mix(px, DARK, a);
+        // headband tail in yellow
+        a = coverage(tail, x, y, size);
         px = mix(px, YELLOW, a);
+        // eyes peeking through the band
+        a = coverage(eyeL, x, y, size) + coverage(eyeR, x, y, size);
+        px = mix(px, [255, 255, 255], a);
+        // brand + tagline text under the mascot
+        for (const t of shapes) {
+          a = coverage(t.shape, x, y, size);
+          px = mix(px, t.color, a);
+        }
         px = mix([255, 255, 255, 0].slice(0, 3), px, bgA);
       }
       const alpha = Math.round(bgA * 255);
@@ -146,7 +238,7 @@ function renderIcon(size, { maskable = false } = {}) {
 mkdirSync(join(root, "public", "icons"), { recursive: true });
 for (const [file, size, opts] of [
   ["pwa-192.png", 192, {}],
-  ["pwa-512.png", 512, {}],
+  ["pwa-512.png", 512, { tagline: true }],
   ["pwa-maskable-512.png", 512, { maskable: true }],
   ["../favicon.png", 32, {}],
 ]) {
