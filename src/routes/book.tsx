@@ -13,6 +13,7 @@ import {
   createBookingWithEscrowPayment,
 } from "@/lib/services/payments.service";
 import { createPaymentNotifications } from "@/lib/services/notifications.service";
+import { collectNylonPayment } from "@/lib/payments/nylonpay.server";
 
 function BookComponent() {
   const router = useRouter();
@@ -125,10 +126,17 @@ function BookComponent() {
         return;
       }
 
-      const transactionRef = `ESCROW-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)
-        .toUpperCase()}`;
+      const transactionRef = crypto.randomUUID();
+
+      const nylonPayment = await collectNylonPayment({
+        data: {
+          amount: Math.round(service.price || 0),
+          customerName: profile.full_name,
+          customerPhone: profile.phone || "",
+          description: `Booking with ${provider.full_name}`,
+          reference: transactionRef,
+        },
+      });
 
       const transaction = await createBookingWithEscrowPayment(
         profile.id,
@@ -138,8 +146,8 @@ function BookComponent() {
         startTime,
         endTime,
         service.price || 0,
-        "mock_checkout",
-        transactionRef
+        "nylonpay_sandbox",
+        nylonPayment.reference
       );
 
       if (!transaction) {
@@ -284,7 +292,7 @@ function BookComponent() {
               aria-label="Back to home"
             >
               <span className="material-symbols-outlined">
-                arrow_back
+                
               </span>
             </button>
 

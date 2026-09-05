@@ -12,16 +12,54 @@ export default defineConfig({
     plugins: [
       VitePWA({
         registerType: "autoUpdate",
+        // TanStack Start is an SSR app (no index.html), so the plugin's
+        // auto-injection into HTML never happens. Registration is done
+        // manually in src/lib/pwa.ts instead.
+        injectRegister: null,
+        // The deployed static assets live in the nitro output dir, not dist/.
+        outDir: ".output/public",
+
+        includeAssets: ["favicon.png"],
 
         manifest: {
+          id: "/",
           name: "NINJAWO",
           short_name: "NINJAWO",
           description: "Find trusted service providers near you.",
-          theme_color: "#ffffff",
-          background_color: "#ffffff",
+          theme_color: "#0D0D0D",
+          background_color: "#0D0D0D",
           display: "standalone",
           start_url: "/",
           scope: "/",
+          icons: [
+            {
+              src: "/icons/pwa-192.png",
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/icons/pwa-512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "any",
+            },
+            {
+              src: "/icons/pwa-maskable-512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+        },
+        workbox: {
+          // SSR app: there is no precached index.html app shell, so a
+          // navigateFallback would reference a missing file and break
+          // navigations. Navigations must always reach the SSR server
+          // (which also keeps Supabase auth callback routes intact).
+          navigateFallback: undefined,
+          // Extra safety: never handle auth/callback navigations.
+          navigateFallbackDenylist: [/^\/auth\//],
         },
       }),
     ],

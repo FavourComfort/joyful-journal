@@ -1,6 +1,7 @@
 import { createPaymentNotifications } from "./notifications.service";
 import { createBookingWithEscrowPayment } from "./payments.service";
 import { supabase } from "../supabase";
+import { collectNylonPayment } from "../payments/nylonpay.server";
 
 export interface CustomerRequest {
   id: string;
@@ -923,10 +924,20 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
         ? offer.estimated_start
         : new Date().toISOString().slice(0, 10);
 
-    const paymentReference = `OFFER-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)
-      .toUpperCase()}`;
+    const paymentReference = crypto.randomUUID();
+    const paymentAmount = Number(
+      offer.price ?? request.budget_max ?? request.budget_min ?? 0
+    );
+
+    const nylonPayment = await collectNylonPayment({
+      data: {
+        amount: Math.round(paymentAmount),
+        customerName: request.customer_id,
+        customerPhone: "",
+        description: `Accepted offer for ${request.title}`,
+        reference: paymentReference,
+      },
+    });
 
     const transaction = await createBookingWithEscrowPayment(
       request.customer_id,
@@ -935,9 +946,9 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
       bookingDate,
       "09:00",
       "11:00",
-      Number(offer.price ?? request.budget_max ?? request.budget_min ?? 0),
-      "mock_checkout",
-      paymentReference
+      paymentAmount,
+      "nylonpay_sandbox",
+      nylonPayment.reference
     );
 
     if (!transaction) {
