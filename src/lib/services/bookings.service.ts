@@ -11,8 +11,8 @@ export interface Booking {
   provider_id: string;
   service_id: string;
   booking_date: string;
-  start_time: string;
-  end_time: string;
+  start_time: string | null;
+  end_time: string | null;
   status: BookingStatus;
   total_amount: number;
   created_at: string;
@@ -73,13 +73,15 @@ export async function getBookingById(bookingId: string): Promise<Booking | null>
 }
 
 // Create booking
+//
+// Customers provide only a date and preferred start time; end time and
+// duration are intentionally NOT collected or calculated.
 export async function createBooking(
   customerId: string,
   providerId: string,
   serviceId: string,
   bookingDate: string,
-  startTime: string,
-  endTime: string,
+  startTime: string | null,
   totalAmount: number
 ): Promise<Booking | null> {
   try {
@@ -92,7 +94,6 @@ export async function createBooking(
           service_id: serviceId,
           booking_date: bookingDate,
           start_time: startTime,
-          end_time: endTime,
           total_amount: totalAmount,
           status: 'pending',
         },

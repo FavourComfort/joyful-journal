@@ -1,7 +1,6 @@
 import { createPaymentNotifications } from "./notifications.service";
-import { createBookingWithEscrowPayment } from "./payments.service";
+import { initiateBookingPayment } from "./payments.service";
 import { supabase } from "../supabase";
-import { collectNylonPayment } from "../payments/nylonpay.server";
 
 export interface CustomerRequest {
   id: string;
@@ -924,45 +923,50 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
         ? offer.estimated_start
         : new Date().toISOString().slice(0, 10);
 
-    const paymentReference = crypto.randomUUID();
     const paymentAmount = Number(
       offer.price ?? request.budget_max ?? request.budget_min ?? 0
     );
 
-    const nylonPayment = await collectNylonPayment({
-      data: {
-        amount: Math.round(paymentAmount),
-        customerName: request.customer_id,
-        customerPhone: "",
-        description: `Accepted offer for ${request.title}`,
-        reference: paymentReference,
-      },
-    });
-
-    const transaction = await createBookingWithEscrowPayment(
-      request.customer_id,
-      offer.provider_id,
+    /*
+     * Shared MarzPay payment flow:
+     *   create booking + payment as 'pending' (unique reference stored in
+     *   payments.transaction_ref)
+     *     -> invoke 'ninjawo-handler' Edge Function (MarzPay collection)
+     *     -> 'marzpay-webhook' settles the payment (escrowed / failed)
+     */
+    const result = await initiateBookingPayment({
+      customerId: request.customer_id,
+      providerId: offer.provider_id,
+      providerUserId: provider.user_id,
       serviceId,
       bookingDate,
-      "09:00",
-      "11:00",
-      paymentAmount,
-      "nylonpay_sandbox",
-      nylonPayment.reference
-    );
+      // The offer flow captures only a proposed start DATE (no time), so no
+      // start/end time is invented here. End time/duration is never set.
+      startTime: null,
+      totalAmount: paymentAmount,
+      description: `Accepted offer for ${request.title}`,
+    });
 
-    if (!transaction) {
-      console.error("Accepted offer could not create booking and payment.");
+    if (result.status === "error" || !result.booking || !result.payment) {
+      console.error(
+        "Accepted offer could not create booking and payment:",
+        result.error
+      );
       return false;
     }
 
-    const { booking, payment } = transaction;
+    const { booking, payment } = result;
 
-    if (payment.payment_status !== "escrowed") {
-      console.error("Accepted offer payment could not be secured in escrow.");
+    if (result.status === "failed") {
+      console.error(
+        "Accepted offer payment failed:",
+        result.error
+      );
       return false;
     }
 
+    // 'pending' or 'escrowed' both mean the booking exists and the payment
+    // is in flight — the webhook completes the transition later.
     const finished = await setOfferStatus(offerId, "accepted");
 
     if (!finished) {

@@ -13,8 +13,7 @@
 --   p_provider_id        - UUID of provider (provider row ID)
 --   p_service_id         - UUID of service
 --   p_booking_date       - Date of booking (ISO 8601)
---   p_start_time         - Start time (HH:MM:SS format)
---   p_end_time           - End time (HH:MM:SS format)
+--   p_start_time         - Start time (HH:MM:SS format, optional)
 --   p_total_amount       - Total amount to charge
 --   p_currency           - Currency code (default: 'UGX')
 --   p_transaction_ref    - Transaction reference (optional)
@@ -31,7 +30,6 @@ CREATE OR REPLACE FUNCTION public.create_booking_with_escrow_payment(
   p_service_id uuid,
   p_booking_date date,
   p_start_time time,
-  p_end_time time,
   p_total_amount numeric(12,2),
   p_currency text DEFAULT 'UGX',
   p_transaction_ref text DEFAULT NULL,
@@ -73,7 +71,6 @@ BEGIN
       service_id,
       booking_date,
       start_time,
-      end_time,
       status,
       total_amount
     )
@@ -83,7 +80,6 @@ BEGIN
       p_service_id,
       p_booking_date,
       p_start_time,
-      p_end_time,
       'pending',
       p_total_amount
     )

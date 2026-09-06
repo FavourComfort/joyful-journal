@@ -299,7 +299,7 @@ function BookingCard({
                 </p>
 
                 <p className="mt-0.5 text-sm font-semibold text-slate-800">
-                  {formatTime(booking.start_time)} - {formatTime(booking.end_time)}
+                  {formatTime(booking.start_time)}{booking.end_time ? ` - ${formatTime(booking.end_time)}` : ""}
                 </p>
               </div>
             </div>

@@ -48,9 +48,9 @@ CREATE TABLE IF NOT EXISTS public.bookings (
 
   booking_date date NOT NULL,
 
-  start_time time NOT NULL,
+  start_time time,
 
-  end_time time NOT NULL,
+  end_time time,
 
   status text NOT NULL DEFAULT 'pending'
     CHECK (
@@ -69,6 +69,14 @@ CREATE TABLE IF NOT EXISTS public.bookings (
 
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- MIGRATION FOR EXISTING DATABASES:
+-- Customers now provide only a date and a preferred start time.
+-- End time / duration is NOT collected or calculated anymore, and the
+-- post-request (accept offer) flow may not have a start time at all,
+-- so both time columns are optional.
+ALTER TABLE public.bookings ALTER COLUMN start_time DROP NOT NULL;
+ALTER TABLE public.bookings ALTER COLUMN end_time DROP NOT NULL;
 
 
 -- ================================================================
@@ -537,14 +545,16 @@ CREATE TRIGGER trg_validate_payment_status
 --
 -- Customer creates booking and payment in one trusted operation.
 --
--- For the current MOCK checkout flow:
+-- Real gateway (MarzPay) flow:
 --
---   booking -> confirmed
---   payment -> escrowed
+--   booking  -> confirmed
+--   payment  -> pending
 --
--- IMPORTANT:
--- With a real gateway, payment should only become escrowed AFTER
--- the gateway confirms successful payment.
+-- The frontend then invokes the 'ninjawo-handler' Edge Function which
+-- calls the MarzPay collection API. The 'marzpay-webhook' Edge
+-- Function receives MarzPay's final transaction status and moves the
+-- payment to escrowed (or failed). Payment only becomes escrowed
+-- AFTER the gateway confirms successful payment.
 -- ================================================================
 
 CREATE OR REPLACE FUNCTION public.create_booking_with_escrow_payment(
@@ -553,7 +563,6 @@ CREATE OR REPLACE FUNCTION public.create_booking_with_escrow_payment(
   p_service_id uuid,
   p_booking_date date,
   p_start_time time,
-  p_end_time time,
   p_total_amount numeric(12,2),
   p_currency text DEFAULT 'UGX',
   p_transaction_ref text DEFAULT NULL,
@@ -605,8 +614,6 @@ BEGIN
   IF p_provider_id IS NULL
      OR p_service_id IS NULL
      OR p_booking_date IS NULL
-     OR p_start_time IS NULL
-     OR p_end_time IS NULL
   THEN
     RETURN json_build_object(
       'success', false,
@@ -625,12 +632,12 @@ BEGIN
   END IF;
 
 
-  IF p_end_time <= p_start_time THEN
-    RETURN json_build_object(
-      'success', false,
-      'error', 'End time must be after start time'
-    );
-  END IF;
+  -- ============================================================
+  -- NOTE: end_time / duration is intentionally NOT collected or
+  -- calculated. Customers provide only a date and preferred start
+  -- time; providers may not know how long a service takes, and
+  -- different services use different measures rather than time.
+  -- ============================================================
 
 
   -- ============================================================
@@ -696,7 +703,6 @@ BEGIN
       service_id,
       booking_date,
       start_time,
-      end_time,
       status,
       total_amount
     )
@@ -706,7 +712,6 @@ BEGIN
       p_service_id,
       p_booking_date,
       p_start_time,
-      p_end_time,
       'confirmed',
       p_total_amount
     )
@@ -727,8 +732,7 @@ BEGIN
       payment_method,
       transaction_ref,
       platform_fee,
-      provider_amount,
-      paid_at
+      provider_amount
     )
     VALUES (
       v_booking_id,
@@ -736,12 +740,11 @@ BEGIN
       p_provider_id,
       p_total_amount,
       COALESCE(NULLIF(p_currency, ''), 'UGX'),
-      'escrowed',
+      'pending',
       COALESCE(NULLIF(p_payment_method, ''), 'mock_checkout'),
       p_transaction_ref,
       v_platform_fee,
-      v_provider_amount,
-      now()
+      v_provider_amount
     )
     RETURNING id INTO v_payment_id;
 
@@ -1202,7 +1205,6 @@ REVOKE ALL ON FUNCTION public.create_booking_with_escrow_payment(
   uuid,
   date,
   time,
-  time,
   numeric,
   text,
   text,
@@ -1225,7 +1227,6 @@ GRANT EXECUTE ON FUNCTION public.create_booking_with_escrow_payment(
   uuid,
   uuid,
   date,
-  time,
   time,
   numeric,
   text,

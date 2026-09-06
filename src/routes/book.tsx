@@ -10,10 +10,9 @@ import {
   type Service,
 } from "@/lib/services/services.service";
 import {
-  createBookingWithEscrowPayment,
+  initiateBookingPayment,
 } from "@/lib/services/payments.service";
 import { createPaymentNotifications } from "@/lib/services/notifications.service";
-import { collectNylonPayment } from "@/lib/payments/nylonpay.server";
 
 function BookComponent() {
   const router = useRouter();
@@ -26,11 +25,11 @@ function BookComponent() {
 
   const [bookingDate, setBookingDate] = useState("");
   const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
   const [notes, setNotes] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [paymentPending, setPaymentPending] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,13 +93,8 @@ function BookComponent() {
 
     if (submitting) return;
 
-    if (!bookingDate || !startTime || !endTime) {
-      setError("Please select a date and time range.");
-      return;
-    }
-
-    if (startTime >= endTime) {
-      setError("End time must be later than start time.");
+    if (!bookingDate || !startTime) {
+      setError("Please select a date and a preferred start time.");
       return;
     }
 
@@ -126,57 +120,61 @@ function BookComponent() {
         return;
       }
 
-      const transactionRef = crypto.randomUUID();
-
-      const nylonPayment = await collectNylonPayment({
-        data: {
-          amount: Math.round(service.price || 0),
-          customerName: profile.full_name,
-          customerPhone: profile.phone || "",
-          description: `Booking with ${provider.full_name}`,
-          reference: transactionRef,
-        },
-      });
-
-      const transaction = await createBookingWithEscrowPayment(
-        profile.id,
-        search.providerId,
-        search.serviceId,
+      /*
+       * Shared MarzPay payment flow:
+       *   create booking + payment as 'pending'
+       *     -> invoke 'ninjawo-handler' Edge Function (MarzPay collection)
+       *     -> 'marzpay-webhook' settles the payment (escrowed / failed)
+       */
+      const result = await initiateBookingPayment({
+        customerId: profile.id,
+        providerId: search.providerId,
+        providerUserId: provider.user_id,
+        serviceId: search.serviceId,
         bookingDate,
         startTime,
-        endTime,
-        service.price || 0,
-        "nylonpay_sandbox",
-        nylonPayment.reference
-      );
+        totalAmount: service.price || 0,
+        description: `Booking with ${provider.full_name}`,
+      });
 
-      if (!transaction) {
+      if (
+        result.status === "error" ||
+        !result.booking ||
+        !result.payment
+      ) {
         setError(
-          "We could not secure your booking payment. Please try again."
+          result.error ||
+            "We could not create your booking. Please try again."
         );
         setSubmitting(false);
         return;
       }
 
-      const { booking, payment } = transaction;
+      const { booking, payment } = result;
 
-      if (payment.payment_status !== "escrowed") {
+      if (result.status === "failed") {
         setError(
-          "Payment could not be secured in escrow. Please try again."
+          result.error ||
+            "Your payment could not be processed. Please try again."
         );
         setSubmitting(false);
         return;
       }
+
+      // 'pending' or 'escrowed' both mean the booking exists and the
+      // payment is in flight — the webhook completes the transition.
+      setPaymentPending(result.status === "pending");
 
       /*
-      * STEP 2
+       * STEP 2
        * Create notifications for BOTH sides.
        *
        * Customer:
-       * "Payment is being held in escrow until service confirmation"
+       * "Payment is being processed and will be held in escrow until
+       * service confirmation"
        *
        * Provider:
-       * "New booking confirmed; funds are held by NINJAWO"
+       * "New booking received; funds will be held by NINJAWO"
        */
       const notificationsCreated =
         await createPaymentNotifications({
@@ -256,12 +254,15 @@ function BookComponent() {
           </div>
 
           <h2 className="mb-2 text-2xl font-bold text-[#041b3c]">
-            Booking Confirmed!
+            {paymentPending
+              ? "Booking Created — Awaiting Payment"
+              : "Booking Confirmed!"}
           </h2>
 
           <p className="mb-6 text-[#434654]">
-            Your booking with {provider?.business_name} has been
-            confirmed and your payment was successful.
+            {paymentPending
+              ? `Your booking with ${provider?.business_name} has been created and your payment is being processed. You will receive a confirmation as soon as the payment is verified.`
+              : `Your booking with ${provider?.business_name} has been confirmed and your payment was successful.`}
           </p>
 
           <div className="flex flex-col gap-2">
@@ -360,49 +361,29 @@ function BookComponent() {
             {/* Time Selection */}
             <div className="rounded-xl border border-[#e8edff] bg-white p-4 shadow-sm">
               <h3 className="mb-4 text-lg font-bold">
-                Select Time
+                Preferred Start Time
               </h3>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1 block text-sm font-semibold text-[#434654]">
-                    Start Time
-                  </label>
+              <div>
+                <label className="mb-1 block text-sm font-semibold text-[#434654]">
+                  Start Time
+                </label>
 
-                  <input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) =>
-                      setStartTime(e.target.value)
-                    }
-                    className="w-full rounded-lg border border-[#c3c6d6] px-4 py-2 focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm font-semibold text-[#434654]">
-                    End Time
-                  </label>
-
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) =>
-                      setEndTime(e.target.value)
-                    }
-                    className="w-full rounded-lg border border-[#c3c6d6] px-4 py-2 focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
-                    required
-                  />
-                </div>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) =>
+                    setStartTime(e.target.value)
+                  }
+                  className="w-full rounded-lg border border-[#c3c6d6] px-4 py-2 focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
+                  required
+                />
               </div>
 
-              {service?.duration_minutes && (
-                <p className="mt-2 text-sm text-[#434654]">
-                  Suggested duration:{" "}
-                  {service.duration_minutes} minutes
-                </p>
-              )}
+              <p className="mt-2 text-sm text-[#434654]">
+                Only a start time is needed — the provider will
+                confirm how long the service takes.
+              </p>
             </div>
 
             {/* Notes */}

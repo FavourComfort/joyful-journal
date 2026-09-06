@@ -43,8 +43,7 @@ export async function createBookingWithEscrowPayment(
   providerId: string,
   serviceId: string,
   bookingDate: string,
-  startTime: string,
-  endTime: string,
+  startTime: string | null,
   totalAmount: number,
   paymentMethod = "mock_checkout",
   transactionRef?: string
@@ -58,7 +57,6 @@ export async function createBookingWithEscrowPayment(
         p_service_id: serviceId,
         p_booking_date: bookingDate,
         p_start_time: startTime,
-        p_end_time: endTime,
         p_total_amount: Number(totalAmount) || 0,
         p_currency: "UGX",
         p_transaction_ref: transactionRef ?? null,
@@ -94,6 +92,199 @@ export async function createBookingWithEscrowPayment(
     console.error("Exception creating booking with escrow payment:", error);
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// SHARED PAYMENT ENTRY POINT (used by BOTH booking flows)
+//
+//   create booking + payment as 'pending'
+//     -> invoke the existing 'ninjawo-handler' Edge Function (MarzPay
+//        collection via https://wallet.wearemarz.com/api/v1/collect-money,
+//        secrets stay server-side in the Edge Function)
+//     -> the existing 'marzpay-webhook' Edge Function receives MarzPay's
+//        final status and moves the payment to 'escrowed' or 'failed'
+//
+// The frontend never touches MarzPay credentials — it only generates the
+// unique reference, which is stored in payments.transaction_ref BEFORE the
+// handler is invoked, so the webhook can correlate the transaction.
+// ---------------------------------------------------------------------------
+export type BookingPaymentStatus = "pending" | "escrowed" | "failed" | "error";
+
+export interface InitiateBookingPaymentInput {
+  customerId: string;
+  providerId: string;
+  /** profiles.id of the provider user — only used for notifications. */
+  providerUserId?: string;
+  serviceId: string;
+  bookingDate: string;
+  /** Preferred start time; may be null (post-request flow has no time). */
+  startTime: string | null;
+  totalAmount: number;
+  description?: string;
+  paymentMethod?: string;
+}
+
+export interface BookingPaymentResult {
+  status: BookingPaymentStatus;
+  booking?: Record<string, unknown>;
+  payment?: Payment;
+  transactionRef?: string;
+  error?: string;
+}
+
+const SETTLEMENT_POLL_INTERVAL_MS = 2000;
+const SETTLEMENT_TIMEOUT_MS = 30000;
+
+/** Poll the payment row until marzpay-webhook settles it (escrowed/failed). */
+async function waitForPaymentSettlement(paymentId: string): Promise<Payment | null> {
+  const deadline = Date.now() + SETTLEMENT_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, SETTLEMENT_POLL_INTERVAL_MS));
+
+    const payment = await getPaymentByIdHelper(paymentId);
+    if (
+      payment &&
+      (payment.payment_status === "escrowed" || payment.payment_status === "failed")
+    ) {
+      return payment;
+    }
+  }
+
+  return null;
+}
+
+export async function initiateBookingPayment(
+  input: InitiateBookingPaymentInput
+): Promise<BookingPaymentResult> {
+  // ------------------------------------------------------------------
+  // PHONE VALIDATION (Ugandan mobile numbers)
+  //
+  // Must pass BEFORE any booking/payment is created and before the
+  // handler is invoked. Accepts the common local formats:
+  //
+  //   07XXXXXXXX      (local, 10 digits)
+  //   2567XXXXXXXX    (international, no +)
+  //   +2567XXXXXXXX   (international, with +)
+  //
+  // Valid numbers are normalized to +2567XXXXXXXX for MarzPay.
+  // ------------------------------------------------------------------
+  const UGANDA_MOBILE_PATTERN = /^(?:\+?256|0)(7\d{8})$/;
+
+  let customerPhoneNumber = "";
+  try {
+    const { data: profileRow, error: profileError } = await supabase
+      .from("profiles")
+      .select("phone")
+      .eq("id", input.customerId)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error("Error loading customer phone for payment:", profileError);
+    } else if (profileRow?.phone) {
+      customerPhoneNumber = String(profileRow.phone).trim();
+    }
+  } catch (err) {
+    console.error("Exception loading customer phone for payment:", err);
+  }
+
+  const phoneMatch = UGANDA_MOBILE_PATTERN.exec(customerPhoneNumber);
+
+  if (!phoneMatch) {
+    const message = "Please enter a valid Ugandan mobile number.";
+    console.error("Payment not started:", message);
+    return {
+      status: "error",
+      error: message,
+    };
+  }
+
+  // Normalized international format: +2567XXXXXXXX
+  const normalizedPhoneNumber = `+256${phoneMatch[1]}`;
+
+  // STEP 1: Create the booking + a 'pending' payment atomically.
+  // The unique reference is generated here and persisted in
+  // payments.transaction_ref BEFORE the handler is called.
+  const transactionRef = crypto.randomUUID();
+
+  const transaction = await createBookingWithEscrowPayment(
+    input.customerId,
+    input.providerId,
+    input.serviceId,
+    input.bookingDate,
+    input.startTime,
+    input.totalAmount,
+    input.paymentMethod ?? "marzpay",
+    transactionRef
+  );
+
+  if (!transaction) {
+    return {
+      status: "error",
+      transactionRef,
+      error: "Booking could not be created.",
+    };
+  }
+
+  const { booking, payment } = transaction;
+
+  // STEP 2: Ask the server-side Edge Function to start the MarzPay collection.
+  // phone_number was validated and normalized to +2567XXXXXXXX above.
+  try {
+    const { error: invokeError } = await supabase.functions.invoke(
+      "ninjawo-handler",
+      {
+        body: {
+          reference: transactionRef,
+          phone_number: normalizedPhoneNumber,
+          amount: Math.round(Number(input.totalAmount) || 0),
+          description: input.description ?? "NINJAWO booking payment",
+        },
+      }
+    );
+
+    if (invokeError) {
+      const message = invokeError.message || "Payment could not be started.";
+      console.error("ninjawo-handler invocation failed:", invokeError);
+      await markPaymentAsFailed(payment.id, message);
+      const failed = await getPaymentByIdHelper(payment.id);
+      return {
+        status: "failed",
+        booking,
+        payment: failed ?? payment,
+        transactionRef,
+        error: message,
+      };
+    }
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Payment could not be started.";
+    console.error("Exception invoking ninjawo-handler:", err);
+    await markPaymentAsFailed(payment.id, message);
+    const failed = await getPaymentByIdHelper(payment.id);
+    return {
+      status: "failed",
+      booking,
+      payment: failed ?? payment,
+      transactionRef,
+      error: message,
+    };
+  }
+
+  // STEP 3: Wait for the existing marzpay-webhook Edge Function to settle
+  // the payment. If the webhook has not landed within the timeout the
+  // payment legitimately stays 'pending' — the customer just sees
+  // "awaiting confirmation" and the webhook completes it later.
+  const settled = await waitForPaymentSettlement(payment.id);
+  const finalPayment =
+    settled ?? (await getPaymentByIdHelper(payment.id)) ?? payment;
+
+  return {
+    status: (finalPayment.payment_status as BookingPaymentStatus) ?? "pending",
+    booking,
+    payment: finalPayment,
+    transactionRef,
+  };
 }
 
 // Internal helper: fetch a payment by its id (used by state-machine guards).
