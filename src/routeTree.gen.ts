@@ -26,7 +26,6 @@ import { Route as ProviderOfferRouteImport } from './routes/provider.offer'
 import { Route as ProviderLoginRouteImport } from './routes/provider.login'
 import { Route as ProviderDashboardRouteImport } from './routes/provider.dashboard'
 import { Route as ProviderIdRouteImport } from './routes/provider.$id'
-import { Route as ProfileDesignRouteImport } from './routes/profile.design'
 import { Route as BookingIdRouteImport } from './routes/booking.$id'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 
@@ -115,11 +114,6 @@ const ProviderIdRoute = ProviderIdRouteImport.update({
   path: '/provider/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileDesignRoute = ProfileDesignRouteImport.update({
-  id: '/profile/design',
-  path: '/profile/design',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BookingIdRoute = BookingIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -144,7 +138,6 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/booking/$id': typeof BookingIdRoute
-  '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
@@ -166,7 +159,6 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/booking/$id': typeof BookingIdRoute
-  '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
@@ -189,7 +181,6 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/booking/$id': typeof BookingIdRoute
-  '/profile/design': typeof ProfileDesignRoute
   '/provider/$id': typeof ProviderIdRoute
   '/provider/dashboard': typeof ProviderDashboardRoute
   '/provider/login': typeof ProviderLoginRoute
@@ -213,7 +204,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/dashboard'
     | '/booking/$id'
-    | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
     | '/provider/login'
@@ -235,7 +225,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/dashboard'
     | '/booking/$id'
-    | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
     | '/provider/login'
@@ -257,7 +246,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/dashboard'
     | '/booking/$id'
-    | '/profile/design'
     | '/provider/$id'
     | '/provider/dashboard'
     | '/provider/login'
@@ -279,7 +267,6 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
-  ProfileDesignRoute: typeof ProfileDesignRoute
   ProviderIdRoute: typeof ProviderIdRoute
   ProviderDashboardRoute: typeof ProviderDashboardRoute
   ProviderLoginRoute: typeof ProviderLoginRoute
@@ -410,13 +397,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProviderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/profile/design': {
-      id: '/profile/design'
-      path: '/profile/design'
-      fullPath: '/profile/design'
-      preLoaderRoute: typeof ProfileDesignRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/booking/$id': {
       id: '/booking/$id'
       path: '/$id'
@@ -457,7 +437,6 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   AdminDashboardRoute: AdminDashboardRoute,
-  ProfileDesignRoute: ProfileDesignRoute,
   ProviderIdRoute: ProviderIdRoute,
   ProviderDashboardRoute: ProviderDashboardRoute,
   ProviderLoginRoute: ProviderLoginRoute,

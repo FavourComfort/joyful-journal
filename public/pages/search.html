@@ -116,7 +116,8 @@
 <header class="w-full sticky top-0 bg-surface dark:bg-surface-dim shadow-sm z-50">
   <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-base w-full max-w-[1440px] mx-auto z-50">
     <div class="flex items-center gap-sm">
-      <button class="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-xs rounded-lg active:scale-95" data-icon="menu">menu</button>
+      <button id="searchBackBtn" class="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-xs rounded-lg active:scale-95" aria-label="Back to home">arrow_back</button>
+      <button id="searchMenuBtn" class="material-symbols-outlined text-primary hover:bg-surface-container-low transition-colors p-xs rounded-lg active:scale-95" data-icon="menu" aria-label="Open menu">menu</button>
       <span class="text-headline-md font-headline-md font-bold text-primary">NINJAWO</span>
     </div>
     <div class="hidden md:flex flex-1 max-w-xl mx-lg relative">
@@ -131,6 +132,24 @@
     </div>
   </div>
 </header>
+    <!-- Drawer -->
+    <div id="searchDrawerBackdrop" class="hidden fixed inset-0 z-[60] bg-on-background/30"></div>
+    <aside id="searchDrawer" class="fixed left-0 top-0 z-[70] h-full w-80 max-w-[88vw] -translate-x-full overflow-y-auto bg-white p-lg shadow-2xl transition-transform duration-300" aria-hidden="true">
+      <div class="flex items-center justify-between border-b border-outline-variant pb-md">
+        <span class="text-headline-md font-bold text-primary">NINJAWO</span>
+        <button id="closeSearchDrawer" class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded-lg" type="button" aria-label="Close menu"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <nav class="mt-lg flex flex-col gap-xs" aria-label="Menu">
+        <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="home" href="#"><span class="material-symbols-outlined text-primary">home</span>Home</a>
+        <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="search" href="#"><span class="material-symbols-outlined text-primary">search</span>Explore</a>
+        <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="bookings" href="#"><span class="material-symbols-outlined text-primary">calendar_month</span>Bookings</a>
+        <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="inbox" href="#"><span class="material-symbols-outlined text-primary">chat</span>Inbox</a>
+        <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="my-requests" href="#"><span class="material-symbols-outlined text-primary">assignment</span>My Requests</a>
+        <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="post-request" href="#"><span class="material-symbols-outlined text-primary">add_circle</span>Post a Service Request</a>
+        <div class="my-md border-t border-outline-variant"></div>
+        <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="dashboard" href="#"><span class="material-symbols-outlined text-primary">dashboard</span>Dashboard</a>
+      </nav>
+    </aside>
 
 <main class="w-full max-w-[1440px] mx-auto pb-xl">
   <section class="sticky top-[64px] z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant px-margin-mobile md:px-margin-desktop py-md">
@@ -289,6 +308,52 @@
 
   searchInput.addEventListener('input', filterProviders);
   fetchProviders();
+
+  // Drawer + back navigation
+  const searchNavMap = {
+    'home': '/',
+    'search': '/search',
+    'bookings': '/booking',
+    'inbox': '/inbox',
+    'my-requests': '/my-requests',
+    'post-request': '/post-request',
+    'dashboard': '/dashboard',
+  };
+
+  const searchDrawer = document.getElementById('searchDrawer');
+  const searchBackdrop = document.getElementById('searchDrawerBackdrop');
+  const searchMenuBtn = document.getElementById('searchMenuBtn');
+  const searchCloseBtn = document.getElementById('closeSearchDrawer');
+  const searchBackBtn = document.getElementById('searchBackBtn');
+
+  const openSearchDrawer = () => {
+    searchDrawer?.classList.remove('-translate-x-full');
+    searchBackdrop?.classList.remove('hidden');
+    searchMenuBtn?.setAttribute('aria-expanded', 'true');
+    searchDrawer?.setAttribute('aria-hidden', 'false');
+  };
+  const closeSearchDrawer = () => {
+    searchDrawer?.classList.add('-translate-x-full');
+    searchBackdrop?.classList.add('hidden');
+    searchMenuBtn?.setAttribute('aria-expanded', 'false');
+    searchDrawer?.setAttribute('aria-hidden', 'true');
+  };
+
+  if (searchMenuBtn) searchMenuBtn.addEventListener('click', openSearchDrawer);
+  if (searchCloseBtn) searchCloseBtn.addEventListener('click', closeSearchDrawer);
+  if (searchBackdrop) searchBackdrop.addEventListener('click', closeSearchDrawer);
+  if (searchBackBtn) searchBackBtn.addEventListener('click', () => navigate('/'));
+
+  document.querySelectorAll('[data-nav]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const route = searchNavMap[el.dataset.nav];
+      if (route) {
+        closeSearchDrawer();
+        navigate(route);
+      }
+    });
+  });
 </script>
 </body>
 </html>
