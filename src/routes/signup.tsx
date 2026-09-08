@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { PageFrame } from "@/components/PageFrame";
 import { signUp } from "@/lib/services/auth.service";
+import { isValidUgandaPhone, normalizeUgandaPhone } from "@/lib/services/phone.utils";
 
 interface SignupData {
   firstName: string;
@@ -35,6 +36,17 @@ function SignupComponent() {
           return;
         }
 
+        // The phone number is used for mobile-money payments later and
+        // cannot be changed from the client dashboard, so it must be a
+        // valid Ugandan mobile number before the account is created.
+        if (!isValidUgandaPhone(data.phone)) {
+          setError(
+            "Please enter a valid Ugandan mobile number, e.g. 0770123456 or +256770123456."
+          );
+          return;
+        }
+        const normalizedPhone = normalizeUgandaPhone(data.phone) as string;
+
         setLoading(true);
         setError(null);
 
@@ -44,7 +56,7 @@ function SignupComponent() {
             data.email,
             data.password,
             fullName,
-            data.phone,
+            normalizedPhone,
             "customer"
           );
 

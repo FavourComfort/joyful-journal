@@ -172,7 +172,9 @@
                     <!-- Phone -->
                     <div>
                         <label class="block font-label-sm text-label-sm text-on-background mb-sm">Phone Number</label>
-                        <input type="tel" name="phone" required placeholder="+256 (70) 000-0000" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <input type="tel" name="phone" required id="phoneInput" placeholder="+256700000000" class="w-full px-md py-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent font-body-md"/>
+                        <p class="text-caption text-on-surface-variant">Ugandan mobile number, e.g. 0770123456 or +256770123456</p>
+                        <p id="phoneError" class="hidden text-caption font-semibold text-error">Please enter a valid Ugandan mobile number, e.g. 0770123456 or +256770123456.</p>
                     </div>
 
                     <!-- Location -->
@@ -372,9 +374,26 @@
             // Form submission
             const form = document.getElementById('signupForm');
             if (form) {
+                // Must match the server-side Ugandan mobile pattern so a
+                // number accepted here can never be rejected at payment.
+                const UGANDA_MOBILE_PATTERN = /^(?:\+?256|0)(7\d{8})$/;
+                const phoneInput = document.getElementById('phoneInput');
+                const phoneError = document.getElementById('phoneError');
+                if (phoneInput) {
+                    phoneInput.addEventListener('input', () => {
+                        const valid = UGANDA_MOBILE_PATTERN.test(phoneInput.value.trim());
+                        phoneError.classList.toggle('hidden', valid || phoneInput.value.trim() === '');
+                    });
+                }
                 form.addEventListener('submit', (e) => {
                     e.preventDefault();
                     const data = getFormData();
+                    if (!UGANDA_MOBILE_PATTERN.test((data.phone || '').trim())) {
+                        if (phoneError) phoneError.classList.remove('hidden');
+                        if (phoneInput) phoneInput.focus();
+                        return;
+                    }
+                    if (phoneError) phoneError.classList.add('hidden');
                     // Send to parent for auth processing
                     window.parent.postMessage({ type: 'auth:signup', payload: data }, '*');
                 });

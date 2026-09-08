@@ -3,6 +3,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { PageFrame } from "@/components/PageFrame";
 import { supabase } from "@/lib/supabase";
 import { getCurrentProfile, updateProfile } from "@/lib/services/auth.service";
+import { isValidUgandaPhone, normalizeUgandaPhone } from "@/lib/services/phone.utils";
 import { createProvider, updateProvider, uploadProviderLogo } from "@/lib/services/providers.service";
 import { createService, deleteService } from "@/lib/services/services.service";
 
@@ -232,7 +233,16 @@ function ProviderOnboardingComponent() {
           if (!updated) throw new Error("Failed to save business details.");
 
           if (payload.phone) {
-            await updateProfile(userId, { phone: payload.phone });
+            // Keep the saved number payment-valid: reject anything that
+            // isn't a Ugandan mobile number and store it normalized.
+            if (!isValidUgandaPhone(payload.phone)) {
+              throw new Error(
+                "Please enter a valid Ugandan mobile number, e.g. 0770123456 or +256770123456."
+              );
+            }
+            await updateProfile(userId, {
+              phone: normalizeUgandaPhone(payload.phone) as string,
+            });
           }
 
           localStorage.removeItem("providerSignupDraft");

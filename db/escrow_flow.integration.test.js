@@ -58,10 +58,16 @@ test('core escrow concepts modeled in services', () => {
   // Booking service must model status workflow
   assert.match(bookingsService, /pending|confirmed|completed/i, 'Booking service must model status transitions');
 
-  // Book route must orchestrate booking + payment creation
-  assert.match(bookRoute, /createBooking/i, 'Book route must create booking');
-  assert.match(bookRoute, /createPayment/i, 'Book route must create payment');
-  assert.match(bookRoute, /escrowed/i, 'Book route must verify escrow');
+  // Book route must orchestrate booking + payment creation through the
+  // shared MarzPay escrow entry point (booking + payment are created
+  // atomically inside initiateBookingPayment -> create_booking_with_escrow_payment).
+  assert.match(bookRoute, /initiateBookingPayment/i, 'Book route must create booking + payment via the shared escrow entry point');
+  assert.match(
+    paymentsService,
+    /create_booking_with_escrow_payment/i,
+    'Payment service must create booking + escrow payment atomically'
+  );
+  assert.match(paymentsService, /escrowed/i, 'Payment service must verify escrow');
 });
 
 // ================================================================
@@ -122,17 +128,18 @@ test('RLS policies correctly reference provider user_id', () => {
     'Bookings provider select policy must check provider.user_id'
   );
 
-  // Bookings update must check provider.user_id = auth.uid()
+  // Booking status changes must NOT be possible via direct client updates —
+  // they go through trusted RPCs (release/cancel/complete functions).
   assert.match(
     escrowSchema,
-    /Bookings update by participant[\s\S]*?p\.user_id = auth\.uid\(\)/,
-    'Bookings update policy must check provider.user_id'
+    /CREATE POLICY "Bookings no direct update"[\s\S]*?USING \(false\)/,
+    'Bookings must not be directly updatable by clients (status via RPCs only)'
   );
 
   // Payments select must NOT directly compare auth.uid() to provider_id
   // (it must use provider.user_id instead)
   const paymentsSelectPolicy = escrowSchema.match(
-    /Payments select by participant[\s\S]*?;/
+    /CREATE POLICY "Payments select by participant"[\s\S]*?;/
   )?.[0];
   assert.match(
     paymentsSelectPolicy || '',
@@ -218,10 +225,10 @@ test('payment service implements escrow release', () => {
 // TEST 7: Booking Status Transitions Defined
 // ================================================================
 test('booking status transition flow defined', () => {
-  // Schema must define allowed statuses
+  // Schema must define allowed statuses (CHECK block spans multiple lines)
   assert.match(
     escrowSchema,
-    /CHECK.*status.*IN.*pending.*confirmed.*in_progress.*completed.*cancelled/i,
+    /CHECK\s*\([\s\S]*?'pending'[\s\S]*?'confirmed'[\s\S]*?'in_progress'[\s\S]*?'completed'[\s\S]*?'cancelled'[\s\S]*?'disputed'[\s\S]*?\)/i,
     'Schema must define allowed booking statuses'
   );
 
@@ -277,11 +284,18 @@ test('payment method and fee calculation modeled', () => {
 // TEST 9: Error Handling and Validation Present
 // ================================================================
 test('error handling in booking and payment flows', () => {
-  // Book route must validate date/time
+  // Book route must require a date and a preferred start time.
+  // (End time / duration is intentionally NOT collected anymore — the
+  // provider confirms how long the service takes; the DB columns are optional.)
   assert.match(
     bookRoute,
-    /startTime.*endTime|endTime.*startTime/i,
-    'Book route must validate that end time is after start time'
+    /!bookingDate \|\| !startTime/,
+    'Book route must require booking date and preferred start time'
+  );
+  assert.match(
+    escrowSchema,
+    /ALTER TABLE public\.bookings ALTER COLUMN start_time DROP NOT NULL/,
+    'Schema must allow bookings without an end time (start/end time optional)'
   );
 
   // Schema must have amount constraint (CHECK constraint in DB)

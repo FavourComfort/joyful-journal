@@ -8,6 +8,7 @@ import {
   updateProfile,
   type Profile,
 } from "@/lib/services/auth.service";
+import { isValidUgandaPhone, normalizeUgandaPhone } from "@/lib/services/phone.utils";
 import {
   updateProvider,
   uploadProviderLogo,
@@ -242,9 +243,17 @@ function ProviderDashboardComponent() {
           if (!updated) throw new Error("Failed to update your profile.");
 
           if (payload.phone) {
-            const profileUpdates: Partial<Profile> = { phone: payload.phone };
+            // Keep the saved number payment-valid: reject anything that
+            // isn't a Ugandan mobile number and store it normalized.
+            if (!isValidUgandaPhone(payload.phone)) {
+              throw new Error(
+                "Please enter a valid Ugandan mobile number, e.g. 0770123456 or +256770123456."
+              );
+            }
+            const normalizedPhone = normalizeUgandaPhone(payload.phone) as string;
+            const profileUpdates: Partial<Profile> = { phone: normalizedPhone };
             await updateProfile(userId, profileUpdates);
-            phoneRef.current = payload.phone;
+            phoneRef.current = normalizedPhone;
           }
 
           await sendData();
