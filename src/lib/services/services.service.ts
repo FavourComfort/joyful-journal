@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { normalizeCategory } from './categories';
 
 export interface Service {
   id: string;
@@ -91,7 +92,7 @@ export async function createService(
         {
           provider_id: providerId,
           title,
-          category,
+          category: normalizeCategory(category),
           price,
           description,
           duration_minutes: durationMinutes,
@@ -161,10 +162,11 @@ export async function deleteService(serviceId: string): Promise<boolean> {
 // Search services by category
 export async function searchServicesByCategory(category: string): Promise<Service[]> {
   try {
+    const normalized = normalizeCategory(category);
     const { data, error } = await supabase
       .from('services')
       .select('*')
-      .ilike('category', `%${category}%`)
+      .ilike('category', normalized)
       .eq('active', true);
 
     if (error) {

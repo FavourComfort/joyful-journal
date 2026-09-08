@@ -1,6 +1,7 @@
 import { createPaymentNotifications } from "./notifications.service";
 import { initiateBookingPayment } from "./payments.service";
 import { supabase } from "../supabase";
+import { normalizeCategory, normalizeCategories } from "./categories";
 
 export interface CustomerRequest {
   id: string;
@@ -178,15 +179,16 @@ export async function findMatchingProvidersForRequest(
     /* Resolve service matches separately so provider discovery does not depend
      * on PostgREST nested relationship metadata. */
     let matchingProviderIds: Set<string> | null = null;
+    const normalizedCategory = normalizeCategory(category);
     if (
       category?.trim() &&
-      category.trim() !== "other"
+      normalizedCategory !== "other"
     ) {
       const { data: services, error: servicesError } = await supabase
         .from("services")
         .select("provider_id")
         .eq("active", true)
-        .eq("category", category.trim());
+        .ilike("category", normalizedCategory);
 
       if (servicesError) {
         console.error("Error fetching matching provider services:", servicesError);
@@ -355,11 +357,8 @@ export async function getProviderServiceCategories(
       return [];
     }
 
-    /* Distinct categories so callers can use them as a Set without surprises. */
-    const distinctCategories = (data || []).map(
-      (s) => s.category
-    );
-    return Array.from(new Set(distinctCategories));
+    /* Normalize and deduplicate so legacy category values still match. */
+    return normalizeCategories((data || []).map((s) => s.category));
   } catch (err) {
     console.error(
       "Exception fetching provider service categories:",
@@ -386,16 +385,23 @@ export function canProvideForCategory(
   requestCategory: string | null | undefined,
   providerCategories: string[] | ReadonlySet<string> | null | undefined
 ): boolean {
-  if (!requestCategory || requestCategory.trim() === "" || requestCategory === "other") {
+  const normalizedRequest = normalizeCategory(requestCategory);
+
+  // "other" / empty / null requests are visible to every provider
+  if (normalizedRequest === "other") {
     return true;
   }
 
-  const set =
-    providerCategories instanceof Set
+  // Normalize provider categories so legacy values still match
+  const normalizedProviderCategories = normalizeCategories(
+    Array.isArray(providerCategories)
       ? providerCategories
-      : new Set(providerCategories || []);
+      : providerCategories instanceof Set
+        ? Array.from(providerCategories)
+        : []
+  );
 
-  return set.has(requestCategory);
+  return normalizedProviderCategories.includes(normalizedRequest);
 }
 
 export async function getRequestsForProvider(
@@ -859,8 +865,9 @@ async function getOfferBookingServiceId(
       .eq("active", true)
       .order("created_at", { ascending: true });
 
-    if (requestCategory?.trim()) {
-      qb = qb.ilike("category", `%${requestCategory.trim()}%`);
+    const normalizedRequestCategory = normalizeCategory(requestCategory);
+    if (normalizedRequestCategory !== "other") {
+      qb = qb.ilike("category", normalizedRequestCategory);
     }
 
     const { data, error } = await qb.limit(1);

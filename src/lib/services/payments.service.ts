@@ -739,3 +739,28 @@ function ensureEscrowSuccess(result: EscrowRpcResult | null): EscrowRpcResult {
   if (!result?.success) throw new Error(result?.error || "The escrow action could not be completed.");
   return result;
 }
+
+// ---------------------------------------------------------------------------
+// PLATFORM FEE HELPERS — single source of truth for the NINJAWO commission
+// ---------------------------------------------------------------------------
+
+/** NINJAWO platform fee as a percentage of the customer-paid total. */
+export const PLATFORM_FEE_PERCENT = 10;
+
+/** Calculate what the provider earns (90% of the customer-paid total). */
+export function calculateProviderEarnings(totalAmount: number): number {
+  const total = Number(totalAmount) || 0;
+  return Math.round(total * (1 - PLATFORM_FEE_PERCENT / 100));
+}
+
+/** Friendly breakdown of where the money goes — used by the provider dashboard. */
+export function formatCommissionBreakdown(totalAmount: number): {
+  customerPaid: number;
+  commission: number;
+  providerEarnings: number;
+} {
+  const customerPaid = Math.round(Number(totalAmount) || 0);
+  const commission = Math.round(customerPaid * (PLATFORM_FEE_PERCENT / 100));
+  const providerEarnings = customerPaid - commission;
+  return { customerPaid, commission, providerEarnings };
+}

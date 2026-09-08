@@ -20,6 +20,7 @@ import {
   updateService,
   type Service,
 } from "@/lib/services/services.service";
+import { normalizeCategory } from "@/lib/services/categories";
 import {
   getProviderBookings,
   updateBookingStatus,
@@ -32,6 +33,8 @@ import {
 } from "@/lib/services/reviews.service";
 import {
   cancelBookingAndRefund,
+  calculateProviderEarnings,
+  formatCommissionBreakdown,
   getCompletionRequestBookingIds,
   requestServiceCompletion,
 } from "@/lib/services/payments.service";
@@ -121,6 +124,18 @@ function ProviderDashboardComponent() {
       (sum, b) => sum + (Number(b.total_amount) || 0),
       0
     );
+    const totalCommission = completed.reduce(
+      (sum, b) => sum + formatCommissionBreakdown(b.total_amount).commission,
+      0
+    );
+    const netEarnings = completed.reduce(
+      (sum, b) => sum + calculateProviderEarnings(b.total_amount),
+      0
+    );
+    const earningsWithFees = completed.map((b) => ({
+      bookingId: b.id,
+      ...formatCommissionBreakdown(b.total_amount),
+    }));
     const upcoming = bookings.filter(
       (b) => b.status !== "cancelled" && b.booking_date >= today
     ).length;
@@ -133,6 +148,9 @@ function ProviderDashboardComponent() {
       reviews,
       avgRating,
       earnings,
+      totalCommission,
+      netEarnings,
+      earningsWithFees,
       upcoming,
       completed: completed.length,
       completionRequestedBookingIds,
@@ -276,7 +294,7 @@ function ProviderDashboardComponent() {
           const service = await createService(
             provider.id,
             payload.title,
-            payload.category,
+            normalizeCategory(payload.category),
             Number(payload.price),
             payload.description || undefined,
             payload.durationMinutes ? Number(payload.durationMinutes) : undefined

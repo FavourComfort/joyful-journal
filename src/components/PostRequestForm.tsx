@@ -6,8 +6,9 @@ import {
   findMatchingProvidersForRequest,
   createRequestNotificationsForProviders,
 } from "@/lib/services/requests.service";
+import { type CanonicalCategory } from "@/lib/services/categories";
 
-function inferCategory(title: string, description: string): string {
+function inferCategory(title: string, description: string): CanonicalCategory {
   const text = `${title} ${description}`.toLowerCase();
 
   if (
@@ -15,7 +16,7 @@ function inferCategory(title: string, description: string): string {
       text
     )
   ) {
-    return "beauty-and-hair";
+    return "beauty-hair";
   }
 
   if (
@@ -23,7 +24,7 @@ function inferCategory(title: string, description: string): string {
       text
     )
   ) {
-    return "technology-and-it";
+    return "technology-it";
   }
 
   if (
@@ -39,7 +40,7 @@ function inferCategory(title: string, description: string): string {
       text
     )
   ) {
-    return "creative-and-design";
+    return "creative-design";
   }
 
   if (
@@ -62,7 +63,7 @@ function inferCategory(title: string, description: string): string {
       text
     )
   ) {
-    return "health-and-wellness";
+    return "health-wellness";
   }
 
   return "other";

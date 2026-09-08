@@ -6,6 +6,7 @@ import { getCurrentProfile, updateProfile } from "@/lib/services/auth.service";
 import { isValidUgandaPhone, normalizeUgandaPhone } from "@/lib/services/phone.utils";
 import { createProvider, updateProvider, uploadProviderLogo } from "@/lib/services/providers.service";
 import { createService, deleteService } from "@/lib/services/services.service";
+import { normalizeCategory } from "@/lib/services/categories";
 
 interface ProviderDraft {
   firstName?: string;
@@ -158,7 +159,7 @@ function ProviderOnboardingComponent() {
           const service = await createService(
             providerId,
             payload.title,
-            payload.category,
+            normalizeCategory(payload.category),
             Number(payload.price),
             payload.description || undefined,
             payload.durationMinutes ? Number(payload.durationMinutes) : undefined

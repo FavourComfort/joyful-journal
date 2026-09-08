@@ -5,7 +5,9 @@
 -- Function: create_booking_with_escrow_payment
 -- ================================================================
 -- Purpose:
---   Atomically create a booking and a corresponding escrowed payment.
+--   Atomically create a booking and a corresponding pending payment.
+--   The actual MarzPay collection happens AFTER this function returns
+--   (via the ninjawo-handler Edge Function + marzpay-webhook).
 --   If any step fails, the entire transaction is rolled back.
 --
 -- Parameters:
@@ -29,8 +31,8 @@ CREATE OR REPLACE FUNCTION public.create_booking_with_escrow_payment(
   p_provider_id uuid,
   p_service_id uuid,
   p_booking_date date,
-  p_start_time time,
   p_total_amount numeric(12,2),
+  p_start_time time DEFAULT NULL,
   p_currency text DEFAULT 'UGX',
   p_transaction_ref text DEFAULT NULL,
   p_payment_method text DEFAULT 'mock_checkout'
@@ -92,11 +94,12 @@ BEGIN
       );
     END IF;
 
-    -- STEP 2: Calculate fees
+    -- STEP 2: Calculate fees (10% platform fee, 90% to provider)
     v_platform_fee := ROUND(p_total_amount * 0.1, 2);
     v_provider_amount := ROUND(p_total_amount - v_platform_fee, 2);
 
-    -- STEP 3: Create escrowed payment
+    -- STEP 3: Create payment as 'pending' (NOT 'escrowed' — MarzPay collection
+    -- happens after this function returns, via ninjawo-handler + marzpay-webhook)
     INSERT INTO public.payments(
       booking_id,
       customer_id,
@@ -115,7 +118,7 @@ BEGIN
       p_provider_id,
       p_total_amount,
       p_currency,
-      'escrowed',
+      'pending',
       p_payment_method,
       p_transaction_ref,
       v_platform_fee,
@@ -241,15 +244,15 @@ BEGIN
 
     -- STEP 5: Update booking status to 'completed'
     UPDATE public.bookings
-    SET status = 'completed'
+    SET status = 'completed', updated_at = now()
     WHERE id = p_booking_id;
 
-    -- STEP 6: Release payment and mark timestamps
+    -- STEP 6: Release payment to provider (do NOT set paid_at — that is set
+    -- when the payment is collected/escrowed, not when released)
     UPDATE public.payments
     SET
       payment_status = 'released',
       released_at = now(),
-      paid_at = now(),
       updated_at = now()
     WHERE id = v_payment_id;
 
@@ -299,6 +302,7 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
+  v_booking_id uuid;
   v_payment_id uuid;
   v_payment_status text;
   v_booking_status text;
@@ -367,16 +371,16 @@ BEGIN
 
     -- STEP 4: Update booking to cancelled
     UPDATE public.bookings
-    SET status = 'cancelled'
+    SET status = 'cancelled', updated_at = now()
     WHERE id = p_booking_id;
 
-    -- STEP 5: Refund escrowed payment (move to refunded state)
+    -- STEP 5: Refund payment (do NOT set released_at — a refund does not
+    -- release funds to the provider; it returns them to the customer)
     UPDATE public.payments
     SET
       payment_status = 'refunded',
       failure_reason = p_refund_reason,
-      updated_at = now(),
-      released_at = now()
+      updated_at = now()
     WHERE id = v_payment_id;
 
     -- STEP 6: Fetch updated records
