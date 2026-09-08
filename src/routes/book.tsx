@@ -43,6 +43,12 @@ function BookComponent() {
   const [success, setSuccess] = useState(false);
   const [paymentPending, setPaymentPending] = useState(false);
 
+  // Pricing: 2% platform fee on top of the service price. The customer
+  // pays servicePrice + platformFee, and that total is what gets charged.
+  const servicePrice = Number(service?.price || 0);
+  const platformFee = Math.round(servicePrice * 0.02);
+  const totalAmount = servicePrice + platformFee;
+
   useEffect(() => {
     let cancelled = false;
 
@@ -145,8 +151,8 @@ function BookComponent() {
         serviceId: search.serviceId,
         bookingDate,
         startTime,
-        totalAmount: service.price || 0,
-        description: `Booking with ${provider.full_name}`,
+        totalAmount,
+        description: `Booking with ${provider.business_name}`,
       });
 
       if (
@@ -194,7 +200,7 @@ function BookComponent() {
           providerUserId: provider.user_id,
           bookingId: String(booking.id),
           paymentId: payment.id,
-          amount: service.price || 0,
+          amount: totalAmount,
         });
 
       if (!notificationsCreated) {
@@ -399,14 +405,6 @@ function BookComponent() {
                   ))}
                 </select>
               </div>
-
-              <p className="mt-2 text-sm text-[#434654]">
-                {startTime
-                  ? `Start time set: ${startTime} — tap Continue below to proceed.`
-                  : "Tap the field above and pick a time — it is set as soon as you tap a slot."}{" "}
-                Only a start time is needed — the provider will confirm
-                how long the service takes.
-              </p>
             </div>
 
             {/* Notes */}
@@ -455,16 +453,14 @@ function BookComponent() {
 
                     <span className="text-sm font-bold">
                       UGX{" "}
-                      {Number(
-                        service?.price || 0
-                      ).toLocaleString()}
+                      {servicePrice.toLocaleString()}
                     </span>
                   </div>
 
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-bold">
-                        Platform Fee
+                        Platform Fee (2%)
                       </p>
 
                       <p className="text-xs text-[#434654]">
@@ -473,7 +469,8 @@ function BookComponent() {
                     </div>
 
                     <span className="text-sm font-bold">
-                      UGX 0
+                      UGX{" "}
+                      {platformFee.toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -485,9 +482,7 @@ function BookComponent() {
 
                   <span className="text-2xl font-bold text-[#003d9b]">
                     UGX{" "}
-                    {Number(
-                      service?.price || 0
-                    ).toLocaleString()}
+                    {totalAmount.toLocaleString()}
                   </span>
                 </div>
 
@@ -540,10 +535,10 @@ function BookComponent() {
                     {submitting
                       ? "Creating Booking..."
                       : "Confirm Booking"}
-
+{/* 
                     <span className="material-symbols-outlined">
                       arrow_forward
-                    </span>
+                    </span> */}
                   </button>
                 </form>
 
