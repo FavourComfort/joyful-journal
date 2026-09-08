@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getCurrentProfile } from "@/lib/services/auth.service";
 import {
   getProviderById,
@@ -30,15 +30,6 @@ function BookComponent() {
   const router = useRouter();
   const search = Route.useSearch();
 
-  // Android's default time-input editor has no Set/OK button, so we open
-  // the proper picker dialog via showPicker() when the browser supports
-  // it, and fall back to a slot dropdown when it doesn't.
-  const [canShowPicker] = useState(
-    () =>
-      typeof HTMLInputElement !== "undefined" &&
-      "showPicker" in HTMLInputElement.prototype
-  );
-
   const [provider, setProvider] = useState<Provider | null>(null);
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +38,6 @@ function BookComponent() {
   const [bookingDate, setBookingDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [notes, setNotes] = useState("");
-  const timeInputRef = useRef<HTMLInputElement>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -391,49 +381,31 @@ function BookComponent() {
                   Start Time
                 </label>
 
-                {canShowPicker ? (
-                  <input
-                    ref={timeInputRef}
-                    type="time"
-                    value={startTime}
-                    readOnly
-                    onClick={() => {
-                      try {
-                        timeInputRef.current?.showPicker();
-                      } catch {
-                        timeInputRef.current?.focus();
-                      }
-                    }}
-                    onChange={(e) =>
-                      setStartTime(e.target.value)
-                    }
-                    className="w-full cursor-pointer rounded-lg border border-[#c3c6d6] bg-white px-4 py-2 text-[#1a1c25] focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
-                    required
-                  />
-                ) : (
-                  <select
-                    value={startTime}
-                    onChange={(e) =>
-                      setStartTime(e.target.value)
-                    }
-                    className="w-full rounded-lg border border-[#c3c6d6] bg-white px-4 py-2 text-[#1a1c25] focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
-                    required
-                  >
-                    <option value="" disabled>
-                      Select a start time
+                <select
+                  value={startTime}
+                  onChange={(e) =>
+                    setStartTime(e.target.value)
+                  }
+                  className="w-full rounded-lg border border-[#c3c6d6] bg-white px-4 py-2 text-[#1a1c25] focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
+                  required
+                >
+                  <option value="" disabled>
+                    Select a start time
+                  </option>
+                  {TIME_OPTIONS.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
                     </option>
-                    {TIME_OPTIONS.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                  ))}
+                </select>
               </div>
 
               <p className="mt-2 text-sm text-[#434654]">
-                Only a start time is needed — the provider will
-                confirm how long the service takes.
+                {startTime
+                  ? `Start time set: ${startTime} — tap Continue below to proceed.`
+                  : "Tap the field above and pick a time — it is set as soon as you tap a slot."}{" "}
+                Only a start time is needed — the provider will confirm
+                how long the service takes.
               </p>
             </div>
 
