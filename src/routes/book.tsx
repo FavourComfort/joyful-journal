@@ -14,6 +14,19 @@ import {
 } from "@/lib/services/payments.service";
 import { createPaymentNotifications } from "@/lib/services/notifications.service";
 
+// 30-minute time slots (00:00 – 23:30) for the start-time dropdown.
+// A native <input type="time"> picker was unusable on Android (no
+// confirm/"Set" button when empty), so we use our own slot list instead.
+const TIME_OPTIONS: { value: string; label: string }[] =
+  Array.from({ length: 48 }, (_, i) => {
+    const h = Math.floor(i / 2);
+    const m = i % 2 === 0 ? "00" : "30";
+    const value = `${String(h).padStart(2, "0")}:${m}`;
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    const ampm = h < 12 ? "AM" : "PM";
+    return { value, label: `${value} (${hour12}:${m} ${ampm})` };
+  });
+
 function BookComponent() {
   const router = useRouter();
   const search = Route.useSearch();
@@ -369,15 +382,23 @@ function BookComponent() {
                   Start Time
                 </label>
 
-                <input
-                  type="time"
+                <select
                   value={startTime}
                   onChange={(e) =>
                     setStartTime(e.target.value)
                   }
-                  className="w-full rounded-lg border border-[#c3c6d6] px-4 py-2 focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
+                  className="w-full rounded-lg border border-[#c3c6d6] bg-white px-4 py-2 text-[#1a1c25] focus:border-[#003d9b] focus:outline-none focus:ring-2 focus:ring-[#003d9b]/15"
                   required
-                />
+                >
+                  <option value="" disabled>
+                    Select a start time
+                  </option>
+                  {TIME_OPTIONS.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <p className="mt-2 text-sm text-[#434654]">
