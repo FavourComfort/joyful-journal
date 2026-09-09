@@ -154,6 +154,8 @@ TypeScript:      ✅ 0 errors
 - Escrow released to provider
 - Notifications sent
 - RLS policies secure
+- `ninjawo-handler` Edge Function (MarzPay collection)
+- `marzpay-webhook` Edge Function (settlement callback)
 
 ### What Needs Work 🟡
 - Provider can't confirm completion
@@ -199,6 +201,8 @@ A: Yes. Atomic functions guarantee all-or-nothing. RLS is now correct.
 | db/escrow_schema.sql | Code | ✅ Fixed | Apply to Supabase |
 | db/escrow_transaction.sql | Code | ✅ New | Deploy to Supabase |
 | db/escrow_flow.integration.test.js | Test | ✅ 10/10 | Run locally |
+| supabase/functions/ninjawo-handler/index.ts | Edge Function | ✅ New | `supabase functions deploy` |
+| supabase/functions/marzpay-webhook/index.ts | Edge Function | ✅ New | `supabase functions deploy` |
 
 ---
 

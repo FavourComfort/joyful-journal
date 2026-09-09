@@ -1,5 +1,49 @@
 # Quick Start: Deploy Escrow Fixes to Supabase
 
+## Step 0: Deploy Edge Functions (10 minutes) ← DO THIS FIRST
+
+The booking flow requires two Edge Functions to communicate with MarzPay. Without them, `supabase.functions.invoke("ninjawo-handler")` returns a `-2xxx` error.
+
+### Deploy via Supabase CLI:
+
+```bash
+cd joyful-journal
+supabase functions deploy ninjawo-handler
+supabase functions deploy marzpay-webhook
+```
+
+### Set required secrets:
+
+```bash
+supabase secrets set MARZPAY_API_KEY=your_marzpay_api_key
+supabase secrets set MARZPAY_MERCHANT_ID=your_merchant_id
+supabase secrets set MARZPAY_WEBHOOK_SECRET=your_webhook_signing_secret
+```
+
+The Edge Functions automatically receive `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from the runtime — you do not need to set these manually.
+
+### Verify deployment:
+
+```bash
+supabase functions list
+```
+
+Expected:
+```
+├── ninjawo-handler
+├── marzpay-webhook
+├── hello-ninjawo
+```
+
+### What these functions do:
+
+| Function | Trigger | Purpose |
+|---|---|---|
+| `ninjawo-handler` | Frontend calls `supabase.functions.invoke("ninjawo-handler")` | Contacts MarzPay `collect-money` API to initiate mobile-money collection |
+| `marzpay-webhook` | MarzPay POSTs to `/functions/v1/marzpay-webhook` | Receives final payment status and settles the payment row (`escrowed` / `failed`) |
+
+---
+
 ## Step 1: Deploy Atomic Transaction Functions (5 minutes)
 
 ### Via Supabase UI:
@@ -182,6 +226,13 @@ const { booking, payment } = result;
 
 ## Troubleshooting
 
+### Error: Edge Function returns `-2xxx` status code
+**Solution:** The `ninjawo-handler` Edge Function is not deployed or not reachable.
+- Run `supabase functions deploy ninjawo-handler`
+- Run `supabase functions deploy marzpay-webhook`
+- Set secrets: `supabase secrets set MARZPAY_API_KEY=...` etc.
+- See **Step 0** above
+
 ### Error: "function create_booking_with_escrow_payment does not exist"
 **Solution:** You haven't deployed `db/escrow_transaction.sql` to Supabase yet.
 - See **Step 1** above
@@ -206,6 +257,8 @@ const { booking, payment } = result;
 
 ## Testing Checklist
 
+- [ ] Edge Functions deployed (`ninjawo-handler`, `marzpay-webhook`)
+- [ ] Edge Function secrets configured (`MARZPAY_API_KEY`, `MARZPAY_MERCHANT_ID`, `MARZPAY_WEBHOOK_SECRET`)
 - [ ] Atomic functions deployed to Supabase
 - [ ] RLS policies verified (should show `p.user_id = auth.uid()`)
 - [ ] Integration tests passing (10/10)
@@ -220,12 +273,13 @@ const { booking, payment } = result;
 
 ## Next Steps
 
-1. ✅ Deploy functions
-2. ✅ Verify RLS policies
-3. ✅ Run tests
-4. 🔲 Implement cancellation flow (see [ESCROW_FLOW_STATUS.md](./ESCROW_FLOW_STATUS.md) Priority 1.3)
-5. 🔲 Add provider-side completion (see [ESCROW_FLOW_STATUS.md](./ESCROW_FLOW_STATUS.md) Priority 1.3)
-6. 🔲 Real Supabase integration tests
+1. ✅ Deploy Edge Functions (`ninjawo-handler`, `marzpay-webhook`) + secrets
+2. ✅ Deploy atomic functions
+3. ✅ Verify RLS policies
+4. ✅ Run tests
+5. 🔲 Implement cancellation flow (see [ESCROW_FLOW_STATUS.md](./ESCROW_FLOW_STATUS.md) Priority 1.3)
+6. 🔲 Add provider-side completion (see [ESCROW_FLOW_STATUS.md](./ESCROW_FLOW_STATUS.md) Priority 1.3)
+7. 🔲 Real Supabase integration tests
 
 ---
 
