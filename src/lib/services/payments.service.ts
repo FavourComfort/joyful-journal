@@ -235,9 +235,11 @@ export async function initiateBookingPayment(
       "ninjawo-handler",
       {
         body: {
-          reference: transactionRef,
+          payment_id: payment.id,
           phone_number: normalizedPhoneNumber,
           amount: Math.round(Number(input.totalAmount) || 0),
+          reference: transactionRef,
+          transaction_ref: transactionRef,
           description: input.description ?? "NINJAWO booking payment",
         },
       }

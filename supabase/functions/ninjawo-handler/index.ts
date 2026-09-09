@@ -8,8 +8,8 @@
 // Flow:
 //   1. Frontend calls supabase.functions.invoke("ninjawo-handler", { body: {...} })
 //   2. This function calls https://wallet.wearemarz.com/api/v1/collect-money
-//   3. MarzPay processes the collection and later POSTs to marzpay-webhook
-//   4. marzpay-webhook settles the payment (escrowed / failed)
+//   3. MarzPay processes the collection and later POSTs to marzpay-webhook-function
+//   4. marzpay-webhook-function settles the payment (escrowed / failed)
 
 import "@supabase/functions-js/edge-runtime.d.ts";
 
