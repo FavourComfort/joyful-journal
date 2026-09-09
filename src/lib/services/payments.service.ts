@@ -231,9 +231,20 @@ export async function initiateBookingPayment(
   // STEP 2: Ask the server-side Edge Function to start the MarzPay collection.
   // phone_number was validated and normalized to +2567XXXXXXXX above.
   try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error("Your login session has expired. Please sign in again.");
+    }
+
     const { error: invokeError } = await supabase.functions.invoke(
       "ninjawo-handler",
       {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: {
           payment_id: payment.id,
           phone_number: normalizedPhoneNumber,
@@ -246,7 +257,26 @@ export async function initiateBookingPayment(
     );
 
     if (invokeError) {
-      const message = invokeError.message || "Payment could not be started.";
+      let message = invokeError.message || "Payment could not be started.";
+
+      // Supabase wraps non-2xx function responses in FunctionsHttpError.
+      // Read the JSON body so the customer sees the handler's actual reason.
+      const response = "context" in invokeError && invokeError.context instanceof Response
+        ? invokeError.context
+        : null;
+
+      if (response) {
+        try {
+          const details = await response.clone().json() as {
+            error?: string;
+            details?: { message?: string };
+          };
+          message = details.error || details.details?.message || message;
+        } catch {
+          // Keep Supabase's message when the function did not return JSON.
+        }
+      }
+
       console.error("ninjawo-handler invocation failed:", invokeError);
       await markPaymentAsFailed(payment.id, message);
       const failed = await getPaymentByIdHelper(payment.id);

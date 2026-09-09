@@ -1,131 +1,224 @@
-// NINJAWO MarzPay Collection Handler
-// -----------------------------------
-// Called by the frontend after a booking + payment row are created.
-// This function contacts the MarzPay gateway to initiate mobile-money
-// collection.  MarzPay credentials are stored as Deno secrets and never
-// exposed to the client.
-//
-// Flow:
-//   1. Frontend calls supabase.functions.invoke("ninjawo-handler", { body: {...} })
-//   2. This function calls https://wallet.wearemarz.com/api/v1/collect-money
-//   3. MarzPay processes the collection and later POSTs to marzpay-webhook-function
-//   4. marzpay-webhook-function settles the payment (escrowed / failed)
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { withSupabase } from "jsr:@supabase/server@^1";
 
-import "@supabase/functions-js/edge-runtime.d.ts";
-
-const MARZPAY_BASE = "https://wallet.wearemarz.com/api/v1";
-
-interface CollectMoneyRequest {
-  payment_id: string;
+interface PaymentRequest {
   phone_number: string;
   amount: number;
-  transaction_ref: string;
+  reference: string;
+  description?: string;
 }
 
-interface MarzPayResponse {
-  success: boolean;
-  message?: string;
-  transaction_id?: string;
-  status?: string;
-}
+console.info("NINJAWO MarzPay handler started");
 
-Deno.serve(async (req: Request) => {
-  // Only accept POST
-  if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ success: false, error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } },
-    );
-  }
+export default {
+  fetch: withSupabase(
+   { auth: "user" },
+    async (req, ctx) => {
+      // Allow browser requests from NINJAWO
+      if (req.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers":
+              "authorization, x-client-info, apikey, content-type",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+          },
+        });
+      }
 
-  let body: CollectMoneyRequest;
-  try {
-    body = await req.json();
-  } catch {
-    return new Response(
-      JSON.stringify({ success: false, error: "Invalid JSON body" }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
-  }
-
-  const { payment_id, phone_number, amount, transaction_ref } = body;
-
-  // Validate required fields
-  if (!payment_id || !phone_number || !amount || !transaction_ref) {
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Missing required fields: payment_id, phone_number, amount, transaction_ref",
-      }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
-  }
-
-  // Read MarzPay secrets from environment
-  const marzpayApiKey = Deno.env.get("MARZPAY_API_KEY");
-  const marzpayMerchantId = Deno.env.get("MARZPAY_MERCHANT_ID");
-
-  if (!marzpayApiKey || !marzpayMerchantId) {
-    console.error("MarzPay secrets not configured. Set MARZPAY_API_KEY and MARZPAY_MERCHANT_ID.");
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Payment gateway not configured. Please contact support.",
-      }),
-      { status: 503, headers: { "Content-Type": "application/json" } },
-    );
-  }
-
-  try {
-    // Call MarzPay collect-money endpoint
-    const marzpayRes = await fetch(`${MARZPAY_BASE}/collect-money`, {
-      method: "POST",
-      headers: {
+      const corsHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type",
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${marzpayApiKey}`,
-        "X-Merchant-ID": marzpayMerchantId,
-      },
-      body: JSON.stringify({
-        phone_number,
-        amount,
-        transaction_ref,
-        currency: "UGX",
-        description: `NINJAWO booking ${transaction_ref}`,
-      }),
-    });
+      };
 
-    const marzpayData = await marzpayRes.json() as MarzPayResponse;
+      try {
+        // Only allow POST requests
+        if (req.method !== "POST") {
+          return new Response(
+            JSON.stringify({
+              error: "Method not allowed",
+            }),
+            {
+              status: 405,
+              headers: corsHeaders,
+            },
+          );
+        }
 
-    if (!marzpayRes.ok || !marzpayData.success) {
-      console.error("MarzPay collection failed:", marzpayData);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: marzpayData.message || `MarzPay returned ${marzpayRes.status}`,
-        }),
-        { status: 502, headers: { "Content-Type": "application/json" } },
-      );
-    }
+        const body: PaymentRequest = await req.json();
 
-    // MarzPay accepted the collection request.
-    // The actual settlement happens asynchronously via the marzpay-webhook.
-    return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Payment collection initiated. Awaiting confirmation.",
-        transaction_ref,
-        marzpay_transaction_id: marzpayData.transaction_id,
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
-    );
-  } catch (err) {
-    console.error("Exception calling MarzPay:", err);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: "Failed to contact payment gateway. Please try again.",
-      }),
-      { status: 502, headers: { "Content-Type": "application/json" } },
-    );
-  }
-});
+        const {
+          phone_number,
+          amount,
+          reference,
+          description,
+        } = body;
+
+        // Validate required fields
+        if (!phone_number) {
+          return new Response(
+            JSON.stringify({
+              error: "phone_number is required",
+            }),
+            {
+              status: 400,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        if (!amount || amount <= 0) {
+          return new Response(
+            JSON.stringify({
+              error: "amount must be greater than 0",
+            }),
+            {
+              status: 400,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        if (!reference) {
+          return new Response(
+            JSON.stringify({
+              error: "reference is required",
+            }),
+            {
+              status: 400,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        // Get the MarzPay authorization from Supabase Secrets
+        const marzAuthorization = Deno.env.get(
+          "MARZPAY_AUTHORIZATION",
+        );
+
+        if (!marzAuthorization) {
+          console.error("MARZPAY_AUTHORIZATION secret is missing");
+
+          return new Response(
+            JSON.stringify({
+              error: "Payment service is not configured",
+            }),
+            {
+              status: 500,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        // IMPORTANT:
+        // We will replace this with the real deployed webhook URL
+        // once we create the webhook function.
+        const callbackUrl =
+          Deno.env.get("MARZPAY_CALLBACK_URL");
+
+        if (!callbackUrl) {
+          console.error("MARZPAY_CALLBACK_URL secret is missing");
+
+          return new Response(
+            JSON.stringify({
+              error: "Payment callback is not configured yet",
+            }),
+            {
+              status: 500,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        // MarzPay expects multipart/form-data
+        const formData = new FormData();
+
+        formData.append("phone_number", phone_number);
+        formData.append("amount", String(amount));
+        formData.append("country", "UG");
+        formData.append("reference", reference);
+        formData.append(
+          "description",
+          description || "NINJAWO service payment",
+        );
+        formData.append("callback_url", callbackUrl);
+
+        console.info(
+          `Creating MarzPay collection: ${reference}`,
+        );
+
+        const marzResponse = await fetch(
+          "https://wallet.wearemarz.com/api/v1/collect-money",
+          {
+            method: "POST",
+            headers: {
+              Authorization: marzAuthorization.startsWith("Basic ")
+                ? marzAuthorization
+                : `Basic ${marzAuthorization}`,
+            },
+            body: formData,
+          },
+        );
+
+        const responseText = await marzResponse.text();
+
+        let marzData: unknown;
+
+        try {
+          marzData = JSON.parse(responseText);
+        } catch {
+          marzData = {
+            raw_response: responseText,
+          };
+        }
+
+        console.info(
+          `MarzPay response status: ${marzResponse.status}`,
+        );
+
+        if (!marzResponse.ok) {
+          console.error("MarzPay payment failed:", marzData);
+
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: "MarzPay payment request failed",
+              details: marzData,
+            }),
+            {
+              status: marzResponse.status,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: marzData,
+          }),
+          {
+            status: 200,
+            headers: corsHeaders,
+          },
+        );
+      } catch (error) {
+        console.error("Payment handler error:", error);
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Unexpected payment error",
+          }),
+          {
+            status: 500,
+            headers: corsHeaders,
+          },
+        );
+      }
+    },
+  ),
+};
