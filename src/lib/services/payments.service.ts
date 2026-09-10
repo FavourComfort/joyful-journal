@@ -44,6 +44,7 @@ export async function createBookingWithEscrowPayment(
   serviceId: string,
   bookingDate: string,
   startTime: string | null,
+  serviceFee: number,
   totalAmount: number,
   paymentMethod = "mock_checkout",
   transactionRef?: string
@@ -57,6 +58,7 @@ export async function createBookingWithEscrowPayment(
         p_service_id: serviceId,
         p_booking_date: bookingDate,
         p_start_time: startTime,
+        p_service_fee: Number(serviceFee) || 0,
         p_total_amount: Number(totalAmount) || 0,
         p_currency: "UGX",
         p_transaction_ref: transactionRef ?? null,
@@ -119,6 +121,8 @@ export interface InitiateBookingPaymentInput {
   bookingDate: string;
   /** Preferred start time; may be null (post-request flow has no time). */
   startTime: string | null;
+  /** Provider's service fee before the customer's 2% fee. */
+  serviceFee: number;
   totalAmount: number;
   description?: string;
   paymentMethod?: string;
@@ -213,6 +217,7 @@ export async function initiateBookingPayment(
     input.serviceId,
     input.bookingDate,
     input.startTime,
+    input.serviceFee,
     input.totalAmount,
     input.paymentMethod ?? "marzpay",
     transactionRef
@@ -395,12 +400,14 @@ export async function createPayment(
   providerId: string,
   amount: number,
   paymentMethod = "mock_checkout",
-  transactionRef?: string
+  transactionRef?: string,
+  serviceFee?: number
 ): Promise<Payment | null> {
   try {
     const normalizedAmount = Number(amount) || 0;
-    const platformFee = Number((normalizedAmount * 0.1).toFixed(2));
-    const providerAmount = Number((normalizedAmount - platformFee).toFixed(2));
+    const normalizedServiceFee = Number(serviceFee ?? amount) || 0;
+    const providerAmount = Number((normalizedServiceFee * 0.9).toFixed(2));
+    const platformFee = Number((normalizedAmount - providerAmount).toFixed(2));
 
     const { data, error } = await supabase
       .from("payments")
@@ -776,23 +783,23 @@ function ensureEscrowSuccess(result: EscrowRpcResult | null): EscrowRpcResult {
 // PLATFORM FEE HELPERS — single source of truth for the NINJAWO commission
 // ---------------------------------------------------------------------------
 
-/** NINJAWO platform fee as a percentage of the customer-paid total. */
-export const PLATFORM_FEE_PERCENT = 10;
+/** NINJAWO provider fee as a percentage of the provider's service fee. */
+export const PROVIDER_FEE_PERCENT = 10;
 
-/** Calculate what the provider earns (90% of the customer-paid total). */
-export function calculateProviderEarnings(totalAmount: number): number {
-  const total = Number(totalAmount) || 0;
-  return Math.round(total * (1 - PLATFORM_FEE_PERCENT / 100));
+/** Calculate what the provider earns (90% of the provider's service fee). */
+export function calculateProviderEarnings(serviceFee: number): number {
+  const fee = Number(serviceFee) || 0;
+  return Math.round(fee * (1 - PROVIDER_FEE_PERCENT / 100));
 }
 
 /** Friendly breakdown of where the money goes — used by the provider dashboard. */
-export function formatCommissionBreakdown(totalAmount: number): {
+export function formatCommissionBreakdown(totalAmount: number, serviceFee = totalAmount): {
   customerPaid: number;
   commission: number;
   providerEarnings: number;
 } {
   const customerPaid = Math.round(Number(totalAmount) || 0);
-  const commission = Math.round(customerPaid * (PLATFORM_FEE_PERCENT / 100));
-  const providerEarnings = customerPaid - commission;
+  const providerEarnings = calculateProviderEarnings(serviceFee);
+  const commission = customerPaid - providerEarnings;
   return { customerPaid, commission, providerEarnings };
 }

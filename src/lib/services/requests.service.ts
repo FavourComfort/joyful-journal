@@ -947,6 +947,7 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
       providerUserId: provider.user_id,
       serviceId,
       bookingDate,
+      serviceFee: paymentAmount,
       // The offer flow captures only a proposed start DATE (no time), so no
       // start/end time is invented here. End time/duration is never set.
       startTime: null,

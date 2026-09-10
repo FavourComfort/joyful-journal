@@ -185,7 +185,7 @@ export default {
           return new Response(
             JSON.stringify({
               success: false,
-              error: "MarzPay payment request failed",
+              error: "Ninjawo payment request failed",
               details: marzData,
             }),
             {

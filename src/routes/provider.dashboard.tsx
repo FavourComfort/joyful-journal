@@ -33,8 +33,6 @@ import {
 } from "@/lib/services/reviews.service";
 import {
   cancelBookingAndRefund,
-  calculateProviderEarnings,
-  formatCommissionBreakdown,
   getCompletionRequestBookingIds,
   requestServiceCompletion,
 } from "@/lib/services/payments.service";
@@ -98,6 +96,13 @@ function ProviderDashboardComponent() {
     ]);
     const completionRequestedBookingIds = [...await getCompletionRequestBookingIds(bookings.map((booking) => booking.id))];
     const disputes = await getDisputesForBookings(bookings.map((booking) => booking.id));
+    const { data: paymentRows } = await supabase
+      .from("payments")
+      .select("booking_id, provider_amount")
+      .in("booking_id", bookings.map((booking) => booking.id));
+    const providerAmounts = new Map(
+      (paymentRows || []).map((payment) => [payment.booking_id, Number(payment.provider_amount) || 0])
+    );
 
     const customerIds = [...new Set(bookings.map((b) => b.customer_id))];
     let customerNames: Record<string, string> = {};
@@ -118,6 +123,9 @@ function ProviderDashboardComponent() {
       customer_name: customerNames[b.customer_id] || "Customer",
     }));
 
+    const getProviderAmount = (booking: Booking) =>
+      providerAmounts.get(booking.id) || 0;
+
     const today = new Date().toISOString().split("T")[0];
     const completed = bookings.filter((b) => b.status === "completed");
     const earnings = completed.reduce(
@@ -125,16 +133,18 @@ function ProviderDashboardComponent() {
       0
     );
     const totalCommission = completed.reduce(
-      (sum, b) => sum + formatCommissionBreakdown(b.total_amount).commission,
+      (sum, b) => sum + Number(b.total_amount) - getProviderAmount(b),
       0
     );
     const netEarnings = completed.reduce(
-      (sum, b) => sum + calculateProviderEarnings(b.total_amount),
+      (sum, b) => sum + getProviderAmount(b),
       0
     );
     const earningsWithFees = completed.map((b) => ({
       bookingId: b.id,
-      ...formatCommissionBreakdown(b.total_amount),
+      customerPaid: Math.round(Number(b.total_amount) || 0),
+      commission: Math.round(Number(b.total_amount) || 0) - getProviderAmount(b),
+      providerEarnings: getProviderAmount(b),
     }));
     const upcoming = bookings.filter(
       (b) => b.status !== "cancelled" && b.booking_date >= today

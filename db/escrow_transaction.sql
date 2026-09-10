@@ -32,6 +32,7 @@ CREATE OR REPLACE FUNCTION public.create_booking_with_escrow_payment(
   p_service_id uuid,
   p_booking_date date,
   p_total_amount numeric(12,2),
+  p_service_fee numeric(12,2) DEFAULT NULL,
   p_start_time time DEFAULT NULL,
   p_currency text DEFAULT 'UGX',
   p_transaction_ref text DEFAULT NULL,
@@ -46,6 +47,7 @@ DECLARE
   v_payment_id uuid;
   v_platform_fee numeric(12,2);
   v_provider_amount numeric(12,2);
+  v_service_fee numeric(12,2);
   v_booking_record json;
   v_payment_record json;
   v_result json;
@@ -95,8 +97,14 @@ BEGIN
     END IF;
 
     -- STEP 2: Calculate fees (10% platform fee, 90% to provider)
-    v_platform_fee := ROUND(p_total_amount * 0.1, 2);
-    v_provider_amount := ROUND(p_total_amount - v_platform_fee, 2);
+    SELECT COALESCE(p_service_fee, s.price, p_total_amount)
+      INTO v_service_fee
+    FROM public.services s
+    WHERE s.id = p_service_id;
+
+    v_service_fee := COALESCE(v_service_fee, p_service_fee, p_total_amount);
+    v_provider_amount := ROUND(v_service_fee * 0.9, 2);
+    v_platform_fee := ROUND(p_total_amount - v_provider_amount, 2);
 
     -- STEP 3: Create payment as 'pending' (NOT 'escrowed' — MarzPay collection
     -- happens after this function returns, via ninjawo-handler + marzpay-webhook)

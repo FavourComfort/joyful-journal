@@ -151,6 +151,7 @@ function BookComponent() {
         serviceId: search.serviceId,
         bookingDate,
         startTime,
+        serviceFee: servicePrice,
         totalAmount,
         description: `Booking with ${provider.business_name}`,
       });

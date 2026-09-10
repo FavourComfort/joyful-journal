@@ -129,6 +129,21 @@ button[type='button'] {
     color: var(--auth-text) !important;
 }
 
+#togglePassword,
+#toggleConfirmPassword {
+    min-height: 0;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: var(--auth-muted) !important;
+}
+
+#togglePassword:focus-visible,
+#toggleConfirmPassword:focus-visible {
+    outline: 2px solid var(--auth-pink);
+    outline-offset: 2px;
+}
+
 .text-outline-variant,
 .bg-outline-variant {
     background-color: var(--auth-border) !important;

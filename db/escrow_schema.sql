@@ -564,6 +564,7 @@ CREATE OR REPLACE FUNCTION public.create_booking_with_escrow_payment(
   p_booking_date date,
   p_start_time time,
   p_total_amount numeric(12,2),
+  p_service_fee numeric(12,2) DEFAULT NULL,
   p_currency text DEFAULT 'UGX',
   p_transaction_ref text DEFAULT NULL,
   p_payment_method text DEFAULT 'mock_checkout'
@@ -580,6 +581,7 @@ DECLARE
 
   v_platform_fee numeric(12,2);
   v_provider_amount numeric(12,2);
+  v_service_fee numeric(12,2);
 
   v_booking json;
   v_payment json;
@@ -686,11 +688,14 @@ BEGIN
     -- Provider receives = 90%
     -- ==========================================================
 
-    v_platform_fee :=
-      ROUND(p_total_amount * 0.10, 2);
+    SELECT COALESCE(p_service_fee, s.price, p_total_amount)
+      INTO v_service_fee
+    FROM public.services s
+    WHERE s.id = p_service_id;
 
-    v_provider_amount :=
-      p_total_amount - v_platform_fee;
+    v_service_fee := COALESCE(v_service_fee, p_service_fee, p_total_amount);
+    v_provider_amount := ROUND(v_service_fee * 0.90, 2);
+    v_platform_fee := ROUND(p_total_amount - v_provider_amount, 2);
 
 
     -- ==========================================================
