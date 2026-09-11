@@ -558,16 +558,16 @@ CREATE TRIGGER trg_validate_payment_status
 -- ================================================================
 
 CREATE OR REPLACE FUNCTION public.create_booking_with_escrow_payment(
-  p_customer_id uuid,
-  p_provider_id uuid,
-  p_service_id uuid,
-  p_booking_date date,
-  p_start_time time,
-  p_total_amount numeric(12,2),
-  p_service_fee numeric(12,2) DEFAULT NULL,
-  p_currency text DEFAULT 'UGX',
+  p_customer_id    uuid,
+  p_provider_id    uuid,
+  p_service_id     uuid,
+  p_booking_date   date,
+  p_start_time     time,
+  p_service_fee    numeric(12,2),
+  p_total_amount   numeric(12,2),
+  p_currency       text DEFAULT 'UGX',
   p_transaction_ref text DEFAULT NULL,
-  p_payment_method text DEFAULT 'mock_checkout'
+  p_payment_method text DEFAULT 'marzpay'
 )
 RETURNS json
 LANGUAGE plpgsql
@@ -576,20 +576,19 @@ SET search_path = public
 AS $$
 
 DECLARE
-  v_booking_id uuid;
-  v_payment_id uuid;
-
-  v_platform_fee numeric(12,2);
+  v_booking_id      uuid;
+  v_payment_id      uuid;
+  v_platform_fee    numeric(12,2);
   v_provider_amount numeric(12,2);
-  v_service_fee numeric(12,2);
+  v_booking         json;
+  v_payment         json;
 
-  v_booking json;
-  v_payment json;
+  v_expected_total numeric(12,2);
 
 BEGIN
 
   -- ============================================================
-  -- Authentication
+  -- Authentication (kept from the schema-version RPC)
   -- ============================================================
 
   IF auth.uid() IS NULL THEN
@@ -610,7 +609,67 @@ BEGIN
 
 
   -- ============================================================
-  -- Validate inputs
+  -- Pricing validation — strict financial rules
+  --
+  -- p_service_fee and p_total_amount have no NOT NULL in the signature
+  -- (PostgreSQL does not allow it on function parameters), so we
+  -- validate NULL and invalid values here.
+  --
+  -- Rule 1: p_service_fee must be supplied and > 0.
+  --   - Direct booking: service's listed price.
+  --   - Accepted offer: the accepted offer price.
+  --   - NO fallback to services.price or p_total_amount.
+  --
+  -- Rule 2: p_total_amount must be > p_service_fee because the
+  --   customer charge (2%) must be on top of the service fee.
+  --
+  -- Rule 3: p_total_amount must EQUAL ROUND(p_service_fee * 1.02, 2).
+  --   Exact equality is used because both values are numeric(12,2).
+  --   We do NOT calculate or add the 2% here; we only verify the
+  --   caller did it correctly.
+  -- ============================================================
+
+  IF p_service_fee IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Service fee is required'
+    );
+  END IF;
+
+  IF p_service_fee <= 0 THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Service fee must be greater than zero'
+    );
+  END IF;
+
+  IF p_total_amount IS NULL THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Total amount is required'
+    );
+  END IF;
+
+  IF p_total_amount <= p_service_fee THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Total amount must exceed the service fee (must include the 2% customer charge)'
+    );
+  END IF;
+
+  v_expected_total := ROUND(p_service_fee * 1.02, 2);
+
+  IF p_total_amount <> v_expected_total THEN
+    RETURN json_build_object(
+      'success', false,
+      'error', 'Total amount does not equal service fee plus 2% (expected '
+        || v_expected_total || ', got ' || p_total_amount || ')'
+    );
+  END IF;
+
+
+  -- ============================================================
+  -- Input validation (kept from the schema-version RPC)
   -- ============================================================
 
   IF p_provider_id IS NULL
@@ -624,26 +683,8 @@ BEGIN
   END IF;
 
 
-  IF p_total_amount IS NULL
-     OR p_total_amount <= 0
-  THEN
-    RETURN json_build_object(
-      'success', false,
-      'error', 'Booking amount must be greater than zero'
-    );
-  END IF;
-
-
   -- ============================================================
-  -- NOTE: end_time / duration is intentionally NOT collected or
-  -- calculated. Customers provide only a date and preferred start
-  -- time; providers may not know how long a service takes, and
-  -- different services use different measures rather than time.
-  -- ============================================================
-
-
-  -- ============================================================
-  -- Validate provider
+  -- Provider existence check (kept from the schema-version RPC)
   -- ============================================================
 
   IF NOT EXISTS (
@@ -659,13 +700,8 @@ BEGIN
 
 
   -- ============================================================
-  -- Validate service
-  -- ============================================================
-  --
-  -- This assumes services.provider_id exists.
-  --
-  -- If your services table does not have provider_id, STOP here
-  -- and tell me before running this version.
+  -- Service must belong to the selected provider
+  -- (kept from the schema-version RPC)
   -- ============================================================
 
   IF NOT EXISTS (
@@ -683,24 +719,27 @@ BEGIN
 
   BEGIN
 
-    -- ==========================================================
-    -- Platform fee = 10%
-    -- Provider receives = 90%
-    -- ==========================================================
+    -- ============================================================
+    -- Fee calculation — single source of truth
+    --
+    -- p_service_fee is used DIRECTLY. No fallback.
+    --
+    -- provider_amount = 90% of p_service_fee
+    -- platform_fee    = p_total_amount - provider_amount
+    --                 = (service_fee + 2%) - (90% of service_fee)
+    --                 = 10% of service_fee + 2% customer charge
+    -- ============================================================
 
-    SELECT COALESCE(p_service_fee, s.price, p_total_amount)
-      INTO v_service_fee
-    FROM public.services s
-    WHERE s.id = p_service_id;
-
-    v_service_fee := COALESCE(v_service_fee, p_service_fee, p_total_amount);
-    v_provider_amount := ROUND(v_service_fee * 0.90, 2);
-    v_platform_fee := ROUND(p_total_amount - v_provider_amount, 2);
+    v_provider_amount := ROUND(p_service_fee * 0.90, 2);
+    v_platform_fee    := ROUND(p_total_amount - v_provider_amount, 2);
 
 
-    -- ==========================================================
-    -- Create booking
-    -- ==========================================================
+    -- ============================================================
+    -- Create booking — status 'pending'
+    --
+    -- end_time is intentionally NOT inserted; the column is nullable
+    -- and the current live booking flow does not provide it.
+    -- ============================================================
 
     INSERT INTO public.bookings (
       customer_id,
@@ -717,15 +756,25 @@ BEGIN
       p_service_id,
       p_booking_date,
       p_start_time,
-      'confirmed',
+      'pending',
       p_total_amount
     )
     RETURNING id INTO v_booking_id;
 
+    IF v_booking_id IS NULL THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Failed to create booking'
+      );
+    END IF;
 
-    -- ==========================================================
-    -- Create escrow payment
-    -- ==========================================================
+
+    -- ============================================================
+    -- Create escrow payment — status 'pending'
+    --
+    -- transaction_ref is preserved because the MarzPay webhook
+    -- correlates the payment using this value.
+    -- ============================================================
 
     INSERT INTO public.payments (
       booking_id,
@@ -746,12 +795,19 @@ BEGIN
       p_total_amount,
       COALESCE(NULLIF(p_currency, ''), 'UGX'),
       'pending',
-      COALESCE(NULLIF(p_payment_method, ''), 'mock_checkout'),
+      COALESCE(NULLIF(p_payment_method, ''), 'marzpay'),
       p_transaction_ref,
       v_platform_fee,
       v_provider_amount
     )
     RETURNING id INTO v_payment_id;
+
+    IF v_payment_id IS NULL THEN
+      RETURN json_build_object(
+        'success', false,
+        'error', 'Failed to create payment record'
+      );
+    END IF;
 
 
     -- ==========================================================
@@ -1211,6 +1267,7 @@ REVOKE ALL ON FUNCTION public.create_booking_with_escrow_payment(
   date,
   time,
   numeric,
+  numeric,
   text,
   text,
   text
@@ -1233,6 +1290,7 @@ GRANT EXECUTE ON FUNCTION public.create_booking_with_escrow_payment(
   uuid,
   date,
   time,
+  numeric,
   numeric,
   text,
   text,

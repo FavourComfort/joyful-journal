@@ -930,9 +930,10 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
         ? offer.estimated_start
         : new Date().toISOString().slice(0, 10);
 
-    const paymentAmount = Number(
+    const serviceFee = Number(
       offer.price ?? request.budget_max ?? request.budget_min ?? 0
     );
+    const totalAmount = Number((serviceFee * 1.02).toFixed(2));
 
     /*
      * Shared MarzPay payment flow:
@@ -940,6 +941,11 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
      *   payments.transaction_ref)
      *     -> invoke 'ninjawo-handler' Edge Function (MarzPay collection)
      *     -> 'marzpay-webhook' settles the payment (escrowed / failed)
+     *
+     * Pricing (same rules as the direct booking flow):
+     *   serviceFee  = the accepted offer price (provider's quoted price)
+     *   totalAmount = serviceFee + 2% customer charge
+     *   The RPC enforces: totalAmount MUST equal ROUND(serviceFee * 1.02, 2)
      */
     const result = await initiateBookingPayment({
       customerId: request.customer_id,
@@ -947,11 +953,11 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
       providerUserId: provider.user_id,
       serviceId,
       bookingDate,
-      serviceFee: paymentAmount,
+      serviceFee,
       // The offer flow captures only a proposed start DATE (no time), so no
       // start/end time is invented here. End time/duration is never set.
       startTime: null,
-      totalAmount: paymentAmount,
+      totalAmount,
       description: `Accepted offer for ${request.title}`,
     });
 
@@ -987,7 +993,7 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
       providerUserId: provider.user_id,
       bookingId: String(booking.id),
       paymentId: payment.id,
-      amount: Number(offer.price ?? request.budget_max ?? request.budget_min ?? 0),
+      amount: totalAmount,
     });
 
     if (!notificationsCreated) {

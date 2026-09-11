@@ -43,11 +43,12 @@ function BookComponent() {
   const [success, setSuccess] = useState(false);
   const [paymentPending, setPaymentPending] = useState(false);
 
-  // Pricing: 2% platform fee on top of the service price. The customer
-  // pays servicePrice + platformFee, and that total is what gets charged.
+  // Pricing: the customer pays servicePrice + 2% service charge.
+  // totalAmount MUST equal ROUND(servicePrice * 1.02, 2) to pass RPC validation.
+  // Use toFixed(2) to match PostgreSQL's ROUND(x, 2) exactly.
   const servicePrice = Number(service?.price || 0);
-  const platformFee = Math.round(servicePrice * 0.02);
-  const totalAmount = servicePrice + platformFee;
+  const totalAmount = Number((servicePrice * 1.02).toFixed(2));
+  const platformFee = totalAmount - servicePrice;
 
   useEffect(() => {
     let cancelled = false;

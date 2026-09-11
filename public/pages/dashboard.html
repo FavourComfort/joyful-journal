@@ -1846,6 +1846,12 @@
 
                     </p>
 
+                    ${offer.price != null ? `
+                        <p class="mt-1 text-xs text-on-surface-variant">
+                            You pay UGX ${Number(offer.price * 1.02).toLocaleString(undefined, { maximumFractionDigits: 2 })} (includes 2% service charge)
+                        </p>
+                    ` : ''}
+
 
                     ${
                         offer.message

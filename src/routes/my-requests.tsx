@@ -245,6 +245,9 @@ function MyRequestsComponent() {
                                 {offer.price != null && (
                                   <p className="text-sm font-bold text-[#003d9b]">
                                     UGX {Number(offer.price).toLocaleString()}
+                                    <span className="ml-1 text-xs font-normal text-[#737685]">
+                                      (you pay {Number(offer.price * 1.02).toLocaleString(undefined, { maximumFractionDigits: 2 })})
+                                    </span>
                                   </p>
                                 )}
                                 {offer.message && (

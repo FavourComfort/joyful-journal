@@ -123,6 +123,7 @@ export interface InitiateBookingPaymentInput {
   startTime: string | null;
   /** Provider's service fee before the customer's 2% fee. */
   serviceFee: number;
+  /** Total amount the customer pays = serviceFee + 2% (MUST equal ROUND(serviceFee * 1.02, 2)). */
   totalAmount: number;
   description?: string;
   paymentMethod?: string;

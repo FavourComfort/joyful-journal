@@ -156,6 +156,11 @@ function ProviderOfferComponent() {
               <form className="mt-5 space-y-4" onSubmit={submitOffer}>
                 <label className="block text-sm font-semibold">Message<textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={5} required placeholder="Introduce your approach, availability, and anything the customer should know." className="mt-1 w-full rounded-lg border border-[#c3c6d6] p-3 font-normal focus:border-[#003d9b] focus:outline-none" /></label>
                 <label className="block text-sm font-semibold">Your quote (UGX)<input value={price} onChange={(event) => setPrice(event.target.value)} required min="0" step="1" type="number" placeholder="e.g. 150000" className="mt-1 w-full rounded-lg border border-[#c3c6d6] p-3 font-normal focus:border-[#003d9b] focus:outline-none" /></label>
+                 {Number(price) > 0 && (
+                   <div className="rounded-lg bg-[#f1f3ff] p-3 text-xs text-[#434654]">
+                     <p>Customer pays: <span className="font-semibold">UGX {(Number(price) * 1.02).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span> (your quote + 2% charge)</p>
+                   </div>
+                 )}
                 <label className="block text-sm font-semibold">Estimated start <input value={estimatedStart} onChange={(event) => setEstimatedStart(event.target.value)} type="date" className="mt-1 w-full rounded-lg border border-[#c3c6d6] p-3 font-normal focus:border-[#003d9b] focus:outline-none" /></label>
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 <button disabled={submitting} type="submit" className="w-full rounded-lg bg-[#003d9b] px-4 py-3 font-semibold text-white disabled:opacity-50">{submitting ? "Sending offer…" : "Send offer"}</button>
