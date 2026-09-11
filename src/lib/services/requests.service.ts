@@ -186,15 +186,20 @@ export async function findMatchingProvidersForRequest(
     ) {
       const { data: services, error: servicesError } = await supabase
         .from("services")
-        .select("provider_id")
-        .eq("active", true)
-        .ilike("category", normalizedCategory);
+        .select("provider_id, category")
+        .eq("active", true);
 
       if (servicesError) {
         console.error("Error fetching matching provider services:", servicesError);
       } else {
+        // Normalize each service category in TypeScript so legacy/alias
+        // values (e.g. "technology-and-it") match the canonical request
+        // category ("technology-it"). This mirrors the normalization used
+        // by getProviderServiceCategories / canProvideForCategory.
         matchingProviderIds = new Set(
-          (services || []).map((service) => service.provider_id)
+          (services || [])
+            .filter((service) => normalizeCategory(service.category) === normalizedCategory)
+            .map((service) => service.provider_id)
         );
       }
     }
