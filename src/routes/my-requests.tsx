@@ -1,34 +1,48 @@
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { getCurrentProfile } from "@/lib/services/auth.service";
+import { PageFrame } from "@/components/PageFrame";
+import {
+  getCurrentProfile,
+  signOut,
+  updateProfile,
+} from "@/lib/services/auth.service";
+
 import {
   getCustomerRequests,
-  getOffersWithProvidersForRequests,
-  acceptOffer,
-  declineOffer,
-  type CustomerRequest,
+getOffersWithProvidersForRequests,
+acceptOffer,
+declineOffer,
 } from "@/lib/services/requests.service";
 
-interface OfferWithProvider {
-  id: string;
-  request_id: string;
-  provider_id: string;
-  message?: string;
-  price?: number | null;
-  estimated_start?: string | null;
-  status?: "pending" | "accepted" | "declined";
-  created_at: string;
-  provider_business_name?: string;
-}
+import { uploadAvatar } from "@/lib/services/providers.service";
+import { getCustomerBookings } from "@/lib/services/bookings.service";
+import {
+  cancelBookingAndRefund,
+  confirmServiceCompletionAndRelease,
+  getCompletionRequestBookingIds,
+} from "@/lib/services/payments.service";
+import {
+  getDisputesForBookings,
+  raiseDispute,
+} from "@/lib/services/disputes.service";
+import { supabase } from "@/lib/supabase";
 
-function MyRequestsComponent() {
+function ClientDashboardComponent() {
   const router = useRouter();
-  const [requests, setRequests] = useState<CustomerRequest[]>([]);
-  const [offers, setOffers] = useState<Record<string, OfferWithProvider[]>>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const userIdRef = useRef<string | null>(null);
+
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(null);
+
+  const postToIframe = (message: unknown) => {
+    iframeRef.current?.contentWindow?.postMessage(message, "*");
+  };
+
+  // --------------------------------------------------
+  // Load authenticated user
+  // --------------------------------------------------
 
   useEffect(() => {
     let cancelled = false;
@@ -36,285 +50,507 @@ function MyRequestsComponent() {
     const run = async () => {
       try {
         const profile = await getCurrentProfile();
+
         if (cancelled) return;
+
         if (!profile) {
           await router.navigate({ to: "/login" });
           return;
         }
 
-        const customerRequests = await getCustomerRequests(profile.id);
-        if (cancelled) return;
+        userIdRef.current = profile.id;
+        setCustomerId(profile.id);
 
-        setRequests(customerRequests);
-
-        const requestIds = customerRequests.map((r) => r.id);
-        const offersData = await getOffersWithProvidersForRequests(requestIds);
-
-        const grouped: Record<string, OfferWithProvider[]> = {};
-        for (const offer of offersData) {
-          if (!grouped[offer.request_id]) grouped[offer.request_id] = [];
-          grouped[offer.request_id].push(offer as OfferWithProvider);
-        }
-
-        setOffers(grouped);
         setReady(true);
-        setLoading(false);
       } catch (err) {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load your requests.");
-        setLoading(false);
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load your account."
+        );
       }
     };
 
     run();
+
     return () => {
       cancelled = true;
     };
   }, [router]);
 
-  const refresh = async () => {
+  const loadDashboard = async () => {
     const profile = await getCurrentProfile();
-    if (!profile) return;
 
-    const customerRequests = await getCustomerRequests(profile.id);
-    setRequests(customerRequests);
+    if (!profile) {
+      throw new Error("Your session has expired. Please log in again.");
+    }
 
-    const offersData = await getOffersWithProvidersForRequests(
-      customerRequests.map((r) => r.id)
+    const [bookings, requests] = await Promise.all([
+      getCustomerBookings(profile.id),
+      getCustomerRequests(profile.id),
+    ]);
+    const completionRequestBookingIds = await getCompletionRequestBookingIds(
+      bookings.map((booking) => booking.id)
+    );
+    const disputes = await getDisputesForBookings(
+      bookings.map((booking) => booking.id)
+    );
+    const offers = await getOffersWithProvidersForRequests(
+      requests.map((request) => request.id)
     );
 
-    const grouped: Record<string, OfferWithProvider[]> = {};
-    for (const offer of offersData) {
-      if (!grouped[offer.request_id]) grouped[offer.request_id] = [];
-      grouped[offer.request_id].push(offer as OfferWithProvider);
-    }
-
-    setOffers(grouped);
+    postToIframe({
+      type: "dashboard:init",
+      payload: {
+        name: profile.full_name || "",
+        avatarUrl: profile.avatar_url || null,
+        role: profile.role || "customer",
+        bookings: bookings.map((booking) => ({
+          ...booking,
+          completion_requested: completionRequestBookingIds.has(booking.id),
+        })),
+        disputes,
+        requests,
+        offers,
+      },
+    });
   };
 
-  const handleAccept = async (offerId: string) => {
-    setActionError(null);
-    try {
-      const ok = await acceptOffer(offerId);
-      if (!ok) {
-        setActionError("Could not accept this offer. Please try again.");
+  useEffect(() => {
+    if (!customerId) return;
+
+    const channel = supabase
+      .channel(`customer-offers-${customerId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "offers" },
+        () => {
+          void loadDashboard().catch((err) =>
+            console.error("Failed to refresh new customer offer:", err)
+          );
+        }
+      )
+      .subscribe();
+
+    const completionChannel = supabase
+      .channel(`customer-completion-requests-${customerId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "completion_requests" },
+        () => void loadDashboard().catch((err) => console.error("Failed to refresh completion request:", err))
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+      void supabase.removeChannel(completionChannel);
+    };
+  }, [customerId]);
+
+  // --------------------------------------------------
+  // Communication with dashboard.html
+  // --------------------------------------------------
+
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      const iframeWindow = iframeRef.current?.contentWindow;
+
+      if (!iframeWindow) return;
+
+      const sourceIsIframe =
+        event.source === iframeWindow ||
+        (event.source &&
+          (event.source as any).frameElement === iframeRef.current);
+
+      if (!sourceIsIframe) return;
+
+      const type = event.data?.type;
+      const payload = event.data?.payload;
+
+      // ------------------------------------------------
+      // Dashboard is ready
+      // ------------------------------------------------
+
+      if (type === "dashboard:ready") {
+        try {
+          await loadDashboard();
+        } catch (err) {
+          postToIframe({
+            type: "dashboard:error",
+            payload: {
+              message:
+                err instanceof Error
+                  ? err.message
+                  : "Failed to load dashboard data.",
+            },
+          });
+        }
+
         return;
       }
-      await refresh();
-    } catch (err) {
-      console.error("Error accepting offer:", err);
-      setActionError("Could not accept this offer. Please try again.");
-    }
-  };
 
-  const handleDecline = async (offerId: string) => {
-    setActionError(null);
-    try {
-      const ok = await declineOffer(offerId);
-      if (!ok) {
-        setActionError("Could not decline this offer. Please try again.");
+      if (type === "dashboard:refresh") {
+        try {
+          await loadDashboard();
+        } catch (err) {
+          postToIframe({
+            type: "dashboard:error",
+            payload: {
+              message:
+                err instanceof Error
+                  ? err.message
+                  : "Failed to refresh dashboard.",
+            },
+          });
+        }
         return;
       }
-      await refresh();
-    } catch (err) {
-      console.error("Error declining offer:", err);
-      setActionError("Could not decline this offer. Please try again.");
-    }
-  };
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#003d9b] border-t-transparent" />
-      </div>
+      if (type === "dashboard:signOut") {
+        const result = await signOut();
+        if (result.error) {
+          postToIframe({
+            type: "dashboard:error",
+            payload: { message: result.error },
+          });
+          return;
+        }
+        await router.navigate({ to: "/login" });
+        return;
+      }
+
+      if (type === "dashboard:confirmBookingCompletion") {
+        try {
+          const bookingId = payload?.bookingId;
+
+          if (typeof bookingId !== "string") {
+            throw new Error("Invalid booking ID.");
+          }
+
+          const payment = await confirmServiceCompletionAndRelease(bookingId);
+
+          if (!payment) {
+            throw new Error("Unable to release escrow for this booking.");
+          }
+
+          await loadDashboard();
+
+          postToIframe({
+            type: "dashboard:releaseSuccess",
+            payload: {
+              bookingId,
+              paymentStatus: payment.payment_status,
+            },
+          });
+        } catch (err) {
+          postToIframe({
+            type: "dashboard:error",
+            payload: {
+              message:
+                err instanceof Error
+                  ? err.message
+                  : "Failed to confirm service completion.",
+            },
+          });
+        }
+
+        return;
+      }
+
+      if (type === "dashboard:cancelBooking") {
+        try {
+          const bookingId = payload?.bookingId;
+          if (typeof bookingId !== "string") throw new Error("Invalid booking ID.");
+          if (!await cancelBookingAndRefund(bookingId, payload?.reason)) {
+            throw new Error("Unable to cancel this booking and verify its refund.");
+          }
+          await loadDashboard();
+          postToIframe({ type: "dashboard:actionSuccess", payload: { message: "Booking cancelled. The escrow payment has been refunded." } });
+        } catch (err) {
+          postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to cancel booking." } });
+        }
+        return;
+      }
+
+      // ------------------------------------------------
+      // Dispute: customer flags a service as not delivered
+      // ------------------------------------------------
+
+      if (type === "dashboard:raiseDispute") {
+        try {
+          const bookingId = payload?.bookingId;
+          const reason = payload?.reason;
+          if (typeof bookingId !== "string") throw new Error("Invalid booking ID.");
+
+          const validReasons = [
+            "service_not_delivered",
+            "service_not_as_described",
+            "other",
+          ];
+          if (!validReasons.includes(reason)) throw new Error("Please choose a dispute reason.");
+
+          const dispute = await raiseDispute(
+            bookingId,
+            reason as "service_not_delivered" | "service_not_as_described" | "other",
+            typeof payload?.description === "string" ? payload.description : undefined
+          );
+
+          if (!dispute) {
+            throw new Error("Could not raise the dispute. The booking may no longer be eligible.");
+          }
+
+          await loadDashboard();
+          postToIframe({
+            type: "dashboard:actionSuccess",
+            payload: { message: "Dispute raised. The provider has been notified and your funds are protected in escrow." },
+          });
+        } catch (err) {
+          postToIframe({ type: "dashboard:error", payload: { message: err instanceof Error ? err.message : "Failed to raise the dispute." } });
+        }
+        return;
+      }
+
+      // ------------------------------------------------
+      // Avatar update
+      // ------------------------------------------------
+
+      if (type === "dashboard:updateAvatar") {
+        try {
+          const userId = userIdRef.current;
+
+          if (!userId) {
+            throw new Error(
+              "You must be signed in to update your picture."
+            );
+          }
+
+          const avatarFile = payload?.avatarFile;
+
+          if (!(avatarFile instanceof File)) {
+            throw new Error("Please choose a valid image.");
+          }
+
+          const avatarUrl = await uploadAvatar(
+            userId,
+            avatarFile
+          );
+
+          const updated = await updateProfile(
+            userId,
+            {
+              avatar_url: avatarUrl,
+            }
+          );
+
+          if (!updated) {
+            throw new Error("Failed to save your picture.");
+          }
+
+          postToIframe({
+            type: "dashboard:avatarSaved",
+            payload: {
+              avatarUrl,
+            },
+          });
+        } catch (err) {
+          postToIframe({
+            type: "dashboard:error",
+            payload: {
+              message:
+                err instanceof Error
+                  ? err.message
+                  : "Failed to update your picture.",
+            },
+          });
+        }
+
+        return;
+      }
+
+      if (type === "dashboard:acceptOffer") {
+  try {
+    const offerId = payload?.offerId;
+
+    if (typeof offerId !== "string") {
+      throw new Error("Invalid offer ID.");
+    }
+
+    const success = await acceptOffer(offerId);
+
+    if (!success) {
+      throw new Error("Could not accept this offer.");
+    }
+
+    // Reload the customer's requests and offers
+    const profile = await getCurrentProfile();
+
+    if (!profile) {
+      throw new Error("Your session has expired.");
+    }
+
+    const requests = await getCustomerRequests(profile.id);
+
+    const requestIds = requests.map(
+      (request) => request.id
     );
+
+    const offers =
+      await getOffersWithProvidersForRequests(
+        requestIds
+      );
+
+    postToIframe({
+      type: "dashboard:offersUpdated",
+      payload: {
+        requests,
+        offers,
+      },
+    });
+  } catch (err) {
+    postToIframe({
+      type: "dashboard:error",
+      payload: {
+        message:
+          err instanceof Error
+            ? err.message
+            : "Failed to accept the offer.",
+      },
+    });
   }
 
-  if (error && !ready) {
+  return;
+}
+
+
+if (type === "dashboard:declineOffer") {
+  try {
+    const offerId = payload?.offerId;
+
+    if (typeof offerId !== "string") {
+      throw new Error("Invalid offer ID.");
+    }
+
+    const success = await declineOffer(offerId);
+
+    if (!success) {
+      throw new Error("Could not decline this offer.");
+    }
+
+    // Reload the customer's requests and offers
+    const profile = await getCurrentProfile();
+
+    if (!profile) {
+      throw new Error("Your session has expired.");
+    }
+
+    const requests = await getCustomerRequests(profile.id);
+
+    const requestIds = requests.map(
+      (request) => request.id
+    );
+
+    const offers =
+      await getOffersWithProvidersForRequests(
+        requestIds
+      );
+
+    postToIframe({
+      type: "dashboard:offersUpdated",
+      payload: {
+        requests,
+        offers,
+      },
+    });
+  } catch (err) {
+    postToIframe({
+      type: "dashboard:error",
+      payload: {
+        message:
+          err instanceof Error
+            ? err.message
+            : "Failed to decline the offer.",
+      },
+    });
+  }
+
+  return;
+}
+
+      // ------------------------------------------------
+      // Navigate from iframe
+      // ------------------------------------------------
+
+      if (type === "navigate") {
+        const route = payload?.route;
+
+        if (typeof route === "string") {
+          await router.navigate({
+            to: route as any,
+          });
+        }
+
+        return;
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [router]);
+
+  // --------------------------------------------------
+  // Loading
+  // --------------------------------------------------
+
+  if (!ready) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff]">
-        <div className="max-w-md px-4 text-center">
-          <p className="mb-4 text-red-600">{error}</p>
-          <button
-            onClick={() => router.navigate({ to: "/" })}
-            className="rounded-xl bg-[#003d9b] px-6 py-3 text-sm font-semibold text-white"
-          >
-            Back to Home
-          </button>
-        </div>
+        {error ? (
+          <div className="max-w-md px-4 text-center">
+            <p className="mb-4 text-red-600">
+              {error}
+            </p>
+
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-xl bg-[#003d9b] px-6 py-3 text-sm font-semibold text-white"
+            >
+              Try again
+            </button>
+          </div>
+        ) : (
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#003d9b] border-t-transparent" />
+        )}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#041b3c]">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
-        <nav className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-2 md:px-16">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.navigate({ to: "/" })}
-              className="rounded-lg p-1 text-[#003d9b] hover:bg-[#f1f3ff]"
-              aria-label="Back to home"
-            >
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-            <span className="text-2xl font-bold text-[#003d9b]">NINJAWO</span>
-          </div>
-            <div className="flex items-center gap-4">
-             <button
-               onClick={() => router.navigate({ to: "/post-request" })}
-               className="rounded-xl bg-[#003d9b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0052cc]"
-             >
-               + Post a Request
-             </button>
-           </div>
-        </nav>
-      </header>
-
-      <main className="mx-auto w-full max-w-[960px] px-4 py-8 md:px-16">
-        <h1 className="mb-6 text-3xl font-bold">My Requests</h1>
-
-        {actionError && (
-          <div
-            role="alert"
-            className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-          >
-            {actionError}
-          </div>
-        )}
-
-        {requests.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-[#c3c6d6] bg-white p-10 text-center">
-            <p className="mb-2 text-lg font-semibold">No requests posted yet</p>
-            <p className="mb-6 text-[#434654]">
-              Post a service request and providers will respond with offers.
-            </p>
-            <button
-              onClick={() => router.navigate({ to: "/post-request" })}
-              className="rounded-xl bg-[#003d9b] px-6 py-3 text-sm font-semibold text-white hover:bg-[#0052cc]"
-            >
-              Post a Request
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {requests.map((request) => {
-              const requestOffers = offers[request.id] || [];
-              return (
-                <div
-                  key={request.id}
-                  className="rounded-xl border border-[#e8edff] bg-white p-4 shadow-sm"
-                >
-                  <div className="mb-1 flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-4">
-                    <div className="min-w-0">
-                      <h2 className="break-words text-lg font-bold">{request.title}</h2>
-                      <p className="mb-2 break-words text-sm text-[#434654]">{request.description}</p>
-                    </div>
-                    <span className="max-w-full shrink-0 truncate rounded-full bg-[#dae2ff] px-3 py-1 text-xs font-semibold text-[#0040a2] sm:max-w-[40%]">
-                      {request.location || "Any location"}
-                    </span>
-                  </div>
-                  {request.budget_max != null && (
-                    <p className="mb-3 text-sm font-semibold text-[#003d9b]">
-                      Budget: UGX {Number(request.budget_max).toLocaleString()}
-                    </p>
-                  )}
-
-                  {/* Offers */}
-                  <div className="mt-4">
-                    <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-[#434654]">
-                      Offers ({requestOffers.length})
-                    </h3>
-                    {requestOffers.length === 0 ? (
-                      <p className="text-sm text-[#737685]">
-                        No offers yet. Providers will respond soon.
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        {requestOffers.map((offer) => (
-                          <div
-                            key={offer.id}
-                            className="rounded-lg border border-[#e8edff] bg-[#f9f9ff] p-3"
-                          >
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                              <div className="min-w-0">
-                                <p className="break-words font-semibold">
-                                  {offer.provider_business_name || "Provider"}
-                                </p>
-                                {offer.price != null && (
-                                  <p className="text-sm font-bold text-[#003d9b]">
-                                    UGX {Number(offer.price).toLocaleString()}
-                                    <span className="ml-1 text-xs font-normal text-[#737685]">
-                                      (you pay {Number(offer.price * 1.02).toLocaleString(undefined, { maximumFractionDigits: 2 })})
-                                    </span>
-                                  </p>
-                                )}
-                                {offer.message && (
-                                  <p className="mt-1 text-sm text-[#434654]">{offer.message}</p>
-                                )}
-                                {offer.estimated_start && (
-                                  <p className="mt-1 text-xs text-[#737685]">
-                                    Est. start: {offer.estimated_start}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex shrink-0 flex-col items-end gap-2">
-                                <button
-                                  onClick={() =>
-                                    router.navigate({
-                                      to: "/provider/$id",
-                                      params: { id: offer.provider_id },
-                                    })
-                                  }
-                                  className="min-h-11 rounded-lg border border-[#c3c6d6] px-4 py-2 text-sm font-semibold text-[#003d9b] hover:bg-[#f1f3ff]"
-                                >
-                                  View Profile
-                                </button>
-                                {offer.status === "pending" ? (
-                                  <>
-                                    <button
-                                      onClick={() => handleAccept(offer.id)}
-                                      className="min-h-11 rounded-lg bg-[#003d9b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0052cc]"
-                                    >
-                                      Accept
-                                    </button>
-                                    <button
-                                      onClick={() => handleDecline(offer.id)}
-                                      className="min-h-11 rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
-                                    >
-                                      Decline
-                                    </button>
-                                  </>
-                                ) : (
-                                  <span
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                      offer.status === "accepted"
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-red-100 text-red-700"
-                                    }`}
-                                  >
-                                    {offer.status === "accepted" ? "Accepted" : "Declined"}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </main>
-    </div>
+    <PageFrame
+      src="/pages/dashboard.html"
+      title="Dashboard"
+      iframeRef={iframeRef}
+      onLoad={() => {
+        postToIframe({
+          type: "dashboard:ping",
+        });
+      }}
+    />
   );
 }
 
-export const Route = createFileRoute("/my-requests")({
-  head: () => ({ meta: [{ title: "My Requests | NINJAWO" }] }),
-  component: MyRequestsComponent,
+export const Route = createFileRoute("/dashboard")({
+  head: () => ({
+    meta: [
+      {
+        title: "NINJAWO | Client Dashboard",
+      },
+    ],
+  }),
+
+  component: ClientDashboardComponent,
 });
