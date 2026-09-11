@@ -118,6 +118,11 @@ export async function createBooking(
 // State-machine enforced: the transition is checked against BOOKING_TRANSITIONS
 // before the write and the server rejects illegal transitions as well (see the
 // validate_booking_status_transition trigger). Returns null on a rejected move.
+//
+// The "Bookings no direct update" RLS policy blocks direct client UPDATEs on
+// public.bookings, so this function delegates to the SECURITY DEFINER RPC
+// provider_update_booking_status, which re-verifies that the caller is the
+// provider of the booking before updating ONLY the status column.
 export async function updateBookingStatus(
   bookingId: string,
   status: BookingStatus
@@ -135,19 +140,31 @@ export async function updateBookingStatus(
       return null;
     }
 
-    const { data, error } = await supabase
-      .from('bookings')
-      .update({ status })
-      .eq('id', bookingId)
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc(
+      'provider_update_booking_status',
+      {
+        p_booking_id: bookingId,
+        p_new_status: status,
+      }
+    );
 
     if (error) {
       console.error('Error updating booking:', error);
       return null;
     }
 
-    return data as Booking;
+    const result = data as {
+      success?: boolean;
+      error?: string;
+      booking?: Booking;
+    } | null;
+
+    if (!result?.success || !result.booking) {
+      console.error('Booking status update was rejected:', result?.error || 'Unknown error');
+      return null;
+    }
+
+    return result.booking;
   } catch (error) {
     console.error('Error updating booking:', error);
     return null;
