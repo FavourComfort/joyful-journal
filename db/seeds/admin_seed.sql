@@ -10,7 +10,7 @@
 UPDATE public.profiles
 SET role = 'admin'
 WHERE id IN (
-    SELECT id FROM auth.users WHERE email = 'comfortfavour@gmail.com'
+    SELECT id FROM auth.users WHERE email = 'comfortfavour128@gmail.com'
 )
 AND role <> 'admin';
 
@@ -23,4 +23,4 @@ SELECT
     p.created_at
 FROM public.profiles p
 JOIN auth.users u ON u.id = p.id
-WHERE u.email = 'comfortfavour@gmail.com';
+WHERE u.email = 'comfortfavour128@gmail.com';

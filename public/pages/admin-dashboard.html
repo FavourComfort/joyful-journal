@@ -801,6 +801,9 @@ function disputeStatusBadge(status) {
             const menuButton = $('#adminMenuBtn');
             const closeButton = $('#closeAdminDrawer');
 
+            // Request the initial payload after this iframe has installed its message listener.
+            postToParent('admin:ping');
+
             const openNavDrawer = () => {
                 drawer?.classList.remove('-translate-x-full');
                 backdrop?.classList.remove('hidden');
