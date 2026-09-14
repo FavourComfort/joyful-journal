@@ -11,6 +11,7 @@ import {
   type CustomerRequest,
   type ProviderOffer,
 } from "@/lib/services/requests.service";
+import NavDrawer from "@/components/NavDrawer";
 
 function ProviderOfferComponent() {
   const router = useRouter();
@@ -135,7 +136,10 @@ function ProviderOfferComponent() {
   return (
     <main className="min-h-screen bg-[#f9f9ff] px-4 py-8 text-[#041b3c] md:px-16">
       <div className="mx-auto max-w-4xl">
-        <button onClick={() => router.navigate({ to: "/provider/requests" })} className="mb-6 text-sm font-semibold text-[#003d9b] hover:underline">← Back to customer requests</button>
+        <div className="mb-6 flex items-center gap-3">
+          <NavDrawer />
+          <span className="text-sm font-semibold text-[#434654]">Send Offer</span>
+        </div>
         <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
           <section className="rounded-xl border border-[#e8edff] bg-white p-6 shadow-sm">
             <p className="text-xs font-bold uppercase tracking-wide text-[#434654]">Customer request</p>

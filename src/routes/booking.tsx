@@ -12,6 +12,7 @@ import {
   type Provider,
 } from "@/lib/services/providers.service";
 import { supabase } from "@/lib/supabase";
+import NavDrawer from "@/components/NavDrawer";
 
 interface BookingDetails extends Booking {
   service_title: string;
@@ -34,7 +35,11 @@ function formatDate(value: string) {
       });
 }
 
-function formatTime(value: string) {
+function formatTime(value: string | null) {
+  if (!value) {
+    return "Time not set";
+  }
+
   const [hours, minutes] = value.split(":").map(Number);
 
   if (Number.isNaN(hours) || Number.isNaN(minutes)) {
@@ -432,21 +437,14 @@ function BookingComponent() {
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 backdrop-blur">
         <nav className="mx-auto flex h-[72px] max-w-[1180px] items-center justify-between px-4 sm:px-6 lg:px-8">
-          <button
-            onClick={() => router.navigate({ to: "/" })}
-            className="group flex items-center gap-2.5"
-            aria-label="Back to home"
-          >
-            <span className="material-symbols-outlined text-[#003d9b] transition-transform group-hover:-translate-x-1">
-              arrow_back
-            </span>
-
+          <div className="flex items-center gap-2">
+            <NavDrawer />
             <span className="text-xl font-extrabold tracking-tight text-[#003d9b]">
               NINJAWO
             </span>
-          </button>
+          </div>
 
-          <button
+          {/* <button
             onClick={() => router.navigate({ to: "/inbox" })}
             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-[#cbd7f5] hover:bg-[#f5f7ff] hover:text-[#003d9b]"
           >
@@ -454,8 +452,8 @@ function BookingComponent() {
               chat
             </span>
 
-            {/* <span className="hidden sm:inline">Messages</span> */}
-          </button>
+            
+          </button> */}
         </nav>
       </header>
 

@@ -7,6 +7,7 @@ import {
   createRequestNotificationsForProviders,
 } from "@/lib/services/requests.service";
 import { type CanonicalCategory } from "@/lib/services/categories";
+import NavDrawer from "@/components/NavDrawer";
 
 function inferCategory(title: string, description: string): CanonicalCategory {
   const text = `${title} ${description}`.toLowerCase();
@@ -200,14 +201,9 @@ export default function PostRequestForm() {
 
   return (
     <div className="request-form-page">
-      <button
-        type="button"
-        onClick={() => router.history.back()}
-        className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-slate-700 hover:text-slate-950 hover:underline"
-      >
-        <span aria-hidden="true">←</span>
-        Back
-      </button>
+      <div className="mb-4">
+        <NavDrawer />
+      </div>
       <div className="request-form-card">
         <h1 className="request-form-title">
           Post a service request

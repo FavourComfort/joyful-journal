@@ -13,6 +13,7 @@ import {
   initiateBookingPayment,
 } from "@/lib/services/payments.service";
 import { createPaymentNotifications } from "@/lib/services/notifications.service";
+import NavDrawer from "@/components/NavDrawer";
 // 30-minute time slots (00:00 – 23:30) for the start-time dropdown
 // fallback (used when the browser lacks input.showPicker()).
 const TIME_OPTIONS: { value: string; label: string }[] =
@@ -307,16 +308,7 @@ function BookComponent() {
       <header className="sticky top-0 z-50 bg-white shadow-sm">
         <nav className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-2 md:px-16">
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.navigate({ to: "/" })}
-              className="rounded-lg p-1 text-[#003d9b] hover:bg-[#f1f3ff]"
-              aria-label="Back to home"
-            >
-              <span className="material-symbols-outlined">
-                
-              </span>
-            </button>
-
+            <NavDrawer />
             <span className="text-2xl font-bold text-[#003d9b]">
               NINJAWO
             </span>

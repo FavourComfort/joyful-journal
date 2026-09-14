@@ -171,7 +171,7 @@
             </span>
         </button>
 
-
+<!-- 
         <div class="flex items-center gap-2">
 
             <button
@@ -194,7 +194,7 @@
                 </span>
             </button>
 
-        </div>
+        </div> -->
 
     </nav>
 
@@ -931,6 +931,16 @@ function renderConversationList() {
                 selectedConversation = item;
 
                 renderConversationList();
+
+                /* Tell the React shell to load the full
+                   conversation for this provider. */
+
+                postToParent(
+                    "inbox:openConversation",
+                    {
+                        conversation: item
+                    }
+                );
 
                 openConversation(item);
 
@@ -1742,6 +1752,41 @@ window.addEventListener(
 
 
         /* -----------------------------------------
+           CONVERSATION MESSAGES LOADED
+        ----------------------------------------- */
+
+        if (
+            message.type ===
+            "inbox:conversation"
+        ) {
+
+            const conversationId =
+                message.payload?.conversationId;
+
+            const conversationMessages =
+                message.payload?.messages;
+
+            if (
+                selectedConversation &&
+                selectedConversation.id === conversationId &&
+                Array.isArray(conversationMessages)
+            ) {
+
+                selectedConversation.messages =
+                    conversationMessages;
+
+                openConversation(
+                    selectedConversation
+                );
+
+            }
+
+            return;
+
+        }
+
+
+        /* -----------------------------------------
            ERROR
         ----------------------------------------- */
 
@@ -1796,5 +1841,6 @@ document.addEventListener(
 
 </script>
 
-</body>
+    <script src="/pages/shared-drawer.js" defer></script>
+  </body>
 </html>

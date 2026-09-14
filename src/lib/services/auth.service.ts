@@ -14,6 +14,58 @@ export interface AuthResponse {
   error: string | null;
 }
 
+export const SESSION_LIFETIME_MS = 21 * 24 * 60 * 60 * 1000;
+const SESSION_STARTED_AT_KEY_PREFIX = 'ninjawo:session-started-at:';
+
+function getSessionStartedAtKey(userId: string): string {
+  return `${SESSION_STARTED_AT_KEY_PREFIX}${userId}`;
+}
+
+function startApplicationSession(userId: string): void {
+  try {
+    localStorage.setItem(getSessionStartedAtKey(userId), String(Date.now()));
+  } catch {
+    // Browser storage may be unavailable; Supabase Auth remains authoritative.
+  }
+}
+
+function clearApplicationSession(userId: string): void {
+  try {
+    localStorage.removeItem(getSessionStartedAtKey(userId));
+  } catch {
+    // Browser storage may be unavailable.
+  }
+}
+
+function isApplicationSessionValid(userId: string): boolean {
+  try {
+    const key = getSessionStartedAtKey(userId);
+    const storedValue = localStorage.getItem(key);
+    const now = Date.now();
+
+    if (!storedValue) {
+      startApplicationSession(userId);
+      return true;
+    }
+
+    const startedAt = Number(storedValue);
+    if (!Number.isFinite(startedAt) || startedAt <= 0 || startedAt > now) {
+      startApplicationSession(userId);
+      return true;
+    }
+
+    if (now - startedAt >= SESSION_LIFETIME_MS) {
+      clearApplicationSession(userId);
+      return false;
+    }
+
+    return true;
+  } catch {
+    // If browser storage cannot be read, do not invalidate a valid Supabase session.
+    return true;
+  }
+}
+
 // Get current user profile
 export async function getCurrentProfile(): Promise<Profile | null> {
   try {
@@ -22,6 +74,11 @@ export async function getCurrentProfile(): Promise<Profile | null> {
     } = await supabase.auth.getUser();
 
     if (!user) return null;
+
+    if (!isApplicationSessionValid(user.id)) {
+      await signOut();
+      return null;
+    }
 
     const { data, error } = await supabase
       .from('profiles')
@@ -140,6 +197,10 @@ export async function signUp(
       };
     }
 
+    if (authData.session) {
+      startApplicationSession(authData.user.id);
+    }
+
     const profile = await createProfile(authData.user.id, fullName, phone, role);
 
     if (!profile) {
@@ -165,6 +226,8 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
       return { data: null, error: authError?.message || 'Sign in failed' };
     }
 
+    startApplicationSession(authData.user.id);
+
     const profile = await getCurrentProfile();
 
     return { data: profile, error: null };
@@ -177,10 +240,17 @@ export async function signIn(email: string, password: string): Promise<AuthRespo
 // Sign out user
 export async function signOut(): Promise<{ error: string | null }> {
   try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const { error } = await supabase.auth.signOut();
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (user) {
+      clearApplicationSession(user.id);
     }
 
     sessionStorage.removeItem('authRedirect');

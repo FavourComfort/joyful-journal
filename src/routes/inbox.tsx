@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { PageFrame } from "@/components/PageFrame";
 import { getCurrentProfile } from "@/lib/services/auth.service";
-import { getInboxMessages } from "@/lib/services/messages.service";
+import {
+  getConversationMessages,
+  getInboxMessages,
+  sendReply,
+  sendMessage,
+} from "@/lib/services/messages.service";
 
 export interface InboxInteraction {
   id: string;
@@ -11,6 +16,7 @@ export interface InboxInteraction {
   date: string;
   status: string;
   avatarUrl?: string | null;
+  counterparty_id: string; // the other participant's profile id (needed for provider replies)
 }
 
 interface InboxPayload {
@@ -65,7 +71,7 @@ function InboxComponent() {
 
     const profile = await getCurrentProfile();
     const myName = profile?.full_name || "";
-      const messages = await getInboxMessages(userId);
+    const messages = await getInboxMessages(userId);
 
     return {
       role: roleRef.current === "provider" ? "provider" : "customer",
@@ -78,6 +84,7 @@ function InboxComponent() {
         date: message.created_at,
         status: "Message",
         avatarUrl: message.counterparty_avatar_url,
+        counterparty_id: message.sender_id === userId ? message.recipient_id : message.sender_id,
       })),
     };
   };
@@ -100,8 +107,94 @@ function InboxComponent() {
           postToIframe({
             type: "inbox:error",
             payload: {
-              message:
-                err instanceof Error ? err.message : "Failed to load your inbox.",
+              message: err instanceof Error ? err.message : "Failed to load your inbox.",
+            },
+          });
+        }
+        return;
+      }
+
+      if (event.data?.type === "inbox:refresh") {
+        try {
+          const payload = await loadInteractions();
+          postToIframe({ type: "inbox:update", payload });
+        } catch (err) {
+          postToIframe({
+            type: "inbox:error",
+            payload: {
+              message: err instanceof Error ? err.message : "Failed to refresh your inbox.",
+            },
+          });
+        }
+        return;
+      }
+
+      if (event.data?.type === "inbox:send") {
+        const conversation = event.data?.payload?.conversation;
+        const message = event.data?.payload?.message;
+        const role = roleRef.current;
+        const userId = userIdRef.current;
+
+        try {
+          if (!userId) throw new Error("You must be signed in to send a message.");
+          if (!conversation?.id) throw new Error("No conversation selected.");
+          if (typeof message !== "string" || !message.trim()) {
+            throw new Error("Write a message before sending.");
+          }
+
+          if (role === "provider") {
+            await sendReply({
+              providerId: conversation.id,
+              recipientId: conversation.counterparty_id,
+              body: message,
+            });
+          } else {
+            await sendMessage(conversation.id, message);
+          }
+
+          postToIframe({ type: "inbox:sent" });
+
+          const payload = await loadInteractions();
+          postToIframe({ type: "inbox:update", payload });
+        } catch (err) {
+          postToIframe({
+            type: "inbox:error",
+            payload: {
+              message: err instanceof Error ? err.message : "Failed to send your message.",
+            },
+          });
+        }
+        return;
+      }
+
+      if (event.data?.type === "inbox:openConversation") {
+        const conversation = event.data?.payload?.conversation;
+        const userId = userIdRef.current;
+
+        try {
+          if (!userId) throw new Error("You must be signed in to view messages.");
+          if (!conversation?.id) throw new Error("No conversation selected.");
+
+          const conversationMessages = await getConversationMessages(userId, conversation.id);
+
+          postToIframe({
+            type: "inbox:conversation",
+            payload: {
+              conversationId: conversation.id,
+              messages: conversationMessages.map((message) => ({
+                id: message.id,
+                sender_id: message.sender_id,
+                content: message.body,
+                created_at: message.created_at,
+                mine: message.mine,
+              })),
+            },
+          });
+        } catch (err) {
+          postToIframe({
+            type: "inbox:error",
+            payload: {
+              message: err instanceof Error ? err.message : "Failed to load the conversation.",
             },
           });
         }

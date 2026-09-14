@@ -5,6 +5,7 @@ import { getServicesByProviderId, type Service } from "@/lib/services/services.s
 import { getProviderReviews, getProviderAverageRating, type Review } from "@/lib/services/reviews.service";
 import { getCurrentProfile } from "@/lib/services/auth.service";
 import { sendMessage } from "@/lib/services/messages.service";
+import NavDrawer from "@/components/NavDrawer";
 
 function ProviderProfileComponent() {
   const { id } = Route.useParams();
@@ -146,13 +147,7 @@ function ProviderProfileComponent() {
       <header className="sticky top-0 z-50 bg-white shadow-sm">
         <nav className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-2 md:px-16">
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.navigate({ to: "/" })}
-              className="rounded-lg p-1 text-[#003d9b] hover:bg-[#f1f3ff]"
-              aria-label="Back to home"
-            >
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
+            <NavDrawer />
             <span className="text-2xl font-bold text-[#003d9b]">NINJAWO</span>
           </div>
           <div className="hidden items-center gap-6 md:flex">
