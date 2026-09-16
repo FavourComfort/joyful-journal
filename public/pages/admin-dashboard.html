@@ -791,6 +791,7 @@ function disputeStatusBadge(status) {
             }
 
             if (msg.type === 'admin:error') {
+                $('#loadingState').classList.add('hidden');
                 showToast((msg.payload && msg.payload.message) || 'Something went wrong. Please try again.');
             }
         });

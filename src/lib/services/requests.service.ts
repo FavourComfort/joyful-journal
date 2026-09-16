@@ -1,4 +1,4 @@
-import { createPaymentNotifications } from "./notifications.service";
+import { createPaymentNotifications, createNotification } from "./notifications.service";
 import { initiateBookingPayment } from "./payments.service";
 import { supabase } from "../supabase";
 import { normalizeCategory, normalizeCategories } from "./categories";
@@ -863,26 +863,28 @@ async function getOfferBookingServiceId(
   requestCategory?: string | null
 ): Promise<string | null> {
   try {
-    let qb = supabase
+    const normalizedRequestCategory = normalizeCategory(requestCategory);
+    if (normalizedRequestCategory === "other") {
+      return null;
+    }
+
+    let { data: services, error } = await supabase
       .from("services")
-      .select("id")
+      .select("id, category")
       .eq("provider_id", providerId)
       .eq("active", true)
       .order("created_at", { ascending: true });
-
-    const normalizedRequestCategory = normalizeCategory(requestCategory);
-    if (normalizedRequestCategory !== "other") {
-      qb = qb.ilike("category", normalizedRequestCategory);
-    }
-
-    const { data, error } = await qb.limit(1);
 
     if (error) {
       console.error("Error resolving booking service for accepted offer:", error);
       return null;
     }
 
-    return data?.[0]?.id ?? null;
+    const matching = (services || []).filter(
+      (s) => normalizeCategory((s as { category: string }).category) === normalizedRequestCategory
+    );
+
+    return matching[0]?.id ?? null;
   } catch (err) {
     console.error("Exception resolving booking service for accepted offer:", err);
     return null;
@@ -1004,6 +1006,16 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
     if (!notificationsCreated) {
       console.warn("Accepted offer created booking and payment but notification creation failed.");
     }
+
+    // Best-effort customer-facing confirmation that the offer acceptance
+    // itself succeeded. createNotification() never throws, so this cannot
+    // affect the already-completed booking/payment/offer-status flow.
+    await createNotification(
+      request.customer_id,
+      "offer_accepted",
+      "Offer accepted — booking created",
+      `Your acceptance of the offer for "${request.title}" was successful. A booking has been created and your payment is secured in escrow. The provider can now proceed with the service.`
+    );
 
     return true;
   } catch (err) {

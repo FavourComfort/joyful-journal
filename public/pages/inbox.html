@@ -125,6 +125,37 @@
             max-width: 72%;
         }
 
+        /* =====================================================
+           INBOX CHAT LAYOUT FIX
+           The precompiled inbox.css does not contain the
+           arbitrary-value utilities used below, so the app
+           shell height and the min-h-0 shrink rule are defined
+           here to guarantee: header fixed, messages scroll,
+           composer always visible.
+        ====================================================== */
+
+        .inbox-shell {
+            height: calc(100vh - 112px);
+            min-height: 600px;
+        }
+
+        #conversationContent:not(.hidden) {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 0%;
+            min-height: 0;
+        }
+
+        #messagesArea {
+            flex: 1 1 0%;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        #conversationContent > div:last-child {
+            flex-shrink: 0;
+        }
+
         @media (max-width: 767px) {
             .message-bubble {
                 max-width: 85%;
@@ -219,7 +250,8 @@
     ====================================================== -->
 
     <section
-        class="flex h-[calc(100vh-112px)] min-h-[600px] overflow-hidden rounded-2xl border border-border bg-white shadow-card"
+        id="inboxShell"
+        class="inbox-shell flex h-[calc(100vh-112px)] min-h-[600px] overflow-hidden rounded-2xl border border-border bg-white shadow-card"
     >
 
         <!-- =================================================
@@ -440,7 +472,7 @@
             <!-- Actual conversation -->
             <div
                 id="conversationContent"
-                class="hidden h-full flex-col"
+                class="hidden min-h-0 flex-1 flex-col"
             >
 
                 <!-- Conversation header -->
@@ -532,7 +564,7 @@
                 <!-- Messages -->
                 <div
                     id="messagesArea"
-                    class="scrollbar-thin flex-1 overflow-y-auto bg-[#fbfcfe] px-4 py-6 sm:px-8"
+                    class="scrollbar-thin min-h-0 flex-1 overflow-y-auto bg-[#fbfcfe] px-4 py-6 sm:px-8"
                 ></div>
 
 
@@ -600,6 +632,60 @@
 let currentPayload = null;
 let selectedConversation = null;
 let activeFilter = "all";
+
+/* Polling + scroll state for the open conversation. */
+let conversationPollTimer = null;
+let autoScrollToBottom = true;
+const CONVERSATION_POLL_MS = 5000;
+
+function stopConversationPolling() {
+
+    if (conversationPollTimer) {
+
+        clearInterval(
+            conversationPollTimer
+        );
+
+        conversationPollTimer =
+            null;
+
+    }
+
+}
+
+function startConversationPolling(item) {
+
+    stopConversationPolling();
+
+    if (!item?.id) return;
+
+    conversationPollTimer =
+        setInterval(
+            () => {
+
+                if (
+                    !selectedConversation ||
+                    selectedConversation.id !==
+                    item.id
+                ) {
+
+                    stopConversationPolling();
+                    return;
+
+                }
+
+                postToParent(
+                    "inbox:openConversation",
+                    {
+                        conversation: item
+                    }
+                );
+
+            },
+            CONVERSATION_POLL_MS
+        );
+
+}
 
 
 /* =========================================================
@@ -1076,6 +1162,9 @@ function configureEmptyState() {
 
 function openConversation(item) {
 
+    /* Opening (or reloading) a conversation always snaps to the latest message. */
+    autoScrollToBottom = true;
+
     $("#conversationEmpty")
         ?.classList.add("hidden");
 
@@ -1251,6 +1340,24 @@ function openConversation(item) {
     }
 
 
+    /* Show the most recent message when the
+       conversation is (re-)rendered. If the user
+       has scrolled up to read history, keep their
+       position instead — the refresh handler sets
+       autoScrollToBottom to false in that case. */
+
+    if (autoScrollToBottom) {
+
+        messagesArea.scrollTop =
+            messagesArea.scrollHeight;
+
+    }
+
+    /* Keep the open conversation fresh — new
+       messages arrive without a manual refresh. */
+
+    startConversationPolling(item);
+
     /*
        Mobile behaviour
     */
@@ -1382,6 +1489,8 @@ function setupMobileBack() {
     button.addEventListener(
         "click",
         () => {
+
+            stopConversationPolling();
 
             $("#conversationListPanel")
                 ?.classList.remove(
@@ -1632,6 +1741,21 @@ function setupComposer() {
             );
 
 
+            /* Reload the thread immediately so the
+               sent message shows up right away
+               instead of waiting for the next poll. */
+
+            autoScrollToBottom = true;
+
+            postToParent(
+                "inbox:openConversation",
+                {
+                    conversation:
+                        selectedConversation
+                }
+            );
+
+
             input.value = "";
 
             input.style.height =
@@ -1771,6 +1895,21 @@ window.addEventListener(
                 selectedConversation.id === conversationId &&
                 Array.isArray(conversationMessages)
             ) {
+
+                /* Preserve the reader's position: only snap back to the
+                   latest message if they were already near the bottom. */
+                const area =
+                    $("#messagesArea");
+
+                if (area) {
+
+                    autoScrollToBottom =
+                        area.scrollHeight -
+                        area.scrollTop -
+                        area.clientHeight <
+                        120;
+
+                }
 
                 selectedConversation.messages =
                     conversationMessages;

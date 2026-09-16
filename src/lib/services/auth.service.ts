@@ -1,4 +1,5 @@
 import { supabase } from '../supabase';
+import { createNotification } from './notifications.service';
 
 export interface Profile {
   id: string;
@@ -206,6 +207,17 @@ export async function signUp(
     if (!profile) {
       return { data: null, error: 'Failed to create profile' };
     }
+
+    // Best-effort welcome notification. createNotification() is fully
+    // try/catch-wrapped and never throws, so signup can never fail here.
+    await createNotification(
+      profile.id,
+      'signup',
+      'Welcome to NINJAWO',
+      role === 'provider'
+        ? 'Your NINJAWO provider account has been created. Finish setting up your business so customers can find and book you.'
+        : 'Your NINJAWO account has been created. Explore verified providers, book a service, and chat with your provider right from your inbox.'
+    );
 
     return { data: profile, error: null };
   } catch (error) {

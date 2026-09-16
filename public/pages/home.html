@@ -183,10 +183,6 @@
 <div class="flex items-center gap-md">
 <div class="relative hidden md:block">
 <button id="authOptionsBtn" class="border border-primary text-primary px-md py-sm rounded-xl font-label-sm text-label-sm hover:bg-primary-fixed active:scale-95 transition-all" type="button" aria-expanded="false">Sign Up / Login</button>
-<button id="userAvatarBtn" class="hidden h-10 w-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border-2 border-primary/30 hover:border-primary transition-colors cursor-pointer" type="button" aria-expanded="false" aria-label="Account menu">
-<img id="userAvatarImg" class="hidden w-full h-full object-cover" alt="User avatar" />
-<span id="userAvatarFallback" class="material-symbols-outlined text-primary">person</span>
-</button>
 <div id="authOptionsMenu" class="hidden absolute right-0 top-full mt-sm w-64 rounded-xl border border-outline-variant bg-white p-sm shadow-lg">
 <p class="px-sm py-xs text-caption text-on-surface-variant" id="authMenuGuestLabel">Choose an account type</p>
 <div id="authMenuGuest">
@@ -201,7 +197,7 @@
 <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="bookings" href="#"><span class="material-symbols-outlined text-primary">calendar_month</span>My bookings</a>
 <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="inbox" href="#"><span class="material-symbols-outlined text-primary">chat</span>Messages</a>
 <div class="my-xs border-t border-outline-variant"></div>
-<a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="profile" href="#"><span class="material-symbols-outlined text-primary">person</span>Profile</a>
+<!-- <a class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-on-background hover:bg-surface-container-low" data-nav="profile" href="#"><span class="material-symbols-outlined text-primary">person</span>Profile</a> -->
 <button class="flex items-center gap-sm rounded-lg px-sm py-sm text-label-sm text-error hover:bg-error-container w-full text-left" data-action="sign-out" type="button"><span class="material-symbols-outlined text-error">logout</span>Sign Out</button>
 </div>
 </div>
@@ -536,7 +532,10 @@
             'creative-services': '/search',
             'technical-support': '/search',
             'provider-dashboard': '/provider/dashboard',
-            'admin-dashboard': '/admin/dashboard'
+            'admin-dashboard': '/admin/dashboard',
+            'customer-profile': '/dashboard',
+            'provider-profile': '/provider/dashboard',
+            'admin-profile': '/admin/dashboard'
         };
         let accountRole = null;
         const $ = (sel) => document.querySelector(sel);
@@ -643,6 +642,13 @@
                         dashboardLink.dataset.nav = 'dashboard-link';
                         dashboardLink.innerHTML = '<span class="material-symbols-outlined text-primary">dashboard</span>Dashboard';
                     }
+                }
+
+                const profileLink = $('#authMenuProfile');
+                if (profileLink) {
+                    profileLink.dataset.nav = accountRole === 'provider' ? 'provider-profile'
+                        : accountRole === 'admin' ? 'admin-profile'
+                        : 'customer-profile';
                 }
 
                 // Set avatar image or fallback

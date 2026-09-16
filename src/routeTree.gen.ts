@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as PostRequestRouteImport } from './routes/post-request'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MyRequestsRouteImport } from './routes/my-requests'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InboxRouteImport } from './routes/inbox'
@@ -42,6 +43,11 @@ const SearchRoute = SearchRouteImport.update({
 const PostRequestRoute = PostRequestRouteImport.update({
   id: '/post-request',
   path: '/post-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyRequestsRoute = MyRequestsRouteImport.update({
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/my-requests': typeof MyRequestsRoute
+  '/notifications': typeof NotificationsRoute
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/my-requests': typeof MyRequestsRoute
+  '/notifications': typeof NotificationsRoute
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/inbox': typeof InboxRoute
   '/login': typeof LoginRoute
   '/my-requests': typeof MyRequestsRoute
+  '/notifications': typeof NotificationsRoute
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/login'
     | '/my-requests'
+    | '/notifications'
     | '/post-request'
     | '/search'
     | '/signup'
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/login'
     | '/my-requests'
+    | '/notifications'
     | '/post-request'
     | '/search'
     | '/signup'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/inbox'
     | '/login'
     | '/my-requests'
+    | '/notifications'
     | '/post-request'
     | '/search'
     | '/signup'
@@ -263,6 +275,7 @@ export interface RootRouteChildren {
   InboxRoute: typeof InboxRoute
   LoginRoute: typeof LoginRoute
   MyRequestsRoute: typeof MyRequestsRoute
+  NotificationsRoute: typeof NotificationsRoute
   PostRequestRoute: typeof PostRequestRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/post-request'
       fullPath: '/post-request'
       preLoaderRoute: typeof PostRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-requests': {
@@ -433,6 +453,7 @@ const rootRouteChildren: RootRouteChildren = {
   InboxRoute: InboxRoute,
   LoginRoute: LoginRoute,
   MyRequestsRoute: MyRequestsRoute,
+  NotificationsRoute: NotificationsRoute,
   PostRequestRoute: PostRequestRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,

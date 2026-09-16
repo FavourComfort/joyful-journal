@@ -1,0 +1,34 @@
+﻿ROUTE_FILE_LINES:
+604
+
+ROUTE_EXPORTS:
+NONE_FOUND
+
+ROUTE_TAIL_3_LINES:
+  );
+}
+
+
+SVC_FILE_LINES:
+985
+
+SVC_TAIL_3_LINES:
+      : new Error('Failed to load the admin overview.');
+  }
+}
+
+RLS_PAYMENTS_ADMIN_SELECT:
+exists=true lines=54
+
+ORPHAN_ADMIN_DIR_CHILDREN:
+0
+
+GIT_STATUS_SHORT:
+ M src/lib/services/admin.service.ts
+ M src/routes/admin.dashboard.tsx
+?? db/rls/payments_admin_select.sql
+
+GIT_DIFF_STAT:
+ src/lib/services/admin.service.ts | 554 +++++++++++++++++++++++
+ src/routes/admin.dashboard.tsx    | 898 +++++++++++++++++++++++++-------------
+ 2 files changed, 1145 insertions(+), 307 deletions(-)

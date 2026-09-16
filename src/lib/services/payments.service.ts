@@ -1,4 +1,5 @@
 import { supabase } from "../supabase";
+import { createNotification } from "./notifications.service";
 import {
   paymentTransitionError,
   type PaymentStatus,
@@ -547,7 +548,13 @@ export async function confirmServiceCompletionAndRelease(
       return legacy;
     }
 
-    return (ensureEscrowSuccess(result).payment || null) as Payment | null;
+    const releasedPayment = (ensureEscrowSuccess(result).payment || null) as Payment | null;
+
+    // Best-effort notifications AFTER the escrow release succeeded.
+    // Never affects the release itself (fire-safe helpers below).
+    await notifyEscrowReleased(releasedPayment);
+
+    return releasedPayment;
   } catch (error) {
     console.error("Error completing service and releasing escrow:", error);
     return null;
@@ -614,6 +621,134 @@ async function completeLegacyBooking(
   } as Payment;
 }
 
+// ---------------------------------------------------------------------------
+// Best-effort escrow lifecycle notifications.
+//
+// All helpers here are fire-safe: they never throw, and failures are only
+// logged. They are called AFTER the corresponding payment/escrow operation
+// has already succeeded, so a notification failure can never affect the
+// payment, booking, escrow, or MarzPay flow.
+// ---------------------------------------------------------------------------
+
+async function getProviderUserIdByProviderId(providerId: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("providers")
+      .select("user_id")
+      .eq("id", providerId)
+      .single();
+    if (error) return null;
+    return (data as { user_id?: string } | null)?.user_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Provider requested completion → tell the customer to review and confirm. */
+async function notifyCompletionRequested(
+  bookingId: string,
+  customerId: string | null | undefined
+): Promise<void> {
+  try {
+    if (!customerId) return;
+    await createNotification(
+      customerId,
+      "completion_requested",
+      "Service completion requested",
+      "Your provider says the service is complete. Please review the completed service and confirm completion in your dashboard. Only after you confirm will NINJAWO release the payment to the provider.",
+      bookingId
+    );
+  } catch (error) {
+    console.error("Notification failure (completion requested):", error);
+  }
+}
+
+/** Customer confirmed completion → escrow released to the provider. */
+async function notifyEscrowReleased(payment: Payment | null): Promise<void> {
+  try {
+    if (!payment || !payment.id) return; // legacy fallback payments carry empty ids
+
+    const formattedAmount = Number(payment.amount).toLocaleString();
+    const jobs: Promise<unknown>[] = [];
+
+    if (payment.provider_id) {
+      const providerUserId = await getProviderUserIdByProviderId(payment.provider_id);
+      if (providerUserId) {
+        jobs.push(
+          createNotification(
+            providerUserId,
+            "payment_released",
+            "Payment released to you",
+            `The customer confirmed completion of the service. NINJAWO has released your payment of UGX ${formattedAmount} to you.`,
+            payment.booking_id,
+            payment.id
+          )
+        );
+      }
+    }
+
+    if (payment.customer_id) {
+      jobs.push(
+        createNotification(
+          payment.customer_id,
+          "payment_released",
+          "Service completed — payment released",
+          `You confirmed the completed service. NINJAWO has released the payment of UGX ${formattedAmount} to the provider. Thank you for using NINJAWO.`,
+          payment.booking_id,
+          payment.id
+        )
+      );
+    }
+
+    await Promise.all(jobs);
+  } catch (error) {
+    console.error("Notification failure (escrow released):", error);
+  }
+}
+
+/** Booking cancelled and escrow refunded → notify both parties. */
+async function notifyBookingCancelled(payment: Payment | null): Promise<void> {
+  try {
+    if (!payment || !payment.id) return; // legacy fallback payments carry empty ids
+
+    const formattedAmount = Number(payment.amount).toLocaleString();
+    const jobs: Promise<unknown>[] = [];
+
+    if (payment.customer_id) {
+      jobs.push(
+        createNotification(
+          payment.customer_id,
+          "booking_cancelled",
+          "Booking cancelled — refund issued",
+          `Your booking was cancelled. The escrowed payment of UGX ${formattedAmount} has been refunded to you by NINJAWO.`,
+          payment.booking_id,
+          payment.id
+        )
+      );
+    }
+
+    if (payment.provider_id) {
+      const providerUserId = await getProviderUserIdByProviderId(payment.provider_id);
+      if (providerUserId) {
+        jobs.push(
+          createNotification(
+            providerUserId,
+            "booking_cancelled",
+            "Booking cancelled",
+            `A booking worth UGX ${formattedAmount} was cancelled before completion. The customer's escrowed payment has been refunded.`,
+            payment.booking_id,
+            payment.id
+          )
+        );
+      }
+    }
+
+    await Promise.all(jobs);
+  } catch (error) {
+    console.error("Notification failure (booking cancelled):", error);
+  }
+}
+
 /** Provider starts the mutual completion flow; the customer still releases escrow. */
 export async function requestServiceCompletion(bookingId: string, providerId: string): Promise<CompletionRequest | null> {
   try {
@@ -621,6 +756,22 @@ export async function requestServiceCompletion(bookingId: string, providerId: st
       .upsert({ booking_id: bookingId, provider_id: providerId }, { onConflict: "booking_id" })
       .select().single();
     if (error) throw error;
+
+    // Best-effort customer notification AFTER the completion request exists.
+    try {
+      const { data: booking } = await supabase
+        .from("bookings")
+        .select("customer_id")
+        .eq("id", bookingId)
+        .single();
+      await notifyCompletionRequested(
+        bookingId,
+        (booking as { customer_id?: string } | null)?.customer_id
+      );
+    } catch (notificationError) {
+      console.error("Notification failure (completion requested):", notificationError);
+    }
+
     return data as CompletionRequest;
   } catch (error) {
     console.error("Error requesting service completion:", error);
@@ -657,7 +808,12 @@ export async function cancelBookingAndRefund(bookingId: string, reason?: string)
       return completeLegacyBooking(bookingId, "cancelled");
     }
 
-    return (ensureEscrowSuccess(result).payment || null) as Payment | null;
+    const refundedPayment = (ensureEscrowSuccess(result).payment || null) as Payment | null;
+
+    // Best-effort notifications AFTER the cancellation/refund succeeded.
+    await notifyBookingCancelled(refundedPayment);
+
+    return refundedPayment;
   } catch (error) {
     console.error("Error cancelling booking and refunding escrow:", error);
     return null;

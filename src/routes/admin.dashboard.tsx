@@ -1,320 +1,56 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { PageFrame } from "@/components/PageFrame";
+import { AlertTriangle, Bell, CalendarCheck, CheckCircle2, Clock3, FileText, LayoutDashboard, LogOut, Menu, RefreshCw, ShieldCheck, Store, Users, Wallet, Wrench, X } from "lucide-react";
 import { getCurrentProfile, signOut } from "@/lib/services/auth.service";
-import {
-  type AdminProvider,
-  type AdminStats,
-  type AdminRequest,
-  type AdminOffer,
-  type AdminBooking,
-  type AdminReview,
-  getAllProvidersForAdmin,
-  setProviderVerified,
-  getAdminStats,
-  getAllRequestsForAdmin,
-  getAllOffersForAdmin,
-  getAllBookingsForAdmin,
-  getAllReviewsForAdmin,
-  deleteRequest,
-  deleteOffer,
-  deleteBookingPermanently,
-  deleteReviewPermanently,
-} from "@/lib/services/admin.service";
-import {
-  adjudicateDispute,
-  closeDispute,
-  getAllDisputesForAdmin,
-  type DisputeDecision,
-} from "@/lib/services/disputes.service";
+import { getAdminOverview, type AdminAttentionItem, type AdminOverview, type AdminPaymentRow } from "@/lib/services/admin.service";
 
-function AdminDashboardComponent() {
-  const router = useRouter();
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const numberFormat = new Intl.NumberFormat("en-UG", { maximumFractionDigits: 0 });
+const dateFormat = new Intl.DateTimeFormat("en-UG", { day: "numeric", month: "short" });
 
-  const postToIframe = (message: unknown) => {
-    iframeRef.current?.contentWindow?.postMessage(message, "*");
-  };
-
-  const sendDashboardData = async () => {
-    try {
-      const [profile, stats, providers] = await Promise.all([
-        getCurrentProfile(),
-        getAdminStats(),
-        getAllProvidersForAdmin(),
-      ]);
-
-      postToIframe({
-        type: "admin:data",
-        payload: {
-          profile: profile
-            ? { full_name: profile.full_name, role: profile.role }
-            : null,
-          stats,
-          providers,
-        },
-      });
-    } catch (err) {
-      postToIframe({
-        type: "admin:error",
-        payload: {
-          message:
-            err instanceof Error ? err.message : "Failed to load dashboard data.",
-        },
-      });
-    }
-  };
-
-  // Client-only route guard (TanStack Start SSRs — auth needs the browser).
-  useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      try {
-        const profile = await getCurrentProfile();
-        if (cancelled) return;
-        if (!profile) {
-          await router.navigate({ to: "/login" });
-          return;
-        }
-        if (profile.role !== "admin") {
-          // Non-admins should never reach this route.
-          await router.navigate({ to: "/" });
-          return;
-        }
-
-        setReady(true);
-      } catch (err) {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load your account.");
-      }
-    };
-
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
-
-  // Listen for messages coming from the admin iframe.
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      const win = iframeRef.current?.contentWindow;
-      if (!win) return;
-      const sourceIsIframe =
-        event.source === win ||
-        (event.source && (event.source as any).frameElement === iframeRef.current);
-      if (!sourceIsIframe) return;
-
-      const type = event.data?.type;
-      const payload = event.data?.payload;
-
-      if (type === "admin:ping") {
-        await sendDashboardData();
-        return;
-      }
-
-      if (type === "admin:refresh") {
-        await sendDashboardData();
-        return;
-      }
-
-      if (type === "admin:verifyProvider") {
-        const provider = await setProviderVerified(payload.providerId, payload.verified);
-        postToIframe({
-          type: "admin:verifyProvider:result",
-          payload: { ok: !!provider, provider },
-        });
-        return;
-      }
-
-      if (type === "admin:loadRequests") {
-        const requests = await getAllRequestsForAdmin();
-        postToIframe({ type: "admin:requests", payload: { requests } });
-        return;
-      }
-
-      if (type === "admin:loadOffers") {
-        const offers = await getAllOffersForAdmin();
-        postToIframe({ type: "admin:offers", payload: { offers } });
-        return;
-      }
-
-      if (type === "admin:loadBookings") {
-        const bookings = await getAllBookingsForAdmin();
-        postToIframe({ type: "admin:bookings", payload: { bookings } });
-        return;
-      }
-
-      if (type === "admin:loadReviews") {
-        const reviews = await getAllReviewsForAdmin();
-        postToIframe({ type: "admin:reviews", payload: { reviews } });
-        return;
-      }
-
-      // ------------------------------------------------
-      // Disputes: list + adjudicate + close
-      // ------------------------------------------------
-
-      if (type === "admin:loadDisputes") {
-        try {
-          const disputes = await getAllDisputesForAdmin();
-          postToIframe({ type: "admin:disputes", payload: { disputes } });
-        } catch (err) {
-          postToIframe({
-            type: "admin:error",
-            payload: { message: err instanceof Error ? err.message : "Failed to load disputes." },
-          });
-        }
-        return;
-      }
-
-      if (type === "admin:adjudicateDispute") {
-        try {
-          const disputeId = payload?.disputeId;
-          const decision = payload?.decision as DisputeDecision | undefined;
-          if (typeof disputeId !== "string" || (decision !== "refund" && decision !== "release")) {
-            throw new Error("A valid dispute and decision are required.");
-          }
-          const dispute = await adjudicateDispute(
-            disputeId,
-            decision,
-            typeof payload?.adminNotes === "string" ? payload.adminNotes : undefined
-          );
-          if (!dispute) {
-            throw new Error("Could not adjudicate this dispute. It may already be resolved.");
-          }
-          postToIframe({
-            type: "admin:disputeResult",
-            payload: {
-              ok: true,
-              message:
-                decision === "refund"
-                  ? "Dispute resolved — funds refunded to the customer."
-                  : "Dispute resolved — funds released to the provider.",
-            },
-          });
-        } catch (err) {
-          postToIframe({
-            type: "admin:disputeResult",
-            payload: { ok: false, message: err instanceof Error ? err.message : "Failed to adjudicate the dispute." },
-          });
-        }
-        return;
-      }
-
-      if (type === "admin:closeDispute") {
-        try {
-          const disputeId = payload?.disputeId;
-          if (typeof disputeId !== "string") throw new Error("Invalid dispute ID.");
-          const dispute = await closeDispute(
-            disputeId,
-            typeof payload?.adminNotes === "string" ? payload.adminNotes : undefined
-          );
-          if (!dispute) {
-            throw new Error("Could not close this dispute.");
-          }
-          postToIframe({
-            type: "admin:disputeResult",
-            payload: { ok: true, message: "Dispute closed without changes." },
-          });
-        } catch (err) {
-          postToIframe({
-            type: "admin:disputeResult",
-            payload: { ok: false, message: err instanceof Error ? err.message : "Failed to close the dispute." },
-          });
-        }
-        return;
-      }
-
-      if (type === "admin:deleteRequest") {
-        const ok = await deleteRequest(payload.requestId);
-        postToIframe({
-          type: "admin:deleteResult",
-          payload: { kind: "request", ok, message: ok ? "Request removed." : "Could not remove request." },
-        });
-        return;
-      }
-
-      if (type === "admin:deleteOffer") {
-        const ok = await deleteOffer(payload.offerId);
-        postToIframe({
-          type: "admin:deleteResult",
-          payload: { kind: "offer", ok, message: ok ? "Offer removed." : "Could not remove offer." },
-        });
-        return;
-      }
-
-      if (type === "admin:deleteBooking") {
-        const ok = await deleteBookingPermanently(payload.bookingId);
-        postToIframe({
-          type: "admin:deleteResult",
-          payload: { kind: "booking", ok, message: ok ? "Booking removed." : "Could not remove booking." },
-        });
-        return;
-      }
-
-      if (type === "admin:deleteReview") {
-        const ok = await deleteReviewPermanently(payload.reviewId);
-        postToIframe({
-          type: "admin:deleteResult",
-          payload: { kind: "review", ok, message: ok ? "Review removed." : "Could not remove review." },
-        });
-        return;
-      }
-
-      if (type === "admin:signOut") {
-        await signOut();
-        await router.navigate({ to: "/login" });
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [router]);
-
-  if (!ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f9f9ff]">
-        {error ? (
-          <div className="max-w-md px-4 text-center">
-            <p className="mb-4 text-red-600">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="rounded-xl bg-[#003d9b] px-6 py-3 text-sm font-semibold text-white"
-            >
-              Try again
-            </button>
-          </div>
-        ) : (
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#003d9b] border-t-transparent" />
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <PageFrame
-      src="/pages/admin-dashboard.html"
-      title="Admin Dashboard"
-      iframeRef={iframeRef}
-      onLoad={() => postToIframe({ type: "admin:ping" })}
-    />
-  );
+function money(value: number | null | undefined, currency = "UGX") { return value == null ? "Not available" : `${currency} ${numberFormat.format(Number(value))}`; }
+function relativeTime(value: string) {
+  const elapsed = Date.now() - new Date(value).getTime();
+  if (!Number.isFinite(elapsed) || elapsed < 0) return "Just now";
+  const minutes = Math.floor(elapsed / 60000);
+  if (minutes < 60) return `${minutes || 1}m ago`;
+  const hours = Math.floor(minutes / 60);
+  return hours < 24 ? `${hours}h ago` : `${Math.floor(hours / 24)}d ago`;
+}
+function label(value?: string | null) { return value ? value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()) : "Unknown"; }
+function statusClass(value?: string | null) {
+  if (["completed", "released"].includes(value ?? "")) return "bg-emerald-50 text-emerald-700";
+  if (["failed", "cancelled", "refunded", "disputed"].includes(value ?? "")) return "bg-red-50 text-red-700";
+  if (["confirmed", "in_progress", "escrowed"].includes(value ?? "")) return "bg-blue-50 text-blue-700";
+  return "bg-amber-50 text-amber-700";
+}
+function Panel({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+  return <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_4px_16px_rgba(15,23,42,0.035)]"><header className="flex min-h-12 items-center justify-between gap-3 border-b border-slate-100 px-4 py-3"><h2 className="text-sm font-bold text-slate-950">{title}</h2>{action}</header>{children}</section>;
+}
+function Empty({ children }: { children: ReactNode }) { return <p className="px-4 py-6 text-xs text-slate-500">{children}</p>; }
+function Pill({ value }: { value?: string | null }) { return <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusClass(value)}`}>{label(value)}</span>; }
+function Metric({ title, value, hint, icon: Icon, color }: { title: string; value: string; hint: string; icon: typeof Users; color: string }) {
+  return <div className="flex min-h-[82px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-[0_4px_16px_rgba(15,23,42,0.035)]"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${color}`}><Icon className="h-3.5 w-3.5" /></span><div className="min-w-0"><p className="truncate text-[10px] font-bold uppercase tracking-wide text-slate-500">{title}</p><p className="mt-0.5 text-xl font-bold leading-6 tabular-nums text-slate-950">{value}</p><p className="truncate text-[10px] text-slate-500">{hint}</p></div></div>;
+}
+function Attention({ items }: { items: AdminAttentionItem[] }) {
+  return items.length ? <div className="divide-y divide-slate-100">{items.slice(0, 5).map((item) => <div key={item.id} className="flex items-center gap-2.5 px-4 py-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-700"><AlertTriangle className="h-3.5 w-3.5" /></span><p className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-800">{item.title}</p><span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-700">{item.count}</span></div>)}</div> : <Empty>No attention items right now.</Empty>;
+}
+function Payments({ rows }: { rows: AdminPaymentRow[] }) {
+  return rows.length ? <div className="divide-y divide-slate-100">{rows.slice(0, 4).map((row) => <div key={row.payment.id} className="flex items-center gap-3 px-4 py-2.5"><Wallet className="h-3.5 w-3.5 shrink-0 text-emerald-700" /><div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-slate-800">{row.service_title || "Booking payment"}</p><p className="truncate text-[10px] text-slate-500">{row.provider_business_name} · {relativeTime(row.payment.created_at)}</p></div><div className="text-right"><p className="text-xs font-bold text-slate-900">{money(row.payment.amount, row.payment.currency)}</p><Pill value={row.payment.payment_status} /></div></div>)}</div> : <Empty>No payment records available.</Empty>;
 }
 
-export const Route = createFileRoute("/admin/dashboard")({
-  head: () => ({
-    meta: [
-      { title: "Admin Dashboard | NINJAWO" },
-      {
-        name: "description",
-        content:
-          "Admin moderation console for verifying providers and managing content on NINJAWO.",
-      },
-    ],
-  }),
-  component: AdminDashboardComponent,
-});
+function AdminDashboard() {
+  const router = useRouter();
+  const [overview, setOverview] = useState<AdminOverview | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const load = async () => { setLoading(true); setError(null); try { const profile = await getCurrentProfile(); if (!profile) { await router.navigate({ to: "/login" }); return; } if (profile.role !== "admin") { await router.navigate({ to: "/" }); return; } setOverview(await getAdminOverview(profile.id)); } catch (err) { setError(err instanceof Error ? err.message : "The admin dashboard could not load."); } finally { setLoading(false); } };
+  useEffect(() => { void load(); }, []);
+  const signOutAdmin = async () => { await signOut(); await router.navigate({ to: "/login" }); };
+  const summary = overview?.summary;
+  const navItems = [[LayoutDashboard, "Dashboard"], [Users, "Users"], [ShieldCheck, "Providers"], [Wrench, "Services"], [FileText, "Requests"], [CalendarCheck, "Bookings"], [Wallet, "Finance"], [Wallet, "Wallet"], [Bell, "Support"], [Bell, "Notifications"], [AlertTriangle, "Disputes"], [CheckCircle2, "Reviews"]] as const;
+  const navigation = <><div className="mb-5 flex items-center gap-2 px-2"><img src="/favicon.png" alt="NINJAWO" className="h-8 w-8 rounded-lg" /><div><p className="text-base font-bold leading-5 text-slate-950">NINJAWO</p><p className="text-[9px] font-bold uppercase tracking-[0.16em] text-blue-700">Admin console</p></div></div><nav className="space-y-0.5" aria-label="Admin navigation">{navItems.map(([Icon, name], index) => index === 0 ? <a key={name} href="/admin/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 rounded-lg bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700"><Icon className="h-3.5 w-3.5" />{name}</a> : <button key={name} disabled className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-slate-400"><Icon className="h-3.5 w-3.5" />{name}<span className="ml-auto text-[9px] uppercase">Soon</span></button>)}</nav><button type="button" onClick={signOutAdmin} className="mt-auto flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-600"><LogOut className="h-3.5 w-3.5" />Sign out</button></>;
+  return <div className="min-h-screen bg-[#f6f8fb] text-slate-900"><aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-slate-200 bg-white px-3 py-4 md:flex">{navigation}</aside>{mobileOpen && <div className="fixed inset-0 z-40 bg-slate-950/30 md:hidden" onClick={() => setMobileOpen(false)} />}<aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white px-3 py-4 transition-transform duration-200 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}><button type="button" onClick={() => setMobileOpen(false)} className="absolute right-3 top-3 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Close menu"><X className="h-4 w-4" /></button>{navigation}</aside><main className="md:pl-56"><header className="sticky top-0 z-20 flex h-14 items-center border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6"><button type="button" onClick={() => setMobileOpen(true)} className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100 md:hidden" aria-label="Open menu"><Menu className="h-4 w-4" /></button><div className="ml-2 md:ml-0"><p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-700">Operations</p><h1 className="text-sm font-bold text-slate-950">Dashboard overview</h1></div><div className="ml-auto flex items-center gap-3"><Bell className="h-4 w-4 text-slate-500" /><span className="hidden text-xs font-semibold text-slate-600 sm:inline">Admin workspace</span></div></header><div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-5 xl:p-6">{loading ? <div className="flex min-h-[50vh] items-center justify-center gap-2 text-xs text-slate-500"><RefreshCw className="h-4 w-4 animate-spin" />Loading dashboard...</div> : error ? <Panel title="Dashboard unavailable"><div className="p-4"><p className="text-xs text-slate-600">{error}</p><button type="button" onClick={() => void load()} className="mt-3 inline-flex items-center gap-2 rounded-md bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white"><RefreshCw className="h-3.5 w-3.5" />Try again</button></div></Panel> : overview && summary ? <><div className="flex items-center justify-between gap-3"><div><h2 className="text-xl font-bold tracking-tight text-slate-950">Marketplace pulse</h2><p className="mt-0.5 text-xs text-slate-500">Read-only operational activity and marketplace health.</p></div><button type="button" onClick={() => void load()} className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-700"><RefreshCw className="h-3.5 w-3.5" />Refresh</button></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6"><Metric title="Users" value={numberFormat.format(summary.totalUsers)} hint={`${summary.customers} customers`} icon={Users} color="bg-blue-50 text-blue-700" /><Metric title="Providers" value={numberFormat.format(summary.providers)} hint={`${summary.verifiedProviders} verified`} icon={Store} color="bg-emerald-50 text-emerald-700" /><Metric title="Requests" value={numberFormat.format(summary.totalRequests)} hint={`${summary.openRequests} open`} icon={FileText} color="bg-amber-50 text-amber-700" /><Metric title="Bookings" value={numberFormat.format(summary.activeBookings)} hint={`${summary.pendingOffers} pending offers`} icon={CalendarCheck} color="bg-slate-100 text-slate-700" /><Metric title="Services" value={numberFormat.format(summary.activeServices)} hint={`${summary.totalOffers} offers`} icon={Wrench} color="bg-slate-100 text-slate-700" /><Metric title="Payments" value={summary.paymentsAvailable ? numberFormat.format(summary.completedTransactions ?? 0) : "—"} hint={summary.paymentsAvailable ? "released" : "restricted"} icon={Wallet} color="bg-emerald-50 text-emerald-700" /></div>{overview.warnings[0] && <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">{overview.warnings[0]}</div>}<div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(250px,0.8fr)]"><Panel title="Recent bookings" action={<span className="text-[10px] font-semibold text-slate-400">Latest 5</span>}><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left"><thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-wide text-slate-500"><tr><th className="px-4 py-2.5">Customer</th><th className="px-3 py-2.5">Provider</th><th className="px-3 py-2.5">Service</th><th className="px-3 py-2.5">Status</th><th className="px-4 py-2.5 text-right">Amount</th></tr></thead><tbody className="divide-y divide-slate-100">{overview.recentBookings.length ? overview.recentBookings.slice(0, 5).map((booking) => <tr key={booking.id} className="text-xs"><td className="max-w-[130px] truncate px-4 py-3 font-semibold text-slate-800">{booking.customer_name}</td><td className="max-w-[130px] truncate px-3 py-3 text-slate-600">{booking.provider_business_name}</td><td className="max-w-[150px] truncate px-3 py-3 text-slate-600">{booking.service_title || "Marketplace booking"}</td><td className="px-3 py-3"><Pill value={booking.status} /></td><td className="px-4 py-3 text-right font-semibold text-slate-800">{money(booking.amount, summary.currency)}</td></tr>) : <tr><td colSpan={5}><Empty>No booking activity yet.</Empty></td></tr>}</tbody></table></div></Panel><Panel title="Needs attention" action={<span className="text-[10px] font-semibold text-slate-400">Review queue</span>}><Attention items={overview.attention} /></Panel></div><div className="grid gap-4 xl:grid-cols-2"><Panel title="Recent transactions" action={<span className="text-[10px] font-semibold text-blue-700">View all</span>}><Payments rows={overview.recentTransactions} /></Panel><Panel title="Activity & notifications" action={<span className="text-[10px] font-semibold text-blue-700">Preview</span>}><div className="divide-y divide-slate-100">{overview.notifications.length ? overview.notifications.slice(0, 3).map((item) => <div key={item.id} className="flex items-center gap-2.5 px-4 py-2.5"><Bell className="h-3.5 w-3.5 shrink-0 text-blue-700" /><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-800">{item.title}</p><p className="truncate text-[10px] text-slate-500">{item.message} · {relativeTime(item.created_at)}</p></div></div>) : <Empty>No admin notifications to preview.</Empty>}</div></Panel></div><div className="grid gap-4 xl:grid-cols-2"><Panel title="Recent requests" action={<span className="text-[10px] font-semibold text-slate-400">Latest 4</span>}><div className="divide-y divide-slate-100">{overview.recentRequests.length ? overview.recentRequests.slice(0, 4).map((request) => <div key={request.id} className="flex items-center gap-3 px-4 py-2.5"><FileText className="h-3.5 w-3.5 shrink-0 text-amber-700" /><p className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-800">{request.title}<span className="ml-2 font-normal text-slate-500">{request.customer_name}</span></p><span className="shrink-0 text-[10px] text-slate-400">{relativeTime(request.created_at)}</span></div>) : <Empty>No requests posted yet.</Empty>}</div></Panel><Panel title="Finance snapshot"><div className="grid grid-cols-3 divide-x divide-slate-100 px-2 py-4 text-center"><div><p className="text-[10px] uppercase text-slate-500">Fees</p><p className="mt-1 text-sm font-bold text-slate-900">{money(summary.platformFees, summary.currency)}</p></div><div><p className="text-[10px] uppercase text-slate-500">Escrow</p><p className="mt-1 text-sm font-bold text-slate-900">{money(summary.escrowFunds, summary.currency)}</p></div><div><p className="text-[10px] uppercase text-slate-500">Refunded</p><p className="mt-1 text-sm font-bold text-slate-900">{money(summary.refundedFunds, summary.currency)}</p></div></div></Panel></div></> : null}</div></main></div>;
+}
+
+export const Route = createFileRoute("/admin/dashboard")({ head: () => ({ meta: [{ title: "Admin Dashboard | NINJAWO" }] }), component: AdminDashboard });

@@ -181,8 +181,8 @@ export async function createPaymentNotifications({
         createNotification(
           customerId,
           "payment_escrowed",
-          "Payment held in escrow",
-          `Your payment of UGX ${formattedAmount} is being held by NINJAWO until you confirm the service is complete.`,
+          "Payment received — held securely in escrow",
+          `NINJAWO has received your payment of UGX ${formattedAmount}. It is being held securely by NINJAWO and has NOT yet been paid to the provider. The provider can now proceed with the service. When they finish, they will request completion — you will then review the service and confirm completion. Only after you confirm completion will NINJAWO release the payment to the provider.`,
           bookingId,
           paymentId
         ),
