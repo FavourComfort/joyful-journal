@@ -1351,4 +1351,453 @@ export async function getProvidersForAdmin(
   }
 }
 
+// ============================================================================
+// PHASE 2C — SERVICES MANAGEMENT (read-only service directory)
+// ----------------------------------------------------------------------------
+// Paginated, searchable, filterable list of every service row, enriched with the
+// owning provider (business_name / profile_picture_url) and the provider's owner
+// profile (owner name / phone / avatar) via ONE batched `providers` fetch + ONE
+// `profileLookup` enrichment pass — never an N+1 per service. READ-ONLY: no
+// service mutations.
+//
+// Live services RLS deployment cannot be inferred from repository SQL. All
+// reads use the existing session and policies; no access policy is changed.
+// ============================================================================
+
+export type AdminServiceAvailability = 'active' | 'inactive';
+
+/** One row on the admin Services table (service + provider + owner context). */
+export interface AdminServiceRow {
+  id: string;
+  provider_id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  price: number;
+  duration_minutes: number | null;
+  active: boolean;
+  created_at: string;
+  /** Provider / business context (null when the provider row is missing). */
+  business_name: string | null;
+  profile_picture_url: string | null;
+  location: string | null;
+  rating: number;
+  verified: boolean | null;
+  /** Owner profile context (null when the profile could not be resolved). */
+  owner_name: string | null;
+  owner_phone: string | null;
+  owner_avatar_url: string | null;
+}
+
+export interface AdminServicesPage {
+  rows: AdminServiceRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  categories: string[];
+  /** True when the provider/owner enrichment fetch failed. Rows still show. */
+  providerContextError?: boolean;
+  /** True when business/owner search matched more providers than could be folded into the query. */
+  ownerSearchTruncated?: boolean;
+}
+
+export interface AdminServicesQuery {
+  search?: string;
+  category?: string;
+  availability?: AdminServiceAvailability | '';
+  page?: number;
+  pageSize?: number;
+}
+
+export const ADMIN_SERVICES_PAGE_SIZE = 12;
+
+/** Resolve a set of provider ids into a { provider_id -> provider } lookup (single batched fetch). */
+async function providerLookupById(providerIds: string[]): Promise<Record<string, Provider>> {
+  if (!providerIds.length) return {};
+  const { data, error } = await supabase
+    .from('providers')
+    .select('id, user_id, business_name, profile_picture_url, location, rating, verified')
+    .in('id', providerIds);
+
+  if (error) {
+    console.error('Error fetching providers for admin services:', error);
+    return {};
+  }
+    return Object.fromEntries(((data || []) as Provider[]).map((p) => [p.id, p as Provider]));
+}
+
+/**
+ * Read-only admin services directory with search / category filter /
+ * availability filter / pagination.
+ *
+ * Query budget per page view: ONE paginated `services` query + ONE provider
+ * enrichment fetch (batched by provider_id) + ONE `profileLookup` enrichment
+ * pass for owner context — never one query per row.
+ *
+ * Throws on hard RLS/network failure so the page can surface a clear
+ * admin-facing message. Provider/owner enrichment failure is NON-FATAL: rows
+ * still display and `providerContextError` is set so the admin knows provider
+ * context is incomplete.
+ */
+export async function getServicesForAdmin(
+  query: AdminServicesQuery = {},
+): Promise<AdminServicesPage> {
+  const page = Number.isFinite(query.page) ? Math.max(1, Math.floor(query.page!)) : 1;
+  const pageSize = Number.isFinite(query.pageSize)
+    ? Math.min(50, Math.max(5, Math.floor(query.pageSize!)))
+    : ADMIN_SERVICES_PAGE_SIZE;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const search = sanitizeSearchTerm(query.search);
+
+  try {
+    let request = supabase
+      .from('services')
+      .select('id, provider_id, title, description, category, price, duration_minutes, active, created_at', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(from, to);
+
+    let ownerSearchTruncated = false;
+    if (search) {
+      const filters = [`title.ilike.%${search}%`, `category.ilike.%${search}%`];
+      const ownerMatch = await findProviderIdsByOwnerTerm(search);
+      if (ownerMatch.ids.length) filters.push(`provider_id.in.(${ownerMatch.ids.join(',')})`);
+      ownerSearchTruncated = ownerMatch.truncated;
+      request = request.or(filters.join(','));
+    }
+
+    if (query.category) request = request.eq('category', query.category);
+    if (query.availability === 'active') request = request.eq('active', true);
+    else if (query.availability === 'inactive') request = request.eq('active', false);
+
+    const { data, error, count } = await request;
+    if (error) {
+      // Paging past the end of the data returns 416 / PGRST103 — retry once
+      // from page 1 rather than surfacing an error for a harmless case.
+      if (error.code === 'PGRST103' || /range not satisfiable/i.test(error.message ?? '')) {
+        if (page > 1) return getServicesForAdmin({ ...query, page: 1 });
+        return { rows: [], total: 0, page: 1, pageSize, categories: [] };
+      }
+      console.error('Error fetching services for admin:', error);
+      throw new Error(
+        error.code === '42501' || /row-level security/i.test(error.message)
+          ? 'The services directory is blocked by row-level security. If RLS is enabled on public.services, ask a project owner to apply the optional "Services select for admin" policy (see db/rls/payments_admin_select.sql).'
+          : 'The services directory could not be loaded.',
+      );
+    }
+
+    if (page > 1 && (!data?.length || (count !== null && from >= count))) {
+      return getServicesForAdmin({ ...query, page: 1 });
+    }
+    if (count === null) throw new Error('The exact service count was unavailable. Please retry.');
+
+    const services = (data || []) as Array<{
+      id: string;
+      provider_id: string | null;
+      title: string;
+      description: string | null;
+      category: string;
+      price: number;
+      duration_minutes: number | null;
+      active: boolean;
+      created_at: string;
+    }>;
+
+    // Do not manufacture a zero price or an inactive state for malformed data.
+    if (services.some((s) => typeof s.price !== 'number' || !Number.isFinite(s.price) || typeof s.active !== 'boolean')) {
+      throw new Error('Some service records have missing or invalid price/active values. No substitute values were displayed.');
+    }
+    const providerIds = [...new Set(services.map((s) => s.provider_id).filter(Boolean))] as string[];
+
+        const categories = Array.from(new Set(services.map((s) => s.category).filter(Boolean))).sort();
+
+    // Fast path: no services on this page → no enrichment needed.
+    if (!providerIds.length) {
+      return {
+        rows: services.map((s) => ({
+          id: s.id,
+          provider_id: s.provider_id ?? '',
+          title: s.title,
+          description: s.description ?? null,
+          category: s.category,
+          price: typeof s.price === 'number' ? s.price : 0,
+          duration_minutes: typeof s.duration_minutes === 'number' ? s.duration_minutes : null,
+          active: Boolean(s.active),
+          created_at: s.created_at,
+          business_name: null,
+          profile_picture_url: null,
+          location: null,
+          rating: 0,
+          verified: null,
+          owner_name: null,
+          owner_phone: null,
+          owner_avatar_url: null,
+        })),
+        total: count ?? services.length,
+        page,
+        pageSize,
+        categories,
+        ownerSearchTruncated,
+      };
+    }
+
+    const providers = await providerLookupById(providerIds);
+    let providerContextError = services.some(
+      (s) => s.provider_id && !Object.prototype.hasOwnProperty.call(providers, s.provider_id),
+    );
+
+    const ownerIds = [...new Set(Object.values(providers).map((p) => p.user_id).filter(Boolean))] as string[];
+    const owners = ownerIds.length ? await profileLookup(ownerIds) : {};
+    providerContextError ||= ownerIds.some((id) => !owners[id]);
+
+    return {
+      rows: services.map((s) => {
+        const provider = s.provider_id ? providers[s.provider_id] : null;
+        const owner =
+          provider && ownerIds.length ? (owners as Record<string, Profile>)[provider.user_id] ?? null : null;
+        return {
+          id: s.id,
+          provider_id: s.provider_id ?? '',
+          title: s.title,
+          description: s.description ?? null,
+          category: s.category,
+          price: typeof s.price === 'number' ? s.price : 0,
+          duration_minutes: typeof s.duration_minutes === 'number' ? s.duration_minutes : null,
+          active: Boolean(s.active),
+          created_at: s.created_at,
+          business_name: provider?.business_name ?? null,
+          profile_picture_url: provider?.profile_picture_url ?? null,
+          location: provider?.location ?? null,
+          rating: typeof provider?.rating === 'number' ? provider.rating : 0,
+          verified: provider ? Boolean(provider.verified) : null,
+          owner_name: owner?.full_name ?? null,
+          owner_phone: owner?.phone ?? null,
+          owner_avatar_url: owner?.avatar_url ?? null,
+        };
+      }),
+      total: count ?? services.length,
+      page,
+      pageSize,
+      categories,
+      providerContextError,
+      ownerSearchTruncated,
+    };
+  } catch (error) {
+    if (error instanceof Error) throw error;
+    console.error('Exception fetching services for admin:', error);
+        throw new Error('The services directory could not be loaded.');
+  }
+}
+
+/**
+ * Given a free-text search term, resolve it to the provider ids whose business
+ * name OR whose owner profile name/phone matches — used to fold "provider
+ * search by business or owner" into the services `or(...)` filter. The merged
+ * id set is capped at 100 so the `in.()` filter stays well under PostgREST's
+ * URL length limits; `truncated` reports when the cap was exceeded.
+ */
+async function findProviderIdsByOwnerTerm(
+  search: string,
+): Promise<{ ids: string[]; truncated: boolean }> {
+  const PROVIDER_SEARCH_LIMIT = 100;
+  const ids = new Set<string>();
+
+  // 1) Providers whose business_name matches the term directly.
+  const { data: bizRows, error: bizError } = await supabase
+    .from('providers')
+    .select('id')
+    .ilike('business_name', `%${search}%`)
+    .limit(PROVIDER_SEARCH_LIMIT + 1);
+
+  if (bizError) {
+    console.error('Error searching provider businesses for admin services:', bizError);
+    throw new Error('Business search could not load. Check connectivity and admin SELECT access, then retry.');
+  } else {
+    ((bizRows || []) as Array<{ id: string }>).forEach((r) => ids.add(r.id));
+  }
+
+  // 2) Providers whose owner profile name/phone matches.
+  const { data: ownerRows, error: ownerError } = await supabase
+    .from('profiles')
+    .select('id')
+    .or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`)
+    .limit(PROVIDER_SEARCH_LIMIT + 1);
+
+  if (ownerError) {
+    console.error('Error searching provider owners for admin services:', ownerError);
+    throw new Error('Owner search could not load. Check connectivity and admin SELECT access, then retry.');
+  }
+  if ((ownerRows?.length ?? 0) > PROVIDER_SEARCH_LIMIT || ids.size > PROVIDER_SEARCH_LIMIT) {
+    throw new Error('Too many providers match. Please narrow the search to keep results and counts complete.');
+  }
+
+  const ownerIds = ((ownerRows || []) as Array<{ id: string }>).map((r) => r.id);
+  if (ownerIds.length) {
+    const { data: providerRows, error: provError } = await supabase
+      .from('providers')
+      .select('id')
+      .in('user_id', ownerIds)
+      .limit(PROVIDER_SEARCH_LIMIT + 1);
+
+    if (provError) {
+      console.error('Error resolving providers for admin services search:', provError);
+      throw new Error('Provider search could not load. Check connectivity and admin SELECT access, then retry.');
+    } else {
+      ((providerRows || []) as Array<{ id: string }>).forEach((p) => ids.add(p.id));
+    }
+  }
+
+  if (ids.size > PROVIDER_SEARCH_LIMIT) {
+    throw new Error('Too many providers match. Please narrow the search to keep results and counts complete.');
+  }
+  return { ids: [...ids], truncated: false };
+}
+
+/** Fetch real category values using ordered keyset batches, without loading service records. */
+export async function getServiceCategoriesForAdmin(): Promise<string[]> {
+  const categories = new Set<string>();
+  let after: string | undefined;
+  // Move past the last category rather than offsetting over repeated values.
+  while (true) {
+    let request = supabase.from('services').select('category')
+      .not('category', 'is', null).order('category', { ascending: true }).limit(100);
+    if (after !== undefined) request = request.gt('category', after);
+    const { data, error } = await request;
+    if (error) {
+      console.error('Error fetching service categories for admin:', error);
+      throw new Error('Service categories could not load. Check connectivity and admin SELECT access, then retry.');
+    }
+    const values = (data || []) as Array<{ category: string }>;
+    if (!values.length) break;
+    for (const row of values) if (row.category) categories.add(row.category);
+    const last = values[values.length - 1].category;
+    if (last === after) throw new Error('Service categories could not be paginated. Please retry.');
+    after = last;
+  }
+  return [...categories].sort();
+}
+
+
+
+
+
+
+
+// PHASE 3A — Read-only request directory. Existing marketplace helpers are untouched.
+export const ADMIN_REQUESTS_PAGE_SIZE = 12;
+
+export interface AdminRequestRow {
+  id: string;
+  customer_id: string;
+  title: string;
+  description: string | null;
+  category: string | null;
+  location: string | null;
+  budget_max: number | null;
+  created_at: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  customer_avatar_url: string | null;
+}
+
+export interface AdminRequestsQuery {
+  search?: string;
+  category?: string;
+  location?: string;
+  page?: number;
+}
+
+export interface AdminRequestsPage {
+  rows: AdminRequestRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  customerContextError: boolean;
+}
+
+function adminRequestsReadError(error: { code?: string; message?: string }): Error {
+  console.error('Error reading admin requests:', error);
+  return new Error(
+    error.code === '42501' || /row.level security|permission denied|infinite recursion/i.test(error.message || '')
+      ? 'Admin request access was denied. Ask the project owner to verify the existing Requests select for admin and Profiles select for admin policies. No access bypass was attempted.'
+      : 'The requests directory could not load. Check your connection and retry.',
+  );
+}
+
+/** One request page + one customer batch; search adds one bounded profile lookup.
+ * RLS may silently filter SELECT results; an empty page is not proof of deployed admin access.
+ */
+export async function getRequestsForAdmin(query: AdminRequestsQuery = {}): Promise<AdminRequestsPage> {
+  let page = Number.isSafeInteger(query.page) ? Math.max(1, query.page!) : 1;
+  const pageSize = ADMIN_REQUESTS_PAGE_SIZE;
+  // Reuse the established sanitizer; quotes/underscore are also removed from OR values.
+  const search = sanitizeSearchTerm(query.search).replace(/["_]/g, ' ').trim();
+  const location = sanitizeSearchTerm(query.location).replace(/["_]/g, ' ').trim();
+  try {
+    let customerIds: string[] = [];
+    if (search) {
+      const { data, error, count } = await supabase.from('profiles')
+        .select('id', { count: 'exact' })
+        .or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`)
+        .order('id').limit(100);
+      if (error) throw adminRequestsReadError(error);
+      if (count === null) throw new Error('The customer search count was unavailable. Please retry.');
+      if (count > 100) throw new Error('Too many customers match. Narrow your search so request results and totals stay complete.');
+      customerIds = (data || []).map((row: { id: string }) => row.id);
+    }
+
+    // A maximum of two attempts, reusing search matches on out-of-range recovery.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const from = (page - 1) * pageSize;
+      let request = supabase.from('requests')
+        .select('id, customer_id, title, description, category, location, budget_max, created_at', { count: 'exact' })
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .range(from, from + pageSize - 1);
+      if (search) {
+        const filters = ['title', 'description', 'category', 'location'].map((field) => `${field}.ilike.%${search}%`);
+        if (customerIds.length) filters.push(`customer_id.in.(${customerIds.join(',')})`);
+        request = request.or(filters.join(','));
+      }
+      // Exact stored category, with no marketplace normalization or value rewriting.
+      if (query.category) request = request.eq('category', query.category);
+      if (location) request = request.ilike('location', `%${location}%`);
+      const { data, error, count } = await request;
+      if (error) {
+        if (error.code === 'PGRST103' && page > 1) { page = 1; continue; }
+        throw adminRequestsReadError(error);
+      }
+      if (count === null) throw new Error('The exact request count was unavailable. Please retry.');
+      if (page > 1 && (!data?.length || from >= count)) { page = 1; continue; }
+      const requests = (data || []) as Array<Omit<AdminRequestRow, 'customer_name' | 'customer_phone' | 'customer_avatar_url'>>;
+      const ids = [...new Set(requests.map((row) => row.customer_id).filter(Boolean))];
+      type Customer = { id: string; full_name: string | null; phone: string | null; avatar_url: string | null };
+      const customers = new Map<string, Customer>();
+      let customerContextError = false;
+      if (ids.length) {
+        try {
+          const result = await supabase.from('profiles').select('id, full_name, phone, avatar_url').in('id', ids);
+          if (result.error) throw result.error;
+          for (const customer of (result.data || []) as Customer[]) customers.set(customer.id, customer);
+        } catch (error) {
+          console.error('Customer context unavailable for admin requests:', error);
+          customerContextError = true;
+        }
+      }
+      customerContextError ||= requests.some((row) => !customers.has(row.customer_id));
+      return {
+        rows: requests.map((row) => {
+          const customer = customers.get(row.customer_id);
+          return { ...row, customer_name: customer?.full_name ?? null, customer_phone: customer?.phone ?? null, customer_avatar_url: customer?.avatar_url ?? null };
+        }),
+        total: count, page, pageSize, customerContextError,
+      };
+    }
+    throw new Error('The request page changed while loading. Please retry.');
+  } catch (error) {
+    if (error instanceof Error) throw error;
+    throw adminRequestsReadError({ message: 'Network request failed' });
+  }
+}
 
