@@ -1801,3 +1801,154 @@ export async function getRequestsForAdmin(query: AdminRequestsQuery = {}): Promi
   }
 }
 
+// PHASE 3B — Offers observation only. No marketplace mutation helpers are called.
+export const ADMIN_OFFERS_PAGE_SIZE = 12;
+interface AdminOfferRecord {
+  id: string;
+  request_id: string;
+  provider_id: string;
+  message: string | null;
+  price: number | null;
+  estimated_start: string | null;
+  created_at: string;
+}
+export interface AdminOfferRow extends AdminOfferRecord {
+  request_title: string | null;
+  category: string | null;
+  location: string | null;
+  business_name: string | null;
+  owner_name: string | null;
+  customer_name: string | null;
+  customer_phone: string | null;
+}
+export interface AdminOffersQuery {
+  search?: string;
+  requestId?: string;
+  providerId?: string;
+  page?: number;
+}
+export interface AdminOffersPage {
+  rows: AdminOfferRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  contextError: boolean;
+}
+
+function adminOffersReadError(error: unknown): Error {
+  console.error('Admin offers read failed:', error);
+  return new Error('Offers could not load. Check your connection and existing admin SELECT access for offers, requests, providers and profiles, then retry.');
+}
+
+/** Separate read layer: 1 offer page, 2 parallel context batches, 1 combined profile batch.
+ * Search adds 2 bounded ID lookups. Never uses FK embeds or infers offer acceptance.
+ * An RLS-filtered empty SELECT cannot be distinguished from an empty table here.
+ */
+export async function getOffersForAdmin(query: AdminOffersQuery = {}): Promise<AdminOffersPage> {
+  const pageSize = ADMIN_OFFERS_PAGE_SIZE;
+  let page = Number.isSafeInteger(query.page) && query.page! > 0 && query.page! <= Math.floor(Number.MAX_SAFE_INTEGER / pageSize)
+    ? query.page! : 1;
+  const search = sanitizeSearchTerm(query.search).replace(/["_]/g, ' ').trim();
+  const requestId = query.requestId?.trim();
+  const providerId = query.providerId?.trim();
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if ((requestId && !uuid.test(requestId)) || (providerId && !uuid.test(providerId))) {
+    throw new Error('Request ID and Provider ID filters require a full UUID. Clear the filter or enter the complete ID.');
+  }
+  try {
+    let requestMatches: string[] = [];
+    let providerMatches: string[] = [];
+    if (search) {
+      const matches = await Promise.all([
+        supabase.from('requests').select('id', { count: 'exact' })
+          .or(`title.ilike.%${search}%,category.ilike.%${search}%,location.ilike.%${search}%`).order('id').limit(100),
+        supabase.from('providers').select('id', { count: 'exact' })
+          .ilike('business_name', `%${search}%`).order('id').limit(100),
+      ]);
+      for (const match of matches) {
+        if (match.error) throw adminOffersReadError(match.error);
+        if (match.count == null) throw new Error('Search totals are unavailable. Please retry.');
+        if (match.count > 100 || match.count !== (match.data || []).length) {
+          throw new Error('Too many related records match. Narrow your search to keep offer results and totals complete.');
+        }
+      }
+      requestMatches = (matches[0].data || []).map((row: { id: string }) => row.id);
+      providerMatches = (matches[1].data || []).map((row: { id: string }) => row.id);
+    }
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const from = (page - 1) * pageSize;
+      let request = supabase.from('offers')
+        .select('id, request_id, provider_id, message, price, estimated_start, created_at', { count: 'exact' })
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .range(from, from + pageSize - 1);
+      if (search) {
+        const filters = [`message.ilike.%${search}%`];
+        if (requestMatches.length) filters.push(`request_id.in.(${requestMatches.join(',')})`);
+        if (providerMatches.length) filters.push(`provider_id.in.(${providerMatches.join(',')})`);
+        request = request.or(filters.join(','));
+      }
+      if (requestId) request = request.eq('request_id', requestId);
+      if (providerId) request = request.eq('provider_id', providerId);
+      const { data, error, count } = await request;
+      if (error) {
+        if (error.code === 'PGRST103' && page > 1) { page = 1; continue; }
+        throw adminOffersReadError(error);
+      }
+      if (count == null) throw new Error('The exact offer count is unavailable. Please retry.');
+      if (page > 1 && (!data?.length || from >= count)) { page = 1; continue; }
+      const offers = (data || []) as AdminOfferRecord[];
+      const enriched = await enrichAdminOfferPage(offers);
+      return { ...enriched, total: count, page, pageSize };
+    }
+    throw new Error('The offer page changed while loading. Please retry.');
+  } catch (error) {
+    if (error instanceof Error) throw error;
+    throw adminOffersReadError(error);
+  }
+}
+
+
+
+async function enrichAdminOfferPage(offers: AdminOfferRecord[]): Promise<{ rows: AdminOfferRow[]; contextError: boolean }> {
+  type RequestContext = { id: string; customer_id: string; title: string | null; category: string | null; location: string | null };
+  type ProviderContext = { id: string; user_id: string; business_name: string | null };
+  type ProfileContext = { id: string; full_name: string | null; phone: string | null };
+  let contextError = false;
+  async function batch<T extends { id: string }>(table: string, fields: string, ids: string[]): Promise<Map<string, T>> {
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    if (!uniqueIds.length) return new Map();
+    try {
+      const { data, error } = await supabase.from(table).select(fields).in('id', uniqueIds);
+      if (error) throw error;
+      const rows = (data || []) as unknown as T[];
+      if (rows.length !== uniqueIds.length) contextError = true;
+      return new Map(rows.map((row) => [row.id, row]));
+    } catch (error) {
+      console.error(`Admin offer ${table} context unavailable:`, error);
+      contextError = true;
+      return new Map();
+    }
+  }
+  const [requests, providers] = await Promise.all([
+    batch<RequestContext>('requests', 'id, customer_id, title, category, location', offers.map((row) => row.request_id)),
+    batch<ProviderContext>('providers', 'id, user_id, business_name', offers.map((row) => row.provider_id)),
+  ]);
+  const profiles = await batch<ProfileContext>('profiles', 'id, full_name, phone', [
+    ...[...requests.values()].map((row) => row.customer_id),
+    ...[...providers.values()].map((row) => row.user_id),
+  ]);
+  const rows = offers.map((offer) => {
+    const request = requests.get(offer.request_id);
+    const provider = providers.get(offer.provider_id);
+    const customer = request ? profiles.get(request.customer_id) : undefined;
+    const owner = provider ? profiles.get(provider.user_id) : undefined;
+    if (!request || !provider || !customer || !owner) contextError = true;
+    return {
+      ...offer, request_title: request?.title ?? null, category: request?.category ?? null,
+      location: request?.location ?? null, business_name: provider?.business_name ?? null,
+      owner_name: owner?.full_name ?? null, customer_name: customer?.full_name ?? null,
+      customer_phone: customer?.phone ?? null,
+    };
+  });
+  return { rows, contextError };
+}

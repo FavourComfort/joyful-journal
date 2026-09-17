@@ -30,7 +30,9 @@ import { Route as ProviderIdRouteImport } from './routes/provider.$id'
 import { Route as BookingIdRouteImport } from './routes/booking.$id'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminServicesRouteImport } from './routes/admin.services'
+import { Route as AdminRequestsRouteImport } from './routes/admin.requests'
 import { Route as AdminProvidersRouteImport } from './routes/admin.providers'
+import { Route as AdminOffersRouteImport } from './routes/admin.offers'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 
 const SignupRoute = SignupRouteImport.update({
@@ -138,9 +140,19 @@ const AdminServicesRoute = AdminServicesRouteImport.update({
   path: '/admin/services',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRequestsRoute = AdminRequestsRouteImport.update({
+  id: '/admin/requests',
+  path: '/admin/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminProvidersRoute = AdminProvidersRouteImport.update({
   id: '/admin/providers',
   path: '/admin/providers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOffersRoute = AdminOffersRouteImport.update({
+  id: '/admin/offers',
+  path: '/admin/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
@@ -162,7 +174,9 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/offers': typeof AdminOffersRoute
   '/admin/providers': typeof AdminProvidersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/services': typeof AdminServicesRoute
   '/admin/users': typeof AdminUsersRoute
   '/booking/$id': typeof BookingIdRoute
@@ -187,7 +201,9 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/offers': typeof AdminOffersRoute
   '/admin/providers': typeof AdminProvidersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/services': typeof AdminServicesRoute
   '/admin/users': typeof AdminUsersRoute
   '/booking/$id': typeof BookingIdRoute
@@ -213,7 +229,9 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/offers': typeof AdminOffersRoute
   '/admin/providers': typeof AdminProvidersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/services': typeof AdminServicesRoute
   '/admin/users': typeof AdminUsersRoute
   '/booking/$id': typeof BookingIdRoute
@@ -240,7 +258,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/dashboard'
+    | '/admin/offers'
     | '/admin/providers'
+    | '/admin/requests'
     | '/admin/services'
     | '/admin/users'
     | '/booking/$id'
@@ -265,7 +285,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/dashboard'
+    | '/admin/offers'
     | '/admin/providers'
+    | '/admin/requests'
     | '/admin/services'
     | '/admin/users'
     | '/booking/$id'
@@ -290,7 +312,9 @@ export interface FileRouteTypes {
     | '/search'
     | '/signup'
     | '/admin/dashboard'
+    | '/admin/offers'
     | '/admin/providers'
+    | '/admin/requests'
     | '/admin/services'
     | '/admin/users'
     | '/booking/$id'
@@ -316,7 +340,9 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminOffersRoute: typeof AdminOffersRoute
   AdminProvidersRoute: typeof AdminProvidersRoute
+  AdminRequestsRoute: typeof AdminRequestsRoute
   AdminServicesRoute: typeof AdminServicesRoute
   AdminUsersRoute: typeof AdminUsersRoute
   ProviderIdRoute: typeof ProviderIdRoute
@@ -477,11 +503,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/requests': {
+      id: '/admin/requests'
+      path: '/admin/requests'
+      fullPath: '/admin/requests'
+      preLoaderRoute: typeof AdminRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/providers': {
       id: '/admin/providers'
       path: '/admin/providers'
       fullPath: '/admin/providers'
       preLoaderRoute: typeof AdminProvidersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/offers': {
+      id: '/admin/offers'
+      path: '/admin/offers'
+      fullPath: '/admin/offers'
+      preLoaderRoute: typeof AdminOffersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/dashboard': {
@@ -518,7 +558,9 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminOffersRoute: AdminOffersRoute,
   AdminProvidersRoute: AdminProvidersRoute,
+  AdminRequestsRoute: AdminRequestsRoute,
   AdminServicesRoute: AdminServicesRoute,
   AdminUsersRoute: AdminUsersRoute,
   ProviderIdRoute: ProviderIdRoute,
