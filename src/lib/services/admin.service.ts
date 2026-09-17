@@ -983,3 +983,372 @@ export async function getAdminOverview(adminUserId?: string): Promise<AdminOverv
       : new Error('Failed to load the admin overview.');
   }
 }
+// ============================================================================
+// PHASE 2A — USERS MANAGEMENT (read-only user directory)
+// ----------------------------------------------------------------------------
+// Paginated, searchable, role-filterable list of every profile, enriched with
+// the owning provider row where one exists. READ-ONLY: no mutations, no
+// auth.users access (email is not available through the anon-key client — the
+// contact column shows the profile phone). Access is governed by the existing
+// additive "Profiles select for admin" policy in db/rls/admin_moderation.sql;
+// explicit database errors are surfaced without bypassing RLS. SELECT policies
+// can also silently filter rows; this client cannot detect a missing policy.
+// ============================================================================
+
+/** One row on the admin Users table (profile + provider context). */
+export interface AdminUserRow {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  role: 'customer' | 'provider' | 'admin';
+  avatar_url: string | null;
+  created_at: string;
+  /** Present only when the user owns a provider account. */
+  provider_id: string | null;
+  business_name: string | null;
+  verified: boolean | null;
+}
+
+export interface AdminUsersPage {
+  rows: AdminUserRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  /**
+   * True when the provider enrichment fetch failed. Rows and totals are still
+   * returned, but the admin is told provider/business context is incomplete.
+   */
+  providerContextError?: boolean;
+}
+
+export interface AdminUsersQuery {
+  search?: string;
+  role?: AdminRole | '';
+  page?: number;
+  pageSize?: number;
+}
+
+export const ADMIN_USERS_PAGE_SIZE = 12;
+
+/**
+ * Normalise a free-text search term before it is placed inside a PostgREST
+ * `or(...)` filter. Characters that have meaning in the filter grammar
+ * (`,` `(` `)` `%` `*` `\`) are replaced with spaces so a stray character can
+ * never reshape the query, and the term is length-capped.
+ */
+function sanitizeSearchTerm(value?: string): string {
+  return (value ?? '')
+    .replace(/[,()%*\\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+}
+
+/**
+ * Read-only admin users directory with search / role filter / pagination.
+ *
+ * One paginated `profiles` query plus ONE follow-up `providers` fetch for the
+ * provider users on the page (joined in JS by `providers.user_id` — the same
+ * proven pattern as `profileLookup`), so there is never an N+1 per user.
+ *
+ * Throws on error (RLS blocked / network) so the page can surface a clear
+ * admin-facing message instead of silently showing an empty directory.
+ */
+export async function getAllUsersForAdmin(query: AdminUsersQuery = {}): Promise<AdminUsersPage> {
+  const page = Number.isFinite(query.page) ? Math.max(1, Math.floor(query.page!)) : 1;
+  const pageSize = Number.isFinite(query.pageSize)
+    ? Math.min(50, Math.max(5, Math.floor(query.pageSize!)))
+    : ADMIN_USERS_PAGE_SIZE;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  try {
+    let request = supabase
+      .from('profiles')
+      .select('id, full_name, phone, role, avatar_url, created_at', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      // Secondary key keeps page boundaries stable when timestamps collide.
+      .order('id', { ascending: true })
+      .range(from, to);
+
+    const search = sanitizeSearchTerm(query.search);
+    if (search) {
+      // Search across name and phone in one PostgREST `or` filter.
+      request = request.or(
+        `full_name.ilike.%${search}%,phone.ilike.%${search}%`,
+      );
+    }
+    if (query.role === 'customer' || query.role === 'provider' || query.role === 'admin') {
+      request = request.eq('role', query.role);
+    }
+
+    const { data, error, count } = await request;
+    if (error) {
+      // Deep-linking or paging past the end of the data returns 416 / PGRST103.
+      // Retry once from page 1 rather than showing an error for a harmless case.
+      if (error.code === 'PGRST103' || /range not satisfiable/i.test(error.message ?? '')) {
+        if (page > 1) return getAllUsersForAdmin({ ...query, page: 1 });
+        return { rows: [], total: 0, page: 1, pageSize, providerContextError: false };
+      }
+      console.error('Error fetching users for admin:', error);
+      throw new Error(
+        error.code === '42501' || /row-level security/i.test(error.message)
+          ? 'The users directory is blocked by row-level security. Ask a project owner to confirm the "Profiles select for admin" policy is applied.'
+          : 'The users directory could not be loaded.',
+      );
+    }
+
+    const profiles = (data || []) as Array<
+      Pick<AdminUserRow, 'id' | 'full_name' | 'phone' | 'role' | 'avatar_url' | 'created_at'>
+    >;
+
+    // Enrich provider users with their provider row — a single fetch, never N+1.
+    const providerUserIds = profiles
+      .filter((p) => p.role === 'provider')
+      .map((p) => p.id);
+
+    let providersByUserId: Record<
+      string,
+      { provider_id: string; business_name: string; verified: boolean }
+    > = {};
+    let providerContextError = false;
+    if (providerUserIds.length) {
+      const { data: providerRows, error: providersError } = await supabase
+        .from('providers')
+        .select('id, user_id, business_name, verified')
+        .in('user_id', providerUserIds);
+
+      if (providersError) {
+        // Non-fatal: provider context is decoration, the directory still shows.
+        // The flag tells the admin the Provider column is incomplete.
+        console.error('Error fetching provider context for admin users:', providersError);
+        providerContextError = true;
+      } else {
+        providersByUserId = Object.fromEntries(
+          ((providerRows || []) as Array<{
+            id: string;
+            user_id: string;
+            business_name: string;
+            verified: boolean;
+          }>).map((p) => [
+            p.user_id,
+            { provider_id: p.id, business_name: p.business_name, verified: p.verified },
+          ]),
+        );
+      }
+    }
+
+    return {
+      rows: profiles.map((p) => {
+        const provider = providersByUserId[p.id];
+        return {
+          ...p,
+          phone: p.phone ?? null,
+          avatar_url: p.avatar_url ?? null,
+          provider_id: provider?.provider_id ?? null,
+          business_name: provider?.business_name ?? null,
+          verified: provider?.verified ?? null,
+        };
+      }),
+      total: count ?? profiles.length,
+      page,
+      pageSize,
+      providerContextError,
+    };
+  } catch (error) {
+    if (error instanceof Error) throw error;
+    console.error('Exception fetching users for admin:', error);
+    throw new Error('The users directory could not be loaded.');
+  }
+}
+
+// ============================================================================
+// PHASE 2B — PROVIDERS MANAGEMENT (read-only provider directory)
+// ----------------------------------------------------------------------------
+// Paginated, searchable, filterable list of every provider row, enriched with
+// the owning profile (name / phone / avatar) via ONE follow-up profiles fetch.
+// READ-ONLY: no verification toggles here — `setProviderVerified` remains the
+// only provider mutation and is untouched. Access is governed by the existing
+// additive "Providers select for admin" policy in db/rls/admin_moderation.sql;
+// if it is missing the query fails with a clear error instead of bypassing RLS.
+//
+// The only real provider state in the schema is `verified` (boolean) plus an
+// owner `rating`. There is NO suspension / ban / active column, so no such
+// status is displayed or invented.
+// ============================================================================
+
+export type AdminProviderVerification = 'verified' | 'pending';
+
+/** One row on the admin Providers table (provider row + owner contact). */
+export interface AdminProviderRow {
+  id: string;
+  user_id: string;
+  business_name: string;
+  location: string | null;
+  rating: number;
+  verified: boolean;
+  created_at: string;
+  profile_picture_url: string | null;
+  /** Owner profile context (null when the profile could not be resolved). */
+  owner_name: string | null;
+  owner_phone: string | null;
+  owner_avatar_url: string | null;
+}
+
+export interface AdminProvidersPage {
+  rows: AdminProviderRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  /** True when the owner-profile enrichment fetch failed. Rows stay usable. */
+  ownerContextError?: boolean;
+  /**
+   * True when the free-text search matched more owner profiles than can be
+   * folded into a single filter window, so owner-name/phone matches may be
+   * incomplete for that term.
+   */
+  ownerSearchTruncated?: boolean;
+}
+
+export interface AdminProvidersQuery {
+  search?: string;
+  verification?: AdminProviderVerification | '';
+  page?: number;
+  pageSize?: number;
+}
+
+export const ADMIN_PROVIDERS_PAGE_SIZE = 12;
+
+/** Owner profiles folded into one search filter (keeps the request URL small). */
+const ADMIN_PROVIDER_OWNER_SEARCH_LIMIT = 100;
+
+/**
+ * Read-only admin provider directory with search / verification filter /
+ * pagination.
+ *
+ * Query budget per page view: ONE paginated `providers` query (+ ONE capped
+ * `profiles` lookup when a search term is present) + ONE owner-profile
+ * enrichment fetch — never one query per row.
+ *
+ * Throws on error (RLS blocked / network) so the page can surface a clear
+ * admin-facing message instead of silently showing an empty directory.
+ */
+export async function getProvidersForAdmin(
+  query: AdminProvidersQuery = {},
+): Promise<AdminProvidersPage> {
+  const page = Number.isFinite(query.page) ? Math.max(1, Math.floor(query.page!)) : 1;
+  const pageSize = Number.isFinite(query.pageSize)
+    ? Math.min(50, Math.max(5, Math.floor(query.pageSize!)))
+    : ADMIN_PROVIDERS_PAGE_SIZE;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  try {
+    const search = sanitizeSearchTerm(query.search);
+
+    // Owner name / phone live on `profiles`, so resolve the matching user ids
+    // first (one capped query) and fold them into the providers filter below.
+    // This keeps the search fully server-side without a per-row follow-up.
+    let ownerUserIds: string[] = [];
+    let ownerSearchTruncated = false;
+    if (search) {
+      const { data: ownerRows, error: ownerError } = await supabase
+        .from('profiles')
+        .select('id')
+        .or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`)
+        .limit(ADMIN_PROVIDER_OWNER_SEARCH_LIMIT);
+
+      if (ownerError) {
+        console.error('Error searching provider owners for admin:', ownerError);
+      } else {
+        ownerUserIds = ((ownerRows || []) as Array<{ id: string }>).map((r) => r.id);
+        ownerSearchTruncated = ownerUserIds.length >= ADMIN_PROVIDER_OWNER_SEARCH_LIMIT;
+      }
+    }
+
+    let request = supabase
+      .from('providers')
+      .select(
+        'id, user_id, business_name, location, rating, verified, created_at, profile_picture_url',
+        { count: 'exact' },
+      )
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (search) {
+      const filters = [
+        `business_name.ilike.%${search}%`,
+        `location.ilike.%${search}%`,
+      ];
+      if (ownerUserIds.length) filters.push(`user_id.in.(${ownerUserIds.join(',')})`);
+      request = request.or(filters.join(','));
+    }
+    if (query.verification === 'verified') request = request.eq('verified', true);
+    if (query.verification === 'pending') request = request.eq('verified', false);
+
+    const { data, error, count } = await request;
+    if (error) {
+      // Deep-linking or paging past the end of the data returns 416 / PGRST103.
+      // Retry once from page 1 rather than showing an error for a harmless case.
+      if (error.code === 'PGRST103' || /range not satisfiable/i.test(error.message ?? '')) {
+        if (page > 1) return getProvidersForAdmin({ ...query, page: 1 });
+        return { rows: [], total: 0, page: 1, pageSize, ownerSearchTruncated };
+      }
+      console.error('Error fetching providers for admin:', error);
+      throw new Error(
+        error.code === '42501' || /row-level security/i.test(error.message)
+          ? 'The provider directory is blocked by row-level security. Ask a project owner to confirm the "Providers select for admin" policy is applied.'
+          : 'The provider directory could not be loaded.',
+      );
+    }
+
+    const providers = (data || []) as Array<{
+      id: string;
+      user_id: string;
+      business_name: string;
+      location: string | null;
+      rating: number;
+      verified: boolean;
+      created_at: string;
+      profile_picture_url: string | null;
+    }>;
+
+    // Owner enrichment — ONE fetch for every owner on this page (no N+1).
+    const owners = await profileLookup(
+      providers.map((p) => p.user_id).filter(Boolean) as string[],
+    );
+    // Every provider row has an owner profile, so "asked for owners, got none
+    // back" means the profiles lookup (admin SELECT policy) was rejected.
+    const ownerContextError = providers.length > 0 && Object.keys(owners).length === 0;
+
+    return {
+      rows: providers.map((p) => {
+        const owner = owners[p.user_id];
+        return {
+          id: p.id,
+          user_id: p.user_id,
+          business_name: p.business_name,
+          location: p.location ?? null,
+          rating: typeof p.rating === 'number' ? p.rating : 0,
+          verified: Boolean(p.verified),
+          created_at: p.created_at,
+          profile_picture_url: p.profile_picture_url ?? null,
+          owner_name: owner?.full_name ?? null,
+          owner_phone: owner?.phone ?? null,
+          owner_avatar_url: owner?.avatar_url ?? null,
+        };
+      }),
+      total: count ?? providers.length,
+      page,
+      pageSize,
+      ownerContextError,
+      ownerSearchTruncated,
+    };
+  } catch (error) {
+    if (error instanceof Error) throw error;
+    console.error('Exception fetching providers for admin:', error);
+    throw new Error('The provider directory could not be loaded.');
+  }
+}
+
+
