@@ -28,6 +28,13 @@ export interface AdminProvider {
   profile_created_at?: string;
 }
 
+
+
+
+
+
+
+
 export interface AdminStats {
   totalProviders: number;
   pendingVerification: number;
@@ -1952,3 +1959,303 @@ async function enrichAdminOfferPage(offers: AdminOfferRecord[]): Promise<{ rows:
   });
   return { rows, contextError };
 }
+
+// PHASE 3C — Read-only booking directory; no payment queries or marketplace mutations.
+export const ADMIN_BOOKINGS_PAGE_SIZE = 12;
+// Values from db/escrow_schema.sql, bookings.status CHECK constraint.
+export const ADMIN_BOOKING_STATUSES = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled', 'disputed'] as const;
+export interface AdminBookingRow extends Booking {
+  customer_name: string | null;
+  customer_phone: string | null;
+  business_name: string | null;
+  owner_name: string | null;
+  service_title: string | null;
+  category: string | null;
+}
+export interface AdminBookingsQuery {
+  search?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+}
+export interface AdminBookingsPage {
+  rows: AdminBookingRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  contextError: boolean;
+}
+function adminBookingsReadError(error: unknown): Error {
+  console.error('Admin bookings read failed:', error);
+  return new Error('Bookings could not load. Check connectivity and existing admin SELECT access for bookings, profiles, providers and services, then retry.');
+}
+function validAdminBookingDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+/** Bounded reads, not the existing unpaginated moderation helper.
+ * RLS can silently filter SELECT rows; empty results do not prove deployed admin access.
+ */
+export async function getBookingsForAdmin(query: AdminBookingsQuery = {}): Promise<AdminBookingsPage> {
+  const pageSize = ADMIN_BOOKINGS_PAGE_SIZE;
+  let page = Number.isSafeInteger(query.page) && query.page! > 0 && query.page! <= Math.floor(Number.MAX_SAFE_INTEGER / pageSize) ? query.page! : 1;
+  const search = sanitizeSearchTerm(query.search).replace(/["_]/g, ' ').trim();
+  const status = query.status || '';
+  const dateFrom = query.dateFrom || '';
+  const dateTo = query.dateTo || '';
+  if (status && !ADMIN_BOOKING_STATUSES.some((value) => value === status)) throw new Error('Choose a supported booking status.');
+  if ((dateFrom && !validAdminBookingDate(dateFrom)) || (dateTo && !validAdminBookingDate(dateTo))) throw new Error('Enter valid scheduled dates in YYYY-MM-DD format.');
+  if (dateFrom && dateTo && dateFrom > dateTo) throw new Error('Scheduled From must be on or before Scheduled To.');
+  try {
+    const searchFilters: string[] = [];
+    if (search) {
+      const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuid.test(search)) {
+        searchFilters.push(`id.eq.${search}`);
+      } else {
+        const matches = await Promise.all([
+          supabase.from('profiles').select('id', { count: 'exact' }).or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`).order('id').limit(100),
+          supabase.from('providers').select('id', { count: 'exact' }).ilike('business_name', `%${search}%`).order('id').limit(100),
+          supabase.from('services').select('id', { count: 'exact' }).ilike('title', `%${search}%`).order('id').limit(100),
+        ]);
+        const fields = ['customer_id', 'provider_id', 'service_id'];
+        matches.forEach((match, index) => {
+          if (match.error) throw adminBookingsReadError(match.error);
+          if (match.count == null) throw new Error('Search totals are unavailable. Please retry.');
+          if (match.count > 100 || match.count !== (match.data || []).length) throw new Error('Too many related records match. Narrow your search to keep booking results and totals complete.');
+          const ids = (match.data || []).map((row: { id: string }) => row.id);
+          if (ids.length) searchFilters.push(`${fields[index]}.in.(${ids.join(',')})`);
+        });
+        if (!searchFilters.length) return { rows: [], total: 0, page: 1, pageSize, contextError: false };
+      }
+    }
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const from = (page - 1) * pageSize;
+      let request = supabase.from('bookings')
+        .select('id, customer_id, provider_id, service_id, booking_date, start_time, end_time, status, total_amount, created_at', { count: 'exact' })
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .range(from, from + pageSize - 1);
+      if (searchFilters.length) request = request.or(searchFilters.join(','));
+      if (status) request = request.eq('status', status);
+      if (dateFrom) request = request.gte('booking_date', dateFrom);
+      if (dateTo) request = request.lte('booking_date', dateTo);
+      const { data, error, count } = await request;
+      if (error) {
+        if (error.code === 'PGRST103' && page > 1) { page = 1; continue; }
+        throw adminBookingsReadError(error);
+      }
+      if (count == null) throw new Error('The exact booking count is unavailable. Please retry.');
+      if (page > 1 && (!data?.length || from >= count)) { page = 1; continue; }
+      const enriched = await enrichAdminBookingPage((data || []) as Booking[]);
+      return { ...enriched, total: count, page, pageSize };
+    }
+    throw new Error('The booking page changed while loading. Please retry.');
+  } catch (error) {
+    if (error instanceof Error) throw error;
+    throw adminBookingsReadError(error);
+  }
+}
+
+
+/** Three related-table batches for a page, including customers and owners together. */
+async function enrichAdminBookingPage(bookings: Booking[]): Promise<Pick<AdminBookingsPage, 'rows' | 'contextError'>> {
+  let contextError = false;
+  async function batch<T extends { id: string }>(table: string, fields: string, ids: string[]): Promise<Map<string, T>> {
+    const unique = [...new Set(ids.filter(Boolean))];
+    if (!unique.length) return new Map();
+    try {
+      const { data, error } = await supabase.from(table).select(fields).in('id', unique);
+      if (error) throw error;
+      const map = new Map(((data || []) as unknown as T[]).map((row) => [row.id, row]));
+      if (unique.some((id) => !map.has(id))) contextError = true;
+      return map;
+    } catch (error) {
+      console.error(`Admin booking ${table} context unavailable:`, error);
+      contextError = true;
+      return new Map();
+    }
+  }
+  type ProviderContext = { id: string; user_id: string; business_name: string | null };
+  type ServiceContext = { id: string; title: string | null; category: string | null };
+  type ProfileContext = { id: string; full_name: string | null; phone: string | null };
+  const [providers, services] = await Promise.all([
+    batch<ProviderContext>('providers', 'id, user_id, business_name', bookings.map((row) => row.provider_id)),
+    batch<ServiceContext>('services', 'id, title, category', bookings.map((row) => row.service_id)),
+  ]);
+  const profiles = await batch<ProfileContext>('profiles', 'id, full_name, phone', [
+    ...bookings.map((row) => row.customer_id), ...[...providers.values()].map((row) => row.user_id),
+  ]);
+  const rows = bookings.map((booking) => {
+    const provider = providers.get(booking.provider_id);
+    const service = services.get(booking.service_id);
+    const customer = profiles.get(booking.customer_id);
+    const owner = provider ? profiles.get(provider.user_id) : undefined;
+    if (!customer || !provider || !owner || (booking.service_id && !service)) contextError = true;
+    return {
+      ...booking, customer_name: customer?.full_name ?? null, customer_phone: customer?.phone ?? null,
+      business_name: provider?.business_name ?? null, owner_name: owner?.full_name ?? null,
+      service_title: service?.title ?? null, category: service?.category ?? null,
+    };
+  });
+  return { rows, contextError };
+}
+
+// PHASE 4A — Read-only Finance/Transactions directory over existing `payments` records.
+// No payment/escrow mutations, no service-role, no auth.users access.
+export const ADMIN_FINANCE_PAGE_SIZE = 12;
+// Stored values from the payments.payment_status CHECK constraint (db/escrow_schema.sql).
+export const ADMIN_PAYMENT_STATUSES = ['pending', 'escrowed', 'released', 'failed', 'refunded', 'disputed'] as const;
+export interface AdminFinanceRow extends Payment {
+  customer_name: string | null;
+  customer_phone: string | null;
+  business_name: string | null;
+  owner_name: string | null;
+  service_title: string | null;
+  booking_status: string | null;
+  booking_id_label: string | null;
+}
+export interface AdminFinanceQuery {
+  search?: string;
+  status?: string;
+  method?: string;
+  page?: number;
+}
+export interface AdminFinancePage {
+  rows: AdminFinanceRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  contextError: boolean;
+  methods: string[];
+}
+function adminFinanceReadError(error: unknown): Error {
+  console.error('Admin finance read failed:', error);
+  return new Error('Financial records could not load. Check connectivity and existing admin SELECT access for payments, bookings, profiles, providers and services, then retry.');
+}
+/** Page-scoped payments SELECT with exact count; related search lookups are capped at 100. */
+export async function getFinanceForAdmin(query: AdminFinanceQuery = {}): Promise<AdminFinancePage> {
+  const pageSize = ADMIN_FINANCE_PAGE_SIZE;
+  let page = Number.isSafeInteger(query.page) && query.page! > 0 && query.page! <= Math.floor(Number.MAX_SAFE_INTEGER / pageSize) ? query.page! : 1;
+  const search = sanitizeSearchTerm(query.search).replace(/["_]/g, ' ').trim();
+  const status = query.status || '';
+  const method = query.method || '';
+  if (status && !ADMIN_PAYMENT_STATUSES.some((value) => value === status)) throw new Error('Choose a supported payment status.');
+  try {
+    let methods: string[] = [];
+    try {
+      const methodResult = await supabase.from('payments').select('payment_method').order('payment_method', { ascending: true }).limit(200);
+      if (methodResult.error) throw methodResult.error;
+      methods = [...new Set((methodResult.data || []).map((row: { payment_method: string | null }) => row.payment_method).filter(Boolean))] as string[];
+    } catch (error) {
+      console.error('Admin finance payment methods unavailable:', error);
+    }
+    const searchFilters: string[] = [];
+    const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (search && uuid.test(search)) {
+      searchFilters.push(`id.eq.${search}`);
+    } else if (search) {
+      searchFilters.push(`transaction_ref.ilike.%${search}%`);
+      const matches = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact' }).or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`).order('id').limit(100),
+        supabase.from('providers').select('id', { count: 'exact' }).ilike('business_name', `%${search}%`).order('id').limit(100),
+      ]);
+      const fields = ['customer_id', 'provider_id'];
+      matches.forEach((match, index) => {
+        if (match.error) throw adminFinanceReadError(match.error);
+        if (match.count == null) throw new Error('Search totals are unavailable. Please retry.');
+        if (match.count > 100 || match.count !== (match.data || []).length) throw new Error('Too many related records match. Narrow your search to keep payment results and totals complete.');
+        const ids = (match.data || []).map((row: { id: string }) => row.id);
+        if (ids.length) searchFilters.push(`${fields[index]}.in.(${ids.join(',')})`);
+      });
+      const serviceMatches = await supabase.from('services').select('id', { count: 'exact' }).ilike('title', `%${search}%`).order('id').limit(100);
+      if (serviceMatches.error) throw adminFinanceReadError(serviceMatches.error);
+      if (serviceMatches.count == null) throw new Error('Search totals are unavailable. Please retry.');
+      if (serviceMatches.count > 100 || serviceMatches.count !== (serviceMatches.data || []).length) throw new Error('Too many related records match. Narrow your search to keep payment results and totals complete.');
+      const serviceIds = (serviceMatches.data || []).map((row: { id: string }) => row.id);
+      if (serviceIds.length) {
+        const bookingMatches = await supabase.from('bookings').select('id', { count: 'exact' }).in('service_id', serviceIds).order('id').limit(100);
+        if (bookingMatches.error) throw adminFinanceReadError(bookingMatches.error);
+        if (bookingMatches.count == null) throw new Error('Search totals are unavailable. Please retry.');
+        if (bookingMatches.count > 100 || bookingMatches.count !== (bookingMatches.data || []).length) throw new Error('Too many related records match. Narrow your search to keep payment results and totals complete.');
+        const bookingIds = (bookingMatches.data || []).map((row: { id: string }) => row.id);
+        if (bookingIds.length) searchFilters.push(`booking_id.in.(${bookingIds.join(',')})`);
+      }
+      if (!searchFilters.length) return { rows: [], total: 0, page: 1, pageSize, contextError: false, methods };
+    }
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const from = (page - 1) * pageSize;
+      let request = supabase.from('payments')
+        // NOTE: deployed payments table has no released_at column (repo escrow_schema.sql defines it, but it is not applied live)
+        .select('id, booking_id, customer_id, provider_id, amount, currency, payment_status, payment_method, transaction_ref, platform_fee, provider_amount, failure_reason, paid_at, created_at, updated_at', { count: 'exact' })
+        .order('created_at', { ascending: false }).order('id', { ascending: false })
+        .range(from, from + pageSize - 1);
+      if (searchFilters.length) request = request.or(searchFilters.join(','));
+      if (status) request = request.eq('payment_status', status);
+      if (method) request = request.eq('payment_method', method);
+      const { data, error, count } = await request;
+      if (error) { if (error.code === 'PGRST103' && page > 1) { page = 1; continue; } throw adminFinanceReadError(error); }
+      if (count == null) throw new Error('The exact payment count is unavailable. Please retry.');
+      if (page > 1 && (!data?.length || from >= count)) { page = 1; continue; }
+      const enriched = await enrichAdminFinancePage((data || []) as Payment[]);
+      return { ...enriched, total: count, page, pageSize, methods };
+    }
+        throw new Error('The payment page changed while loading. Please retry.');
+  } catch (error) {
+    if (error instanceof Error) throw error;
+    throw adminFinanceReadError(error);
+  }
+}
+
+/** Bounded batched lookups (payments, profiles, providers, services, bookings); no per-row queries. */
+async function enrichAdminFinancePage(payments: Payment[]): Promise<Pick<AdminFinancePage, 'rows' | 'contextError'>> {
+  let contextError = false;
+  async function batch<T extends { id: string }>(table: string, fields: string, ids: string[]): Promise<Map<string, T>> {
+    const unique = [...new Set(ids.filter(Boolean))];
+    if (!unique.length) return new Map();
+    try {
+      const { data, error } = await supabase.from(table).select(fields).in('id', unique);
+      if (error) throw error;
+      const map = new Map(((data || []) as unknown as T[]).map((row) => [row.id, row]));
+      if (unique.some((id) => !map.has(id))) contextError = true;
+      return map;
+    } catch (error) {
+      console.error(`Admin finance ${table} context unavailable:`, error);
+      contextError = true;
+      return new Map();
+    }
+  }
+  const [providers, paymentsWithBooking] = await Promise.all([
+    batch<{ id: string; user_id: string; business_name: string | null }>('providers', 'id, user_id, business_name', payments.map((row) => row.provider_id)),
+    batch<{ id: string; service_id: string | null; status: string | null }>('bookings', 'id, service_id, status', payments.map((row) => row.booking_id)),
+  ]);
+  const services = await batch<{ id: string; title: string | null }>('services', 'id, title',
+    [...paymentsWithBooking.values()].map((row) => row.service_id).filter((id): id is string => Boolean(id)));
+  const profiles = await batch<{ id: string; full_name: string | null; phone: string | null }>('profiles', 'id, full_name, phone', [
+    ...payments.map((row) => row.customer_id),
+    ...[...providers.values()].map((row) => row.user_id),
+  ]);
+  const rows = payments.map((payment) => {
+    const provider = providers.get(payment.provider_id);
+    const booking = payment.booking_id ? paymentsWithBooking.get(payment.booking_id) : undefined;
+    const resolvedService = booking?.service_id ? services.get(booking.service_id) : undefined;
+    const customer = profiles.get(payment.customer_id);
+    const owner = provider ? profiles.get(provider.user_id) : undefined;
+    if (!customer || !provider || !owner || (payment.booking_id && !paymentsWithBooking.has(payment.booking_id))) contextError = true;
+    return {
+      ...payment,
+      customer_name: customer?.full_name ?? null,
+      customer_phone: customer?.phone ?? null,
+      business_name: provider?.business_name ?? null,
+      owner_name: owner?.full_name ?? null,
+      service_title: resolvedService?.title ?? null,
+      booking_status: booking?.status ?? null,
+      booking_id_label: payment.booking_id ? `#${payment.booking_id.slice(0, 8)}` : null,
+    };
+  });
+    return { rows, contextError };
+}
+
+
+

@@ -33,7 +33,9 @@ import { Route as AdminServicesRouteImport } from './routes/admin.services'
 import { Route as AdminRequestsRouteImport } from './routes/admin.requests'
 import { Route as AdminProvidersRouteImport } from './routes/admin.providers'
 import { Route as AdminOffersRouteImport } from './routes/admin.offers'
+import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminBookingsRouteImport } from './routes/admin.bookings'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -155,9 +157,19 @@ const AdminOffersRoute = AdminOffersRouteImport.update({
   path: '/admin/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminFinanceRoute = AdminFinanceRouteImport.update({
+  id: '/admin/finance',
+  path: '/admin/finance',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/admin/dashboard',
   path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminBookingsRoute = AdminBookingsRouteImport.update({
+  id: '/admin/bookings',
+  path: '/admin/bookings',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -173,7 +185,9 @@ export interface FileRoutesByFullPath {
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/admin/bookings': typeof AdminBookingsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/providers': typeof AdminProvidersRoute
   '/admin/requests': typeof AdminRequestsRoute
@@ -200,7 +214,9 @@ export interface FileRoutesByTo {
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/admin/bookings': typeof AdminBookingsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/providers': typeof AdminProvidersRoute
   '/admin/requests': typeof AdminRequestsRoute
@@ -228,7 +244,9 @@ export interface FileRoutesById {
   '/post-request': typeof PostRequestRoute
   '/search': typeof SearchRoute
   '/signup': typeof SignupRoute
+  '/admin/bookings': typeof AdminBookingsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/finance': typeof AdminFinanceRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/providers': typeof AdminProvidersRoute
   '/admin/requests': typeof AdminRequestsRoute
@@ -257,7 +275,9 @@ export interface FileRouteTypes {
     | '/post-request'
     | '/search'
     | '/signup'
+    | '/admin/bookings'
     | '/admin/dashboard'
+    | '/admin/finance'
     | '/admin/offers'
     | '/admin/providers'
     | '/admin/requests'
@@ -284,7 +304,9 @@ export interface FileRouteTypes {
     | '/post-request'
     | '/search'
     | '/signup'
+    | '/admin/bookings'
     | '/admin/dashboard'
+    | '/admin/finance'
     | '/admin/offers'
     | '/admin/providers'
     | '/admin/requests'
@@ -311,7 +333,9 @@ export interface FileRouteTypes {
     | '/post-request'
     | '/search'
     | '/signup'
+    | '/admin/bookings'
     | '/admin/dashboard'
+    | '/admin/finance'
     | '/admin/offers'
     | '/admin/providers'
     | '/admin/requests'
@@ -339,7 +363,9 @@ export interface RootRouteChildren {
   PostRequestRoute: typeof PostRequestRoute
   SearchRoute: typeof SearchRoute
   SignupRoute: typeof SignupRoute
+  AdminBookingsRoute: typeof AdminBookingsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminFinanceRoute: typeof AdminFinanceRoute
   AdminOffersRoute: typeof AdminOffersRoute
   AdminProvidersRoute: typeof AdminProvidersRoute
   AdminRequestsRoute: typeof AdminRequestsRoute
@@ -524,11 +550,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOffersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/finance': {
+      id: '/admin/finance'
+      path: '/admin/finance'
+      fullPath: '/admin/finance'
+      preLoaderRoute: typeof AdminFinanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/admin/dashboard'
       fullPath: '/admin/dashboard'
       preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/bookings': {
+      id: '/admin/bookings'
+      path: '/admin/bookings'
+      fullPath: '/admin/bookings'
+      preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -557,7 +597,9 @@ const rootRouteChildren: RootRouteChildren = {
   PostRequestRoute: PostRequestRoute,
   SearchRoute: SearchRoute,
   SignupRoute: SignupRoute,
+  AdminBookingsRoute: AdminBookingsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminFinanceRoute: AdminFinanceRoute,
   AdminOffersRoute: AdminOffersRoute,
   AdminProvidersRoute: AdminProvidersRoute,
   AdminRequestsRoute: AdminRequestsRoute,
