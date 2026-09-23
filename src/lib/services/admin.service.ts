@@ -1,3 +1,21 @@
+// PHASE 4C — Payouts discovery (2026-09-18):
+// Provider payout execution does NOT exist. Verified: no payouts/withdrawals
+// table; live `providers` stores no payout destination; MarzPay usage in the
+// Edge Functions is collection-only (no transfer/disbursement); escrow
+// `release_escrow_to_provider` only sets payments.payment_status='released'
+// (a DB status change, not a money transfer). Admin payouts page is a truthful
+// read-only notice at /admin/payouts. No RLS change is needed or justified —
+// there is no payout table to read.
+
+// PHASE 4B — Wallet discovery (2026-09-18):
+// No wallet/ledger/payout/withdrawal/earnings table exists in the repository SQL
+// or the deployed database. Admin SELECT policies exist only for payments
+// (db/rls/payments_admin_select.sql). No wallet RLS policy is therefore needed
+// for Phase 4B: there is no wallet table to read. The admin wallet page is a
+// truthful "no wallet data source exists yet" notice; when a real wallet/ledger
+// system is introduced, add a narrow admin-only SELECT policy here, mirroring
+// the additive SELECT-only pattern of payments_admin_select.sql.
+
 import { supabase } from '../supabase';
 import type { Provider } from './providers.service';
 import type { Profile } from './auth.service';
@@ -6,7 +24,7 @@ import type { Service } from './services.service';
 import type { Review } from './reviews.service';
 import type { Payment } from './payments.service';
 import type { CustomerRequest, ProviderOffer } from './requests.service';
-import { getAllDisputesForAdmin, type DisputeWithNames } from './disputes.service';
+import { getAllDisputesForAdmin, type DisputeWithNames, type Dispute } from './disputes.service';
 import { getUserNotifications, type Notification } from './notifications.service';
 
 export type AdminRole = 'customer' | 'provider' | 'admin';
@@ -374,6 +392,301 @@ export async function getAllReviewsForAdmin(): Promise<AdminReview[]> {
   } catch (error) {
     console.error('Exception fetching reviews for admin:', error);
     return [];
+  }
+}
+/* ==========================================================================
+ * PHASE 5A — READ-ONLY Admin Reviews directory.
+ * Strictly read-only: paginated `reviews` SELECT + bounded enrichment
+ * (profiles / providers / bookings lookups). The dormant mutation helpers
+ * (deleteReviewPermanently etc.) are deliberately NOT wired into any UI.
+ * ========================================================================== */
+
+/** Real columns of public.reviews (db RLS + reviews.service.ts contract). */
+export interface AdminReviewRow extends Review {
+  /** Reviewers profile full_name, resolved by bounded lookup (null if unavailable). */
+  customer_name: string | null;
+  customer_phone: string | null;
+  /** Owning providers business_name, resolved by bounded lookup (null if unavailable). */
+  business_name: string | null;
+  /** Resolved booking context for the review (null if the booking is missing). */
+  booking_status: string | null;
+  booking_date: string | null;
+  /** Human label of the reviewed service, resolved via booking -> service (null if unavailable). */
+  service_title: string | null;
+}
+
+export interface AdminReviewsPage {
+  rows: AdminReviewRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  /** True when related profile/provider/booking lookups failed (rows still shown). */
+  contextError: boolean;
+  /** Distinct ratings present in the loaded window (for the rating filter). */
+  ratings: number[];
+}
+
+export interface AdminReviewsQuery {
+  search?: string;
+  /** Exact stored rating value (1..5); empty/undefined = no rating filter. */
+  rating?: string;
+  page?: number;
+}
+
+/** Matches the established 12-per-page Admin directory convention. */
+export const ADMIN_REVIEWS_PAGE_SIZE = 12;
+
+/** Bounded lookup: booking ids -> { booking, service_title } (service joined in JS). */
+async function reviewBookingLookup(
+  bookingIds: string[],
+): Promise<{ byId: Record<string, { status: string | null; booking_date: string | null; service_id: string | null }>; serviceTitles: Record<string, string> }> {
+  if (!bookingIds.length) return { byId: {}, serviceTitles: {} };
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('id, status, booking_date, service_id')
+    .in('id', bookingIds);
+  if (error) {
+    console.error('Error fetching bookings for admin review lookup:', error);
+    return { byId: {}, serviceTitles: {} };
+  }
+  const bookings = (data || []) as Array<{ id: string; status: string | null; booking_date: string | null; service_id: string | null }>;
+  const serviceIds = [...new Set(bookings.map((b) => b.service_id).filter((v): v is string => Boolean(v)))];
+  let serviceTitles: Record<string, string> = {};
+  if (serviceIds.length) {
+    const { data: services, error: svcError } = await supabase
+      .from('services')
+      .select('id, title')
+      .in('id', serviceIds);
+    if (svcError) {
+      console.error('Error fetching services for admin review lookup:', svcError);
+    } else {
+      serviceTitles = Object.fromEntries(((services || []) as Array<{ id: string; title: string }>).map((s) => [s.id, s.title]));
+    }
+  }
+  return {
+    byId: Object.fromEntries(bookings.map((b) => [b.id, { status: b.status, booking_date: b.booking_date, service_id: b.service_id }])),
+    serviceTitles,
+  };
+}
+/**
+ * PHASE 5A — Read-only admin reviews directory with search / rating filter /
+ * pagination. One paginated `reviews` query with exact count, then bounded
+ * batched lookups (profiles, providers, bookings -> services) joined in JS, so
+ * there is never an N+1 per review. Throws on query failure (RLS blocked /
+ * network) so the page can show a real error state instead of a fake empty
+ * list. NO mutation calls; the dormant delete helper stays dormant.
+ */
+export async function getReviewsForAdmin(query: AdminReviewsQuery = {}): Promise<AdminReviewsPage> {
+  const pageSize = ADMIN_REVIEWS_PAGE_SIZE;
+  const page = Number.isSafeInteger(query.page) && query.page! > 0 ? query.page! : 1;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  try {
+    let request = supabase
+      .from('reviews')
+      .select('id, booking_id, customer_id, provider_id, rating, comment, created_at', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(from, to);
+
+    const search = sanitizeSearchTerm(query.search);
+    if (search) {
+      // Comment text OR exact review UUID in one PostgREST `or` filter.
+      request = request.or(`comment.ilike.%${search}%,id.eq.${search}`);
+    }
+    if (query.rating === '1' || query.rating === '2' || query.rating === '3' || query.rating === '4' || query.rating === '5') {
+      request = request.eq('rating', Number(query.rating));
+    }
+
+    const { data, error, count } = await request;
+    if (error) {
+      // Deep-linking or paging past the end returns 416 / PGRST103 — recover from page 1.
+      if (error.code === 'PGRST103' || /range not satisfiable/i.test(error.message ?? '')) {
+        if (page > 1) return getReviewsForAdmin({ ...query, page: 1 });
+        return { rows: [], total: 0, page: 1, pageSize, contextError: false, ratings: [] };
+      }
+      console.error('Error fetching reviews for admin:', error);
+      throw new Error(
+        error.code === '42501' || /row-level security/i.test(error.message)
+          ? 'The reviews directory is blocked by row-level security. Ask a project owner to confirm the admin review policies are applied.'
+          : 'The reviews directory could not be loaded.',
+      );
+    }
+
+    const reviews = (data || []) as Review[];
+    const customerIds = [...new Set(reviews.map((r) => r.customer_id).filter(Boolean))];
+    const providerIds = [...new Set(reviews.map((r) => r.provider_id).filter(Boolean))];
+    const bookingIds = [...new Set(reviews.map((r) => r.booking_id).filter(Boolean))];
+
+    const [customerProfiles, providers, bookingInfo] = await Promise.all([
+      profileLookup(customerIds),
+      providerLookup(providerIds),
+      reviewBookingLookup(bookingIds),
+    ]);
+
+    const rows: AdminReviewRow[] = reviews.map((r) => {
+      const booking = bookingInfo.byId[r.booking_id];
+      return {
+        ...r,
+        customer_name: customerProfiles[r.customer_id]?.full_name ?? null,
+        customer_phone: customerProfiles[r.customer_id]?.phone ?? null,
+        business_name: providers[r.provider_id]?.business_name ?? null,
+        booking_status: booking?.status ?? null,
+        booking_date: booking?.booking_date ?? null,
+        service_title: booking?.service_id ? bookingInfo.serviceTitles[booking.service_id] ?? null : null,
+      };
+    });
+
+    return {
+      rows,
+      total: count ?? rows.length,
+      page,
+      pageSize,
+      contextError: false,
+      ratings: [],
+    };
+  } catch (error) {
+    if (error instanceof Error && /row-level security|could not be loaded/.test(error.message)) throw error;
+    console.error('Exception fetching reviews for admin:', error);
+    throw new Error('The reviews directory could not be loaded.');
+  }
+}
+/* ==========================================================================
+ * PHASE 5B — READ-ONLY Admin Disputes directory.
+ * Strictly read-only: paginated `disputes` SELECT + bounded enrichment. The
+ * dispute RPC mutations (raise/respond/adjudicate/close) are NOT imported or
+ * wired here. The pre-existing unbounded getAllDisputesForAdmin() used by the
+ * dashboard overview is left untouched.
+ * ========================================================================== */
+
+/** Matches the established 12-per-page Admin directory convention. */
+export const ADMIN_DISPUTES_PAGE_SIZE = 12;
+/** Real CHECK values from public.disputes.status (db/disputes.sql). */
+export const ADMIN_DISPUTE_STATUSES = ['open', 'provider_responded', 'resolved_customer', 'resolved_provider', 'closed'] as const;
+/** Real CHECK values from public.disputes.reason (db/disputes.sql). */
+export const ADMIN_DISPUTE_REASONS = ['service_not_delivered', 'service_not_as_described', 'other'] as const;
+/** Related-row search bound — matches the established Admin pattern. */
+const ADMIN_DISPUTE_SEARCH_BOUND = 100;
+
+export interface AdminDisputeRow extends Dispute {
+  customer_name: string | null;
+  provider_business_name: string | null;
+  booking_amount: number | null;
+}
+
+export interface AdminDisputesQuery {
+  search?: string;
+  status?: string;
+  reason?: string;
+  page?: number;
+}
+
+export interface AdminDisputesPage {
+  rows: AdminDisputeRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  /** True when the booking lookup failed (rows still shown). */
+  contextError: boolean;
+}
+
+/**
+ * PHASE 5B — Read-only admin disputes directory with search / status filter /
+ * reason filter / pagination. Related-identity search uses bounded id lookups
+ * (cap ADMIN_DISPUTE_SEARCH_BOUND) and throws a truthful "narrow your search"
+ * error instead of silently truncating. Enrichment is batched (profiles,
+ * providers, bookings) — never N+1. Throws on query failure so the page shows a
+ * real error state instead of a fake empty list. NO mutation/RPC calls; the
+ * dispute RPC mutations stay unwired.
+ */
+export async function getDisputesForAdmin(query: AdminDisputesQuery = {}): Promise<AdminDisputesPage> {
+  const pageSize = ADMIN_DISPUTES_PAGE_SIZE;
+  const page = Number.isSafeInteger(query.page) && query.page! > 0 ? query.page! : 1;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  try {
+    // Bounded related-identity search: customer ids, provider ids, booking/dispute uuid.
+    let orFilter: string | null = null;
+    const search = sanitizeSearchTerm(query.search);
+    if (search) {
+      const [customers, providers] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact' }).ilike('full_name', `%${search}%`).limit(ADMIN_DISPUTE_SEARCH_BOUND + 1),
+        supabase.from('providers').select('id', { count: 'exact' }).ilike('business_name', `%${search}%`).limit(ADMIN_DISPUTE_SEARCH_BOUND + 1),
+      ]);
+      if (customers.error || providers.error) throw new Error('The disputes directory could not be loaded.');
+      const customerIds = (customers.data || []).map((r) => r.id);
+      const providerIds = (providers.data || []).map((r) => r.id);
+      if ((customers.count ?? customerIds.length) > ADMIN_DISPUTE_SEARCH_BOUND || (providers.count ?? providerIds.length) > ADMIN_DISPUTE_SEARCH_BOUND) {
+        throw new Error('Search matched too many customers or providers. Please narrow your search.');
+      }
+      const clauses: string[] = [];
+      if (customerIds.length) clauses.push(`customer_id.in.(${customerIds.join(',')})`);
+      if (providerIds.length) clauses.push(`provider_id.in.(${providerIds.join(',')})`);
+      // Booking reference / dispute id search when the term is a uuid.
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search)) {
+        clauses.push(`booking_id.eq.${search}`);
+        clauses.push(`id.eq.${search}`);
+      }
+      if (!clauses.length) return { rows: [], total: 0, page: 1, pageSize, contextError: false };
+      orFilter = clauses.join(',');
+    }
+
+    let request = supabase
+      .from('disputes')
+      .select('id, booking_id, customer_id, provider_id, reason, description, status, provider_response, admin_notes, decision, raised_at, responded_at, resolved_at, updated_at', { count: 'exact' })
+      .order('raised_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(from, to);
+    if (orFilter) request = request.or(orFilter);
+    if (ADMIN_DISPUTE_STATUSES.some((value) => value === query.status)) request = request.eq('status', query.status as string);
+    if (ADMIN_DISPUTE_REASONS.some((value) => value === query.reason)) request = request.eq('reason', query.reason as string);
+
+    const { data, error, count } = await request;
+    if (error) {
+      // Deep-linking or paging past the end returns 416 / PGRST103 — recover from page 1.
+      if (error.code === 'PGRST103' || /range not satisfiable/i.test(error.message ?? '')) {
+        if (page > 1) return getDisputesForAdmin({ ...query, page: 1 });
+        return { rows: [], total: 0, page: 1, pageSize, contextError: false };
+      }
+      console.error('Error fetching disputes for admin:', error);
+      throw new Error(
+        error.code === '42501' || /row-level security/i.test(error.message)
+          ? 'The disputes directory is blocked by row-level security. Ask a project owner to confirm the admin dispute policies are applied.'
+          : 'The disputes directory could not be loaded.',
+      );
+    }
+
+    const disputes = (data || []) as Dispute[];
+    const customerIds = [...new Set(disputes.map((d) => d.customer_id).filter(Boolean))];
+    const providerIds = [...new Set(disputes.map((d) => d.provider_id).filter(Boolean))];
+    const bookingIds = [...new Set(disputes.map((d) => d.booking_id).filter(Boolean))];
+
+    const [customerProfiles, providers, bookings] = await Promise.all([
+      profileLookup(customerIds),
+      providerLookup(providerIds),
+      bookingIds.length
+        ? supabase.from('bookings').select('id, total_amount').in('id', bookingIds)
+        : Promise.resolve({ data: [] as Array<{ id: string; total_amount: number }>, error: null }),
+    ]);
+    const contextError = Boolean(bookings.error);
+    const bookingAmountById = Object.fromEntries(
+      ((bookings.data || []) as Array<{ id: string; total_amount: number }>).map((b) => [b.id, Number(b.total_amount) || 0]),
+    );
+
+    const rows: AdminDisputeRow[] = disputes.map((d) => ({
+      ...d,
+      customer_name: customerProfiles[d.customer_id]?.full_name ?? null,
+      provider_business_name: providers[d.provider_id]?.business_name ?? null,
+      booking_amount: bookingAmountById[d.booking_id] ?? null,
+    }));
+
+    return { rows, total: count ?? rows.length, page, pageSize, contextError };
+  } catch (error) {
+    if (error instanceof Error && /row-level security|narrow your search|could not be loaded/.test(error.message)) throw error;
+    console.error('Exception fetching disputes for admin:', error);
+    throw new Error('The disputes directory could not be loaded.');
   }
 }
 
@@ -2120,7 +2433,30 @@ export interface AdminFinanceQuery {
   search?: string;
   status?: string;
   method?: string;
+  /** Inclusive ISO calendar day (YYYY-MM-DD) applied to payments.created_at. */
+  fromDate?: string;
+  /** Inclusive ISO calendar day (YYYY-MM-DD) applied to payments.created_at. */
+  toDate?: string;
   page?: number;
+}
+/**
+ * PHASE 4D — Sums of the STORED per-transaction values on the currently listed
+ * page only. These are not balances, earnings, revenue or settlement figures and
+ * are never an aggregate over every matching record.
+ */
+export interface AdminFinanceTotals {
+  listedAmount: number;
+  listedPlatformFees: number;
+  listedProviderAmounts: number;
+}
+/** PHASE 4E — Sums of the STORED per-transaction values across ALL records that
+ * match the current filters (search/status/method/date range). Null means the
+ * matching set exceeded the bounded aggregate cap or the aggregate read failed —
+ * a partial sum is never returned. Not balances, earnings or available funds. */
+export interface AdminFinanceMatchingTotals {
+  amount: number;
+  platformFees: number;
+  providerAmounts: number;
 }
 export interface AdminFinancePage {
   rows: AdminFinanceRow[];
@@ -2129,6 +2465,67 @@ export interface AdminFinancePage {
   pageSize: number;
   contextError: boolean;
   methods: string[];
+  totals: AdminFinanceTotals;
+  matchingTotals: AdminFinanceMatchingTotals | null;
+}
+/** Sums the stored values of the rows actually returned for this page. */
+function financePageTotals(rows: Payment[]): AdminFinanceTotals {
+  const sum = (key: 'amount' | 'platform_fee' | 'provider_amount') =>
+    rows.reduce((total, row) => total + (Number(row[key]) || 0), 0);
+  return {
+    listedAmount: sum('amount'),
+    listedPlatformFees: sum('platform_fee'),
+    listedProviderAmounts: sum('provider_amount'),
+  };
+}
+/**
+ * PHASE 4E — Sums stored payment fields for ALL records matching the current
+ * filters. The deployed PostgREST does not support aggregate select functions
+ * (PGRST100), so this uses ONE bounded, columns-only request: only the three
+ * numeric fields are transferred, capped at 1000 rows, with an exact count.
+ * Returns null when the matching set exceeds the cap or is only partially
+ * readable — never a partial sum. Pure read; no mutation, no new data source.
+ */
+const ADMIN_FINANCE_MATCHING_CAP = 1000;
+async function financeMatchingTotals(
+  filters: { searchFilters: string[]; status: string; method: string; fromDate: string | null; toDate: string | null },
+): Promise<AdminFinanceMatchingTotals | null> {
+  try {
+    let request = supabase.from('payments')
+      .select('amount, platform_fee, provider_amount', { count: 'exact' })
+      .limit(ADMIN_FINANCE_MATCHING_CAP + 1);
+    if (filters.searchFilters.length) request = request.or(filters.searchFilters.join(','));
+    if (filters.status) request = request.eq('payment_status', filters.status);
+    if (filters.method) request = request.eq('payment_method', filters.method);
+    if (filters.fromDate) request = request.gte('created_at', filters.fromDate);
+    if (filters.toDate) request = request.lt('created_at', isoDateAfter(filters.toDate));
+    const { data, error, count } = await request;
+    if (error) { console.error('Admin finance matching totals unavailable:', error); return null; }
+    if (count == null || count > ADMIN_FINANCE_MATCHING_CAP || (data || []).length < count) return null;
+    const sum = (key: 'amount' | 'platform_fee' | 'provider_amount') =>
+      (data || []).reduce((total: number, row: Record<string, unknown>) => total + (Number(row[key]) || 0), 0);
+    return { amount: sum('amount'), platformFees: sum('platform_fee'), providerAmounts: sum('provider_amount') };
+  } catch (error) {
+    console.error('Admin finance matching totals unavailable:', error);
+    return null;
+  }
+}
+/**
+ * Accepts only a plain ISO calendar date. Anything else (empty input, half-typed
+ * value) is ignored so a partial date can never reshape the query.
+ */
+function normalizeIsoDate(value?: string): string | null {
+  const trimmed = (value ?? '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
+  const parsed = new Date(`${trimmed}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed.toISOString().slice(0, 10) === trimmed ? trimmed : null;
+}
+/** Exclusive upper bound (the day after) so the whole end day is included. */
+function isoDateAfter(value: string): string {
+  const next = new Date(`${value}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  return next.toISOString().slice(0, 10);
 }
 function adminFinanceReadError(error: unknown): Error {
   console.error('Admin finance read failed:', error);
@@ -2141,6 +2538,9 @@ export async function getFinanceForAdmin(query: AdminFinanceQuery = {}): Promise
   const search = sanitizeSearchTerm(query.search).replace(/["_]/g, ' ').trim();
   const status = query.status || '';
   const method = query.method || '';
+  // PHASE 4D — optional created_at range; invalid or partial dates are ignored.
+  const fromDate = normalizeIsoDate(query.fromDate);
+  const toDate = normalizeIsoDate(query.toDate);
   if (status && !ADMIN_PAYMENT_STATUSES.some((value) => value === status)) throw new Error('Choose a supported payment status.');
   try {
     let methods: string[] = [];
@@ -2182,7 +2582,7 @@ export async function getFinanceForAdmin(query: AdminFinanceQuery = {}): Promise
         const bookingIds = (bookingMatches.data || []).map((row: { id: string }) => row.id);
         if (bookingIds.length) searchFilters.push(`booking_id.in.(${bookingIds.join(',')})`);
       }
-      if (!searchFilters.length) return { rows: [], total: 0, page: 1, pageSize, contextError: false, methods };
+      if (!searchFilters.length) return { rows: [], total: 0, page: 1, pageSize, contextError: false, methods, totals: financePageTotals([]), matchingTotals: { amount: 0, platformFees: 0, providerAmounts: 0 } };
     }
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const from = (page - 1) * pageSize;
@@ -2194,12 +2594,15 @@ export async function getFinanceForAdmin(query: AdminFinanceQuery = {}): Promise
       if (searchFilters.length) request = request.or(searchFilters.join(','));
       if (status) request = request.eq('payment_status', status);
       if (method) request = request.eq('payment_method', method);
+      if (fromDate) request = request.gte('created_at', fromDate);
+      if (toDate) request = request.lt('created_at', isoDateAfter(toDate));
       const { data, error, count } = await request;
       if (error) { if (error.code === 'PGRST103' && page > 1) { page = 1; continue; } throw adminFinanceReadError(error); }
       if (count == null) throw new Error('The exact payment count is unavailable. Please retry.');
       if (page > 1 && (!data?.length || from >= count)) { page = 1; continue; }
       const enriched = await enrichAdminFinancePage((data || []) as Payment[]);
-      return { ...enriched, total: count, page, pageSize, methods };
+      const matchingTotals = await financeMatchingTotals({ searchFilters, status, method, fromDate, toDate });
+      return { ...enriched, total: count, page, pageSize, methods, totals: financePageTotals(enriched.rows), matchingTotals };
     }
         throw new Error('The payment page changed while loading. Please retry.');
   } catch (error) {
