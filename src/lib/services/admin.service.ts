@@ -689,6 +689,170 @@ export async function getDisputesForAdmin(query: AdminDisputesQuery = {}): Promi
     throw new Error('The disputes directory could not be loaded.');
   }
 }
+/* ==========================================================================
+ * PHASE 5C — READ-ONLY Admin Notifications directory.
+ * Strictly read-only: paginated `notifications` SELECT + bounded recipient
+ * enrichment. The notification producers (createNotification /
+ * createPaymentNotifications / createRequestNotificationsForProviders) and the
+ * read-state writers (markNotificationAsRead / markAllNotificationsAsRead) are
+ * NOT imported, called or wired here — this directory only observes what the
+ * existing flows already sent. The bell, the /notifications page, the realtime
+ * request inbox and every existing producer are left untouched.
+ * ========================================================================== */
+
+/** Matches the established 12-per-page Admin directory convention. */
+export const ADMIN_NOTIFICATIONS_PAGE_SIZE = 12;
+/**
+ * The real `type` values emitted by producers in this app: auth.service.ts
+ * (signup), the payment/booking notifications (booking_confirmed,
+ * payment_escrowed, completion_requested, payment_released, booking_cancelled)
+ * and requests.service.ts offer acceptance (offer_accepted). The bell UI maps
+ * dispute_raised / dispute_resolved icons, but no producer emits those types,
+ * so they are deliberately NOT offered here (they would always return zero).
+ */
+export const ADMIN_NOTIFICATION_TYPES = ['signup', 'booking_confirmed', 'payment_escrowed', 'completion_requested', 'payment_released', 'booking_cancelled', 'offer_accepted'] as const;
+/** Display labels for the stored `type` values (values are never rewritten). */
+export const ADMIN_NOTIFICATION_TYPE_LABELS: Record<string, string> = {
+  signup: 'Signup',
+  booking_confirmed: 'Booking confirmed',
+  payment_escrowed: 'Payment escrowed',
+  completion_requested: 'Completion requested',
+  payment_released: 'Payment released',
+  booking_cancelled: 'Booking cancelled',
+  offer_accepted: 'Offer accepted',
+};
+/** Read-state filter values, mapped onto the real `is_read` column. */
+export const ADMIN_NOTIFICATION_READ_STATES = ['unread', 'read'] as const;
+/** Related-recipient search bound — matches the established Admin pattern. */
+const ADMIN_NOTIFICATION_SEARCH_BOUND = 100;
+
+export interface AdminNotificationRow extends Notification {
+  /** Recipient profile full_name, resolved by bounded lookup (null if unavailable). */
+  recipient_name: string | null;
+  /** Recipient profile role, resolved by bounded lookup (null if unavailable). */
+  recipient_role: AdminRole | null;
+}
+
+export interface AdminNotificationsQuery {
+  search?: string;
+  /** Exact stored `type` value; empty/undefined = no type filter. */
+  type?: string;
+  /** 'unread' | 'read'; anything else = no read-state filter. */
+  read?: string;
+  page?: number;
+}
+
+export interface AdminNotificationsPage {
+  rows: AdminNotificationRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+  /** True when the recipient profile lookup failed (rows still shown). */
+  contextError: boolean;
+}
+
+/**
+ * PHASE 5C — Read-only admin notifications directory with search / type filter /
+ * read-state filter / pagination.
+ *
+ * One paginated `notifications` query with an exact count. Search is bounded:
+ * recipients are resolved first through a capped `profiles` lookup (cap
+ * ADMIN_NOTIFICATION_SEARCH_BOUND) and combined with direct `title`/`message`
+ * ilike clauses, so there is never an unbounded scan and never a silent
+ * truncation — exceeding the cap throws a truthful "narrow your search" error.
+ * Recipients are then enriched with ONE batched `profiles` lookup (no N+1).
+ * Throws on query failure so the page shows a real error state instead of a
+ * fake empty list. NO mutation calls and NO rpc calls anywhere in this method.
+ */
+export async function getNotificationsForAdmin(query: AdminNotificationsQuery = {}): Promise<AdminNotificationsPage> {
+  const pageSize = ADMIN_NOTIFICATIONS_PAGE_SIZE;
+  const page = Number.isSafeInteger(query.page) && query.page! > 0 ? query.page! : 1;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  try {
+    // Bounded recipient search + direct title/message search in one `or` filter.
+    // Reuse the established sanitizer; quotes/underscore are also removed from OR values.
+    let orFilter: string | null = null;
+    const search = sanitizeSearchTerm(query.search).replace(/["_]/g, ' ').trim();
+    if (search) {
+      const recipients = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact' })
+        .ilike('full_name', `%${search}%`)
+        .limit(ADMIN_NOTIFICATION_SEARCH_BOUND + 1);
+      if (recipients.error) throw new Error('The notifications directory could not be loaded.');
+      const matchedIds = (recipients.data || []).map((r) => r.id);
+      if ((recipients.count ?? matchedIds.length) > ADMIN_NOTIFICATION_SEARCH_BOUND) {
+        throw new Error('Search matched too many recipients. Please narrow your search.');
+      }
+      const clauses: string[] = [];
+      if (matchedIds.length) clauses.push(`user_id.in.(${matchedIds.join(',')})`);
+      clauses.push(`title.ilike.%${search}%`);
+      clauses.push(`message.ilike.%${search}%`);
+      // Exact notification id when the term is a uuid.
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search)) clauses.push(`id.eq.${search}`);
+      orFilter = clauses.join(',');
+    }
+
+    let request = supabase
+      .from('notifications')
+      .select('id, user_id, type, title, message, booking_id, payment_id, is_read, created_at', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(from, to);
+    if (orFilter) request = request.or(orFilter);
+    if (ADMIN_NOTIFICATION_TYPES.some((value) => value === query.type)) request = request.eq('type', query.type as string);
+    if (query.read === 'read') request = request.eq('is_read', true);
+    if (query.read === 'unread') request = request.eq('is_read', false);
+
+    const { data, error, count } = await request;
+    if (error) {
+      // Deep-linking or paging past the end returns 416 / PGRST103 — recover from page 1.
+      if (error.code === 'PGRST103' || /range not satisfiable/i.test(error.message ?? '')) {
+        if (page > 1) return getNotificationsForAdmin({ ...query, page: 1 });
+        return { rows: [], total: 0, page: 1, pageSize, contextError: false };
+      }
+      console.error('Error fetching notifications for admin:', error);
+      throw new Error(
+        error.code === '42501' || /row-level security/i.test(error.message)
+          ? 'The notifications directory is blocked by row-level security. Ask a project owner to confirm an admin SELECT policy for notifications is applied.'
+          : 'The notifications directory could not be loaded.',
+      );
+    }
+
+    const notifications = (data || []) as Notification[];
+    const recipientIds = [...new Set(notifications.map((n) => n.user_id).filter(Boolean))];
+    let contextError = false;
+    let recipients: Record<string, { full_name: string | null; role: string | null }> = {};
+    if (recipientIds.length) {
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, full_name, role')
+        .in('id', recipientIds);
+      if (profileError) {
+        console.error('Error fetching notification recipients for admin:', profileError);
+        contextError = true;
+      } else {
+        recipients = Object.fromEntries(
+          ((profiles || []) as Array<{ id: string; full_name: string | null; role: string | null }>).map((p) => [p.id, p]),
+        );
+      }
+    }
+
+    const rows: AdminNotificationRow[] = notifications.map((n) => ({
+      ...n,
+      recipient_name: recipients[n.user_id]?.full_name ?? null,
+      recipient_role: (recipients[n.user_id]?.role as AdminRole | undefined) ?? null,
+    }));
+
+    return { rows, total: count ?? rows.length, page, pageSize, contextError };
+  } catch (error) {
+    if (error instanceof Error && /row-level security|narrow your search|could not be loaded/.test(error.message)) throw error;
+    console.error('Exception fetching notifications for admin:', error);
+    throw new Error('The notifications directory could not be loaded.');
+  }
+}
 
 /** Remove a service request (admin moderation). */
 export async function deleteRequest(requestId: string): Promise<boolean> {

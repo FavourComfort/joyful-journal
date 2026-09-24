@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { AlertTriangle, Bell, LayoutDashboard, LogOut, Menu, RefreshCw, Search, ShieldCheck, Store, Users, X } from "lucide-react";
-import { getCurrentProfile, signOut } from "@/lib/services/auth.service";
+import { AlertTriangle, Bell, Menu, RefreshCw, Search, Store, Users, X } from "lucide-react";
+import { getCurrentProfile } from "@/lib/services/auth.service";
+import { AdminNav } from "@/components/AdminNav";
 import { getAllUsersForAdmin, ADMIN_USERS_PAGE_SIZE, type AdminUserRow } from "@/lib/services/admin.service";
 
 const dateFormat = new Intl.DateTimeFormat("en-UG", { day: "numeric", month: "short", year: "numeric" });
@@ -67,20 +68,15 @@ function AdminUsers() {
     } finally { if (ticket === requestId.current) setLoading(false); }
   };
   useEffect(() => { void load(1); /* eslint-disable-line react-hooks/exhaustive-deps */ }, [search, role]);
-  const signOutAdmin = async () => { await signOut(); await router.navigate({ to: "/login" }); };
-
   const totalPages = Math.max(1, Math.ceil(total / ADMIN_USERS_PAGE_SIZE));
   const showing = rows.length === 0 ? 0 : (page - 1) * ADMIN_USERS_PAGE_SIZE + 1;
   const showingTo = (page - 1) * ADMIN_USERS_PAGE_SIZE + rows.length;
 
-  const navItems = [[LayoutDashboard, "Dashboard"], [Users, "Users"], [ShieldCheck, "Providers"], [Store, "Services"], [Bell, "Disputes"], [Bell, "Support"], [Bell, "Reviews"]] as const;
-  const navigation = <><div className="mb-5 flex items-center gap-2 px-2"><img src="/favicon.png" alt="NINJAWO" className="h-8 w-8 rounded-lg" /><div><p className="text-base font-bold leading-5 text-slate-950">NINJAWO</p><p className="text-[9px] font-bold uppercase tracking-[0.16em] text-blue-700">Admin console</p></div></div><nav className="space-y-0.5" aria-label="Admin navigation">{navItems.map(([Icon, name], index) => index === 0 ? <a key={name} href="/admin/dashboard" onClick={() => setMobileOpen(false)} className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"><Icon className="h-3.5 w-3.5" />{name}</a> : index === 1 ? <a key={name} href="/admin/users" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 rounded-lg bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700"><Icon className="h-3.5 w-3.5" />{name}</a> : <button key={name} disabled className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-slate-400"><Icon className="h-3.5 w-3.5" />{name}<span className="ml-auto text-[9px] uppercase">Soon</span></button>)}</nav><button type="button" onClick={signOutAdmin} className="mt-auto flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-600"><LogOut className="h-3.5 w-3.5" />Sign out</button></>;
-
   return <div className="min-h-screen bg-[#f6f8fb] text-slate-900">
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-slate-200 bg-white px-3 py-4 md:flex">{navigation}</aside>
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-slate-200 bg-white px-3 py-4 md:flex"><AdminNav onNavigate={() => setMobileOpen(false)} /></aside>
     {mobileOpen && <div className="fixed inset-0 z-40 bg-slate-950/30 md:hidden" onClick={() => setMobileOpen(false)} />}
     <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200 bg-white px-3 py-4 transition-transform duration-200 md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
-      <button type="button" onClick={() => setMobileOpen(false)} className="absolute right-3 top-3 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Close menu"><X className="h-4 w-4" /></button>{navigation}
+      <button type="button" onClick={() => setMobileOpen(false)} className="absolute right-3 top-3 rounded-md p-1.5 text-slate-500 hover:bg-slate-100" aria-label="Close menu"><X className="h-4 w-4" /></button><AdminNav onNavigate={() => setMobileOpen(false)} />
     </aside>
     <main className="md:pl-56">
       <header className="sticky top-0 z-20 flex h-14 items-center border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">

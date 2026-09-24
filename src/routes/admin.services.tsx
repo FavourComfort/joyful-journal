@@ -1,19 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type ChangeEvent, type FormEvent } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import {
-  Bell,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Search,
-  ShieldCheck,
-  Store,
-  ToggleLeft,
-  ToggleRight,
-  Users,
-  X,
-} from "lucide-react";
-import { getCurrentProfile, signOut } from "@/lib/services/auth.service";
+import { Bell, Menu, Search, ToggleLeft, ToggleRight, X } from "lucide-react";
+import { getCurrentProfile } from "@/lib/services/auth.service";
+import { AdminNav } from "@/components/AdminNav";
 import {
   getServiceCategoriesForAdmin,
   getServicesForAdmin,
@@ -157,11 +146,6 @@ function AdminServices() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, category, availability]);
 
-  const signOutAdmin = async () => {
-    await signOut();
-    await router.navigate({ to: "/login" });
-  };
-
   const onSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim() === search) return;
@@ -188,94 +172,10 @@ function AdminServices() {
     const showing = rows.length === 0 ? 0 : (page - 1) * ADMIN_SERVICES_PAGE_SIZE + 1;
   const showingTo = (page - 1) * ADMIN_SERVICES_PAGE_SIZE + rows.length;
 
-  const navItems = [
-    [LayoutDashboard, "Dashboard"],
-    [Users, "Users"],
-    [ShieldCheck, "Providers"],
-    [Store, "Services"],
-    [Bell, "Disputes"],
-    [Bell, "Support"],
-    [Bell, "Reviews"],
-  ] as const;
-  const navigation = (
-    <>
-      <div className="mb-5 flex items-center gap-2 px-2">
-        <img src="/favicon.png" alt="NINJAWO" className="h-8 w-8 rounded-lg" />
-        <div>
-          <p className="text-base font-bold leading-5 text-slate-950">NINJAWO</p>
-          <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-blue-700">Admin console</p>
-        </div>
-      </div>
-      <nav className="space-y-0.5" aria-label="Admin navigation">
-        {navItems.map(([Icon, name], index) =>
-          index === 0 ? (
-            <a
-              key={name}
-              href="/admin/dashboard"
-              onClick={() => setMobileOpen(false)}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {name}
-            </a>
-          ) : index === 1 ? (
-            <a
-              key={name}
-              href="/admin/users"
-              onClick={() => setMobileOpen(false)}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {name}
-            </a>
-          ) : index === 2 ? (
-            <a
-              key={name}
-              href="/admin/providers"
-              onClick={() => setMobileOpen(false)}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-600 hover:bg-blue-50 hover:text-blue-700"
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {name}
-            </a>
-          ) : index === 3 ? (
-            <a
-              key={name}
-              href="/admin/services"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg bg-blue-50 px-2.5 py-2 text-xs font-semibold text-blue-700"
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {name}
-            </a>
-          ) : (
-            <button
-              key={name}
-              disabled
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-xs text-slate-400"
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {name}
-              <span className="ml-auto text-[9px] uppercase">Soon</span>
-            </button>
-          ),
-        )}
-      </nav>
-      <button
-        type="button"
-        onClick={signOutAdmin}
-        className="mt-auto flex items-center gap-2.5 px-2.5 py-2 text-xs font-semibold text-slate-600"
-      >
-                <LogOut className="h-3.5 w-3.5" />
-        Sign out
-    </button>
-  </>
-  );
-
   return (
     <div className="min-h-screen bg-[#f6f8fb] text-slate-900">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-slate-200 bg-white px-3 py-4 md:flex">
-        {navigation}
+        <AdminNav onNavigate={() => setMobileOpen(false)} />
       </aside>
       {mobileOpen && (
         <div className="fixed inset-0 z-40 bg-slate-950/30 md:hidden" onClick={() => setMobileOpen(false)} />
@@ -293,7 +193,7 @@ function AdminServices() {
         >
           <X className="h-4 w-4" />
         </button>
-        {navigation}
+        <AdminNav onNavigate={() => setMobileOpen(false)} />
       </aside>
       <main className="md:pl-56">
         <header className="sticky top-0 z-20 flex h-14 items-center border-b border-slate-200 bg-white/95 px-4 backdrop-blur sm:px-6">

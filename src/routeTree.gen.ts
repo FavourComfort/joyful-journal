@@ -36,6 +36,7 @@ import { Route as AdminRequestsRouteImport } from './routes/admin.requests'
 import { Route as AdminProvidersRouteImport } from './routes/admin.providers'
 import { Route as AdminPayoutsRouteImport } from './routes/admin.payouts'
 import { Route as AdminOffersRouteImport } from './routes/admin.offers'
+import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminFinanceRouteImport } from './routes/admin.finance'
 import { Route as AdminDisputesRouteImport } from './routes/admin.disputes'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
@@ -176,6 +177,11 @@ const AdminOffersRoute = AdminOffersRouteImport.update({
   path: '/admin/offers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
+  id: '/admin/notifications',
+  path: '/admin/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminFinanceRoute = AdminFinanceRouteImport.update({
   id: '/admin/finance',
   path: '/admin/finance',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/providers': typeof AdminProvidersRoute
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/providers': typeof AdminProvidersRoute
@@ -280,6 +288,7 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/disputes': typeof AdminDisputesRoute
   '/admin/finance': typeof AdminFinanceRoute
+  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/payouts': typeof AdminPayoutsRoute
   '/admin/providers': typeof AdminProvidersRoute
@@ -315,6 +324,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/disputes'
     | '/admin/finance'
+    | '/admin/notifications'
     | '/admin/offers'
     | '/admin/payouts'
     | '/admin/providers'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/disputes'
     | '/admin/finance'
+    | '/admin/notifications'
     | '/admin/offers'
     | '/admin/payouts'
     | '/admin/providers'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/disputes'
     | '/admin/finance'
+    | '/admin/notifications'
     | '/admin/offers'
     | '/admin/payouts'
     | '/admin/providers'
@@ -415,6 +427,7 @@ export interface RootRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminDisputesRoute: typeof AdminDisputesRoute
   AdminFinanceRoute: typeof AdminFinanceRoute
+  AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminOffersRoute: typeof AdminOffersRoute
   AdminPayoutsRoute: typeof AdminPayoutsRoute
   AdminProvidersRoute: typeof AdminProvidersRoute
@@ -623,6 +636,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOffersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/notifications': {
+      id: '/admin/notifications'
+      path: '/admin/notifications'
+      fullPath: '/admin/notifications'
+      preLoaderRoute: typeof AdminNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/finance': {
       id: '/admin/finance'
       path: '/admin/finance'
@@ -681,6 +701,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   AdminDisputesRoute: AdminDisputesRoute,
   AdminFinanceRoute: AdminFinanceRoute,
+  AdminNotificationsRoute: AdminNotificationsRoute,
   AdminOffersRoute: AdminOffersRoute,
   AdminPayoutsRoute: AdminPayoutsRoute,
   AdminProvidersRoute: AdminProvidersRoute,
