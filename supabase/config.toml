@@ -429,7 +429,7 @@ verify_jwt = true
 import_map = "./functions/ninjawo-handler/deno.json"
 entrypoint = "./functions/ninjawo-handler/index.ts"
 
-[functions.marzpay-webhook-function]
+[functions.marzpay-webhook]
 enabled = true
 verify_jwt = false
 import_map = "./functions/marzpay-webhook/deno.json"

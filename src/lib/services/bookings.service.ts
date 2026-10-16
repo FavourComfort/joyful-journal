@@ -4,6 +4,7 @@ import {
   bookingTransitionError,
   type BookingStatus,
 } from '../state-machines';
+import { getPaymentByBookingId } from './payments.service';
 
 export interface Booking {
   id: string;
@@ -123,6 +124,12 @@ export async function createBooking(
 // public.bookings, so this function delegates to the SECURITY DEFINER RPC
 // provider_update_booking_status, which re-verifies that the caller is the
 // provider of the booking before updating ONLY the status column.
+/**
+ * Booking statuses that may only be reached once the customer's payment is
+ * actually held in escrow. Reaching these states implies the money is secured.
+ */
+const PAYMENT_GATED_BOOKING_STATUSES: BookingStatus[] = ['confirmed', 'in_progress'];
+
 export async function updateBookingStatus(
   bookingId: string,
   status: BookingStatus
@@ -132,6 +139,39 @@ export async function updateBookingStatus(
     if (!current) {
       console.error('Error updating booking status: booking not found');
       return null;
+    }
+
+    /*
+     * PAYMENT GATE.
+     *
+     * A provider must not be able to progress a booking into a state that
+     * implies the customer's money is secured while the payment is still
+     * only 'pending'.
+     *
+     * A payment row is created as 'pending' by
+     * create_booking_with_escrow_payment; only the marzpay-webhook moves it to
+     * 'escrowed'. So the presence of a payment row proves nothing — only the
+     * real payment_status does.
+     *
+     * This is a pure read: it never converts 'pending' into 'escrowed', never
+     * fakes escrow, and does not touch the escrow mechanism itself.
+     */
+    if (PAYMENT_GATED_BOOKING_STATUSES.includes(status)) {
+      const payment = await getPaymentByBookingId(bookingId);
+
+      if (!payment) {
+        console.error(
+          `Booking status blocked: booking ${bookingId} has no payment record.`
+        );
+        return null;
+      }
+
+      if (payment.payment_status !== 'escrowed') {
+        console.error(
+          `Booking status blocked: payment status is '${payment.payment_status}', not 'escrowed'.`
+        );
+        return null;
+      }
     }
 
     const transitionError = bookingTransitionError(current.status, status);

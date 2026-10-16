@@ -752,6 +752,39 @@ async function notifyBookingCancelled(payment: Payment | null): Promise<void> {
 /** Provider starts the mutual completion flow; the customer still releases escrow. */
 export async function requestServiceCompletion(bookingId: string, providerId: string): Promise<CompletionRequest | null> {
   try {
+    /*
+     * PAYMENT GATE.
+     *
+     * A completion request must never be created while the customer's money
+     * has not actually reached escrow.
+     *
+     * "A payment row exists" is NOT the same as "the payment is secured":
+     * the row is deliberately created as 'pending' by
+     * create_booking_with_escrow_payment and only the marzpay-webhook ever
+     * moves it to 'escrowed'. Requiring the real 'escrowed' status therefore
+     * blocks progression that would otherwise behave as if funds were held.
+     *
+     * This is a pure read. It never converts a 'pending' payment into an
+     * 'escrowed' one and never fakes escrow.
+     */
+    const payment = await getPaymentByBookingId(bookingId);
+
+    if (!payment) {
+      console.error(
+        "Completion request blocked: this booking has no payment record.",
+        bookingId
+      );
+      return null;
+    }
+
+    if (payment.payment_status !== "escrowed") {
+      console.error(
+        `Completion request blocked: payment status is '${payment.payment_status}', not 'escrowed'.`,
+        bookingId
+      );
+      return null;
+    }
+
     const { data, error } = await supabase.from("completion_requests")
       .upsert({ booking_id: bookingId, provider_id: providerId }, { onConflict: "booking_id" })
       .select().single();

@@ -377,10 +377,16 @@ function ClientDashboardComponent() {
       throw new Error("Invalid offer ID.");
     }
 
-    const success = await acceptOffer(offerId);
+    const result = await acceptOffer(offerId);
 
-    if (!success) {
-      throw new Error("Could not accept this offer.");
+    if (!result.ok) {
+      /*
+       * Surface the real reason. The previous generic
+       * "Could not accept this offer." hid whether MarzPay declined, the
+       * booking/payment could not be created, or the offer was already
+       * accepted.
+       */
+      throw new Error(result.message);
     }
 
     // Reload the customer's requests and offers
@@ -406,6 +412,21 @@ function ClientDashboardComponent() {
       payload: {
         requests,
         offers,
+      },
+    });
+
+    /*
+     * Give the customer the same truthful payment feedback the direct
+     * booking flow gives. A 'pending' payment is NOT yet escrowed, so the
+     * message must not imply the money is already secured.
+     */
+    postToIframe({
+      type: "dashboard:actionSuccess",
+      payload: {
+        message:
+          result.paymentStatus === "escrowed"
+            ? "Offer accepted — your booking is created and your payment is held in escrow until you confirm the service."
+            : "Booking created — awaiting payment. Please approve the payment prompt on your phone. Funds are only held in escrow once the payment is confirmed.",
       },
     });
   } catch (err) {

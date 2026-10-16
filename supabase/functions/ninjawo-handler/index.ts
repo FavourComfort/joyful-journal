@@ -10,6 +10,67 @@ interface PaymentRequest {
 
 console.info("NINJAWO MarzPay handler started");
 
+/**
+ * MarzPay may answer with HTTP 2xx and still describe a business-level
+ * rejection (a declined/invalid collection) rather than a transport error.
+ *
+ * Only field names already evidenced by this repository are read:
+ *   - `success`  (boolean)
+ *   - `status`   (string) — the marzpay-webhook Edge Function parses
+ *     `transaction.status` from real MarzPay payloads (see its
+ *     `MarzPayWebhook` interface).
+ *
+ * If neither field is present the result is treated as UNKNOWN and the
+ * previous behaviour is preserved, so no assumption is invented about
+ * response shapes this repository has not observed.
+ */
+const MARZPAY_FAILURE_STATUSES = new Set([
+  "failed",
+  "failure",
+  "rejected",
+  "declined",
+  "cancelled",
+  "canceled",
+  "error",
+]);
+
+type MarzBusinessFailure = { status: string | null };
+
+function detectMarzBusinessFailure(data: unknown): MarzBusinessFailure | null {
+  if (typeof data !== "object" || data === null) return null;
+
+  const record = data as Record<string, unknown>;
+
+  if (record.success === false) {
+    return {
+      status: typeof record.status === "string" ? record.status : null,
+    };
+  }
+
+  // Collect only the status-bearing locations this repo already knows about.
+  const candidates: unknown[] = [record.status];
+
+  const dataField = record.data;
+  if (typeof dataField === "object" && dataField !== null) {
+    candidates.push((dataField as Record<string, unknown>).status);
+  }
+
+  const transactionField = record.transaction;
+  if (typeof transactionField === "object" && transactionField !== null) {
+    candidates.push((transactionField as Record<string, unknown>).status);
+  }
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string") continue;
+    const normalized = candidate.trim().toLowerCase();
+    if (MARZPAY_FAILURE_STATUSES.has(normalized)) {
+      return { status: normalized };
+    }
+  }
+
+  return null;
+}
+
 export default {
   fetch: withSupabase(
    { auth: "user" },
@@ -190,6 +251,38 @@ export default {
             }),
             {
               status: marzResponse.status,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        /*
+         * HTTP 2xx is NOT sufficient proof that a collection was started.
+         * A business-level rejection must reach the caller as a failure so
+         * that the client marks the payment failed instead of leaving it
+         * silently stuck in 'pending'.
+         *
+         * A 502 is returned deliberately: the request to MarzPay itself
+         * completed, but its outcome is a failure, and a 2xx here would be
+         * indistinguishable from a successfully initiated payment.
+         */
+        const businessFailure = detectMarzBusinessFailure(marzData);
+
+        if (businessFailure) {
+          console.error(
+            `MarzPay returned a business-level failure (status=${businessFailure.status ?? "unknown"}):`,
+            marzData,
+          );
+
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error:
+                "MarzPay declined the payment request. No payment was started.",
+              details: marzData,
+            }),
+            {
+              status: 502,
               headers: corsHeaders,
             },
           );

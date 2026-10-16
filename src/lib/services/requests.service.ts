@@ -757,6 +757,7 @@ async function setOfferStatus(
 type OfferBookingContext = {
   request_id: string | null;
   provider_id: string | null;
+  status?: "pending" | "accepted" | "declined" | null;
   price?: number | null;
   estimated_start?: string | null;
   requests: {
@@ -891,7 +892,37 @@ async function getOfferBookingServiceId(
   }
 }
 
-export async function acceptOffer(offerId: string): Promise<boolean> {
+/**
+ * Outcome of accepting a provider offer.
+ *
+ * The previous implementation returned a plain boolean, which collapsed
+ * "MarzPay declined", "booking could not be created" and "offer status could
+ * not be updated" into one indistinguishable failure. The caller now needs
+ * the resulting payment state so it can tell the customer the truth.
+ */
+export type AcceptOfferResult =
+  | {
+      ok: true;
+      bookingId: string;
+      paymentId: string;
+      paymentStatus: "pending" | "escrowed";
+      transactionRef?: string;
+    }
+  | {
+      ok: false;
+      reason:
+        | "missing_offer_context"
+        | "already_processed"
+        | "service_unavailable"
+        | "booking_failed"
+        | "payment_failed"
+        | "acceptance_failed";
+      message: string;
+    };
+
+export async function acceptOffer(
+  offerId: string
+): Promise<AcceptOfferResult> {
   try {
     console.log("acceptOffer: called with offerId =", offerId);
     const offer = await getOfferWithContext(offerId);
@@ -901,6 +932,7 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
         ? {
             request_id: offer.request_id,
             provider_id: offer.provider_id,
+            status: offer.status ?? null,
             has_request_row: Boolean(offer.requests),
             has_provider_row: Boolean(offer.providers),
           }
@@ -908,8 +940,36 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
     );
 
     if (!offer?.request_id || !offer?.provider_id) {
-      console.error("Offer missing request/provider context for booking creation.");
-      return false;
+      console.error(
+        "Offer missing request/provider context for booking creation."
+      );
+      return {
+        ok: false,
+        reason: "missing_offer_context",
+        message: "We could not load this offer. Please refresh and try again.",
+      };
+    }
+
+    /*
+     * Idempotency guard.
+     *
+     * An already-accepted offer has, by definition, already produced a
+     * booking and a payment. Re-running acceptance would create a second pair
+     * of financial records — this happened in practice, where one accepted
+     * offer produced four bookings/payments. There is no offers.booking_id or
+     * bookings.offer_id column in the live schema, so the offer's own status is
+     * the only reliable link available without a schema change.
+     */
+    const currentOfferStatus = offer.status ?? "pending";
+    if (currentOfferStatus !== "pending") {
+      return {
+        ok: false,
+        reason: "already_processed",
+        message:
+          currentOfferStatus === "accepted"
+            ? "This offer was already accepted. A booking and payment already exist for it."
+            : "This offer is no longer available.",
+      };
     }
 
     const request = offer.requests;
@@ -917,7 +977,11 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
 
     if (!request || !provider) {
       console.error("Offer is missing its request or provider row.");
-      return false;
+      return {
+        ok: false,
+        reason: "missing_offer_context",
+        message: "We could not load this offer. Please refresh and try again.",
+      };
     }
 
     const serviceId = await getOfferBookingServiceId(
@@ -929,7 +993,12 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
       console.error(
         "Could not create a booking because the provider has no active service record for this offer."
       );
-      return false;
+      return {
+        ok: false,
+        reason: "service_unavailable",
+        message:
+          "This provider has no active service for this request, so a booking could not be created.",
+      };
     }
 
     const bookingDate =
@@ -973,7 +1042,13 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
         "Accepted offer could not create booking and payment:",
         result.error
       );
-      return false;
+      return {
+        ok: false,
+        reason: "booking_failed",
+        message:
+          result.error ||
+          "We could not create your booking and payment. Please try again.",
+      };
     }
 
     const { booking, payment } = result;
@@ -983,7 +1058,13 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
         "Accepted offer payment failed:",
         result.error
       );
-      return false;
+      return {
+        ok: false,
+        reason: "payment_failed",
+        message:
+          result.error ||
+          "Your payment could not be started, so no funds were taken. Please try again.",
+      };
     }
 
     // 'pending' or 'escrowed' both mean the booking exists and the payment
@@ -992,7 +1073,12 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
 
     if (!finished) {
       console.error("Accepted offer status update failed after booking and payment creation.");
-      return false;
+      return {
+        ok: false,
+        reason: "acceptance_failed",
+        message:
+          "The booking was created but this offer could not be marked as accepted. Please refresh.",
+      };
     }
 
     const notificationsCreated = await createPaymentNotifications({
@@ -1007,20 +1093,42 @@ export async function acceptOffer(offerId: string): Promise<boolean> {
       console.warn("Accepted offer created booking and payment but notification creation failed.");
     }
 
+    const isEscrowed = result.status === "escrowed";
+
     // Best-effort customer-facing confirmation that the offer acceptance
     // itself succeeded. createNotification() never throws, so this cannot
     // affect the already-completed booking/payment/offer-status flow.
+    //
+    // The wording deliberately reflects the REAL payment state: while the
+    // payment is still 'pending' the money is not yet held in escrow.
     await createNotification(
       request.customer_id,
       "offer_accepted",
-      "Offer accepted — booking created",
-      `Your acceptance of the offer for "${request.title}" was successful. A booking has been created and your payment is secured in escrow. The provider can now proceed with the service.`
+      isEscrowed
+        ? "Offer accepted — booking created, payment in escrow"
+        : "Offer accepted — booking created, awaiting your payment",
+      isEscrowed
+        ? `Your acceptance of the offer for "${request.title}" was successful. A booking has been created and your payment of UGX ${totalAmount} is held in escrow by NINJAWO until you confirm the service.`
+        : `Your acceptance of the offer for "${request.title}" was successful and a booking has been created, but your payment of UGX ${totalAmount} is still awaiting confirmation. Please approve the payment prompt on your phone. Funds are only held in escrow once the payment is confirmed.`
     );
 
-    return true;
+    return {
+      ok: true,
+      bookingId: String(booking.id),
+      paymentId: payment.id,
+      paymentStatus: isEscrowed ? "escrowed" : "pending",
+      transactionRef: result.transactionRef,
+    };
   } catch (err) {
     console.error("Exception accepting offer and creating booking:", err);
-    return false;
+    return {
+      ok: false,
+      reason: "booking_failed",
+      message:
+        err instanceof Error
+          ? err.message
+          : "We could not accept this offer. Please try again.",
+    };
   }
 }
 

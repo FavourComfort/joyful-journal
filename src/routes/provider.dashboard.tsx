@@ -359,7 +359,7 @@ function ProviderDashboardComponent() {
         try {
           const status: Booking["status"] = payload.status;
           const updated = await updateBookingStatus(payload.bookingId, status);
-          if (!updated) throw new Error("Failed to update the booking.");
+          if (!updated) throw new Error("Could not update the booking. Confirming or starting a booking requires the customer's payment to be held in escrow.");
           await sendData();
         } catch (err) {
           postToIframe({
@@ -376,7 +376,7 @@ function ProviderDashboardComponent() {
         try {
           const provider = providerRef.current;
           if (!provider || typeof payload?.bookingId !== "string") throw new Error("Invalid completion request.");
-          if (!await requestServiceCompletion(payload.bookingId, provider.id)) throw new Error("Could not send the completion request.");
+          if (!await requestServiceCompletion(payload.bookingId, provider.id)) throw new Error("A completion request can only be sent once the customer's payment is held in escrow.");
           await sendData();
           postToIframe({ type: "dashboard:actionSuccess", payload: { message: "Completion request sent to the customer for approval." } });
         } catch (err) {

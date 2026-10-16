@@ -158,25 +158,43 @@ export async function getAllProvidersForAdmin(): Promise<AdminProvider[]> {
   }
 }
 
-/** Toggle a provider's `verified` flag (admin moderation action). */
+/**
+ * Toggle a provider's `verified` flag (admin moderation action).
+ *
+ * The write goes through the `admin_set_provider_verified` SECURITY DEFINER
+ * RPC so the DATABASE independently re-checks `public.is_admin_user()` on
+ * every call — authorization does not depend on the React admin guard or on
+ * RLS alone. See db/admin_set_provider_verified.sql (must be applied).
+ *
+ * DORMANT: intentionally not wired to any Admin UI. This remains view-only.
+ */
 export async function setProviderVerified(
   providerId: string,
   verified: boolean
 ): Promise<AdminProvider | null> {
   try {
-    const { data, error } = await supabase
-      .from('providers')
-      .update({ verified })
-      .eq('id', providerId)
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('admin_set_provider_verified', {
+      p_provider_id: providerId,
+      p_verified: verified,
+    });
 
     if (error) {
       console.error('Error updating provider verification:', error);
       return null;
     }
 
-    const provider = (data || null) as AdminProvider | null;
+    const result = (data ?? null) as {
+      success?: boolean;
+      provider?: AdminProvider | null;
+      error?: string;
+    } | null;
+
+    if (!result?.success) {
+      console.error('Provider verification change rejected:', result?.error ?? 'unknown reason');
+      return null;
+    }
+
+    const provider = (result.provider || null) as AdminProvider | null;
     if (provider) {
       const profiles = await profileLookup([provider.user_id]);
       const profile = profiles[provider.user_id];
@@ -900,14 +918,42 @@ export async function deleteBookingPermanently(bookingId: string): Promise<boole
   }
 }
 
-/** Permanently remove a review (admin moderation). */
+/**
+ * Permanently remove a review (admin moderation).
+ *
+ * The delete goes through the `admin_delete_review` SECURITY DEFINER RPC so the
+ * DATABASE independently re-checks `public.is_admin_user()` on every call —
+ * authorization does not depend on the React admin guard or on RLS alone.
+ * See db/admin_delete_review.sql (must be applied).
+ *
+ * Return contract is unchanged: true on a successful delete, false when the
+ * backend rejects or errors. A review id that matches nothing still resolves
+ * to `true`, matching the previous PostgREST DELETE behaviour.
+ *
+ * DORMANT: intentionally not wired to any Admin UI. Reviews stays read-only.
+ */
 export async function deleteReviewPermanently(reviewId: string): Promise<boolean> {
   try {
-    const { error } = await supabase.from('reviews').delete().eq('id', reviewId);
+    const { data, error } = await supabase.rpc('admin_delete_review', {
+      p_review_id: reviewId,
+    });
+
     if (error) {
       console.error('Error deleting review:', error);
       return false;
     }
+
+    const result = (data ?? null) as {
+      success?: boolean;
+      deleted?: number;
+      error?: string;
+    } | null;
+
+    if (!result?.success) {
+      console.error('Review deletion rejected:', result?.error ?? 'unknown reason');
+      return false;
+    }
+
     return true;
   } catch (error) {
     console.error('Exception deleting review:', error);
