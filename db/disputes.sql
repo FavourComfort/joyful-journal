@@ -113,6 +113,7 @@ RETURNS boolean
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
+SET search_path = public
 AS $$
   SELECT EXISTS (SELECT 1 FROM public.profiles pr WHERE pr.id = auth.uid() AND pr.role = 'admin');
 $$;
@@ -129,6 +130,7 @@ CREATE OR REPLACE FUNCTION public.raise_dispute(
 RETURNS json
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_booking_status text;
@@ -219,6 +221,7 @@ CREATE OR REPLACE FUNCTION public.respond_to_dispute(
 RETURNS json
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_status text;
@@ -275,6 +278,7 @@ CREATE OR REPLACE FUNCTION public.adjudicate_dispute(
 RETURNS json
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_status text;
@@ -368,6 +372,7 @@ CREATE OR REPLACE FUNCTION public.close_dispute(
 RETURNS json
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = pg_catalog, public
 AS $$
 DECLARE
   v_status text;

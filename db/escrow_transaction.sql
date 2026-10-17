@@ -18,6 +18,7 @@ CREATE OR REPLACE FUNCTION public.release_escrow_to_provider(
 RETURNS json
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_payment_id uuid;
@@ -140,6 +141,7 @@ CREATE OR REPLACE FUNCTION public.cancel_booking_and_refund(
 RETURNS json
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   v_booking_id uuid;
