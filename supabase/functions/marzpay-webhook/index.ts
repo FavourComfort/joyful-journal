@@ -368,7 +368,7 @@ export default {
        * payment successfully received.
        */
       if (transactionStatus === "completed") {
-        const { error: updateError } =
+        const { data: updatedRows, error: updateError } =
           await supabase
             .from("payments")
             .update({
@@ -380,7 +380,8 @@ export default {
               updated_at: new Date().toISOString(),
             })
             .eq("id", payment.id)
-            .eq("payment_status", "pending");
+            .eq("payment_status", "pending")
+            .select("id");
 
         if (updateError) {
           console.error(
@@ -394,6 +395,24 @@ export default {
             }),
             {
               status: 500,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        if (!updatedRows || updatedRows.length === 0) {
+          console.info(
+            `Payment ${payment.id} already processed by a concurrent callback`,
+          );
+
+          return new Response(
+            JSON.stringify({
+              received: true,
+              already_processed: true,
+              payment_id: payment.id,
+            }),
+            {
+              status: 200,
               headers: corsHeaders,
             },
           );
@@ -428,7 +447,7 @@ export default {
         transactionStatus === "failed" ||
         transactionStatus === "cancelled"
       ) {
-        const { error: updateError } =
+        const { data: updatedRows, error: updateError } =
           await supabase
             .from("payments")
             .update({
@@ -441,7 +460,8 @@ export default {
               updated_at: new Date().toISOString(),
             })
             .eq("id", payment.id)
-            .eq("payment_status", "pending");
+            .eq("payment_status", "pending")
+            .select("id");
 
         if (updateError) {
           console.error(
@@ -455,6 +475,24 @@ export default {
             }),
             {
               status: 500,
+              headers: corsHeaders,
+            },
+          );
+        }
+
+        if (!updatedRows || updatedRows.length === 0) {
+          console.info(
+            `Payment ${payment.id} already processed by a concurrent callback`,
+          );
+
+          return new Response(
+            JSON.stringify({
+              received: true,
+              already_processed: true,
+              payment_id: payment.id,
+            }),
+            {
+              status: 200,
               headers: corsHeaders,
             },
           );

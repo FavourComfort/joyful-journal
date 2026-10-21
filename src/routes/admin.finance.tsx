@@ -67,6 +67,7 @@ function AdminFinance() {
         <div className="ml-auto flex items-center gap-3"><Bell className="h-4 w-4 text-slate-500" /><span className="hidden text-xs font-semibold text-slate-600 sm:inline">Read-only directory</span></div>
       </header>
       <div className="mx-auto max-w-6xl space-y-4 p-4 sm:p-5 xl:p-6">
+          <p className="text-[12px] text-slate-500">Manual provider disbursements are recorded separately in the <a href="/admin/payouts" className="font-semibold text-blue-700 underline">payout queue</a>. “Paid out” there means an administrator recorded an external/manual disbursement — the app does not send money through MarzPay.</p>
         <form onSubmit={(event) => { event.preventDefault(); commit(); }} className="flex flex-wrap items-end gap-2">
           <label className="min-w-0 basis-full sm:flex-1"><span className="sr-only">Search payments</span><span className="relative block"><Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" /><input value={draft.search} onChange={(e) => setDraft({ ...draft, search: e.target.value })} onBlur={commit} placeholder="Search customer, business, service or payment/booking ID…" className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-8 pr-3 text-[13px] outline-none focus:border-blue-400" /></span></label>
           <label className="min-w-0 flex-1 sm:max-w-40"><span className="block text-[11px] font-semibold text-slate-500">From date</span><input type="date" value={draft.fromDate}
